@@ -52,6 +52,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<Reminder> Reminders => Set<Reminder>();
     public DbSet<ReminderDigest> ReminderDigests => Set<ReminderDigest>();
     public DbSet<KnownDevice> KnownDevices => Set<KnownDevice>();
+    public DbSet<KanbanTask> KanbanTasks => Set<KanbanTask>();
 
     // SQL Server trả datetime2 không kèm múi giờ; đánh dấu lại là UTC để khi gửi ra trình duyệt
     // (ToString("O") có chữ Z) không bị hiểu nhầm thành giờ máy, lệch 7 tiếng.
@@ -139,6 +140,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         {
             e.Property(x => x.UserId).HasMaxLength(450);
             e.HasIndex(x => new { x.UserId, x.VietnamDate }).IsUnique();
+        });
+        b.Entity<KanbanTask>(e =>
+        {
+            e.Property(x => x.UserId).HasMaxLength(450);
+            e.Property(x => x.Title).HasMaxLength(200);
+            e.Property(x => x.Description).HasMaxLength(5000);
+            e.Property(x => x.Priority).HasDefaultValue(KanbanPriority.Medium);
+            e.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.UserId);
+            e.HasIndex(x => new { x.UserId, x.Status, x.Position }); // đọc bảng theo cột + thứ tự
         });
         b.Entity<KnownDevice>(e =>
         {

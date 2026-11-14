@@ -63,6 +63,8 @@ internal static class AttemptLock
     // Tiến độ thẻ cá nhân của một người với một bộ học (tự ôn, học bộ của mình). Tài khoản 2 rà 13/11/2026: trước đây khóa dòng StudySets
     // → cả lớp tự ôn cùng một bộ xếp hàng qua một dòng, và đi ngược thứ tự "bộ học → bài" của Admin ẩn nội dung / chuyển lớp.
     internal static Task PersonalCardsAsync(AppDbContext db, int studySetId, string userId) => AppLockAsync(db, $"cards:{studySetId}:{userId}");
+    // Bảng Kanban cá nhân: chỉ người đó sửa (nhiều tab) → khóa theo người, không đụng khóa bài/lớp.
+    internal static Task KanbanAsync(AppDbContext db, string userId) => AppLockAsync(db, $"kanban:{userId}");
 
     // Đặt tên khách không trùng trong bài. Thử tải P2 14/11/2026: một hàng chung cho cả bài → 213/650 khách chờ quá 25 giây.
     // Người dùng duyệt: chỉ những tên có thể trùng mới xếp hàng với nhau. Khóa theo "tên gốc": bỏ hậu tố " (n)" cuối,

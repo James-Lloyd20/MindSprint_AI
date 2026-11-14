@@ -134,9 +134,13 @@
                             <li class="nav-item"><a class="nav-link @(controller == "Classrooms" && action != "Join" ? "active" : "")" aria-current="@(controller == "Classrooms" && action != "Join" ? "page" : null)" asp-controller="Classrooms" asp-action="Index" title="@(lecturer ? "Lớp tôi dạy" : "Lớp của tôi")"><icon name="users" /><span class="nav-label">@(lecturer ? "Lớp tôi dạy" : "Lớp của tôi")</span><span class="nav-short" aria-hidden="true">Lớp</span></a></li>
                             <li class="nav-item"><a class="nav-link @Current("Classrooms", "Join")" aria-current="@(Current("Classrooms", "Join") != "" ? "page" : null)" asp-controller="Classrooms" asp-action="Join" title="Tham gia bằng mã"><icon name="ticket" /><span class="nav-label">Tham gia bằng mã</span><span class="nav-short" aria-hidden="true">Mã lớp</span></a></li>
                         }
-                        @if (me != null && !me.IsGuest && lecturer)
+                        @if (me != null && !me.IsGuest)
                         {
                             <li class="nav-heading" aria-hidden="true">Tổ chức</li>
+                            <li class="nav-item"><a class="nav-link @Current("Kanban")" aria-current="@(Current("Kanban") != "" ? "page" : null)" asp-controller="Kanban" asp-action="Index" title="Công việc"><icon name="square-kanban" /><span class="nav-label">Công việc</span><span class="nav-short" aria-hidden="true">Việc</span></a></li>
+                        }
+                        @if (me != null && !me.IsGuest && lecturer)
+                        {
                             <li class="nav-item"><a class="nav-link @Current("Reports", "Index")" aria-current="@(Current("Reports", "Index") != "" ? "page" : null)" asp-controller="Reports" asp-action="Index" title="Báo cáo"><icon name="chart-column" /><span class="nav-label">Báo cáo</span><span class="nav-short" aria-hidden="true">Báo cáo</span></a></li>
                         }
                     </ul>

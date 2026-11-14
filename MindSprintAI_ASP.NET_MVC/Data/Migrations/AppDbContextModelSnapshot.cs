@@ -1691,6 +1691,52 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                     b.ToTable("JoinCodeFailures");
                 });
 
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.KanbanTask", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(5000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Priority")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Status", "Position");
+
+                    b.ToTable("KanbanTasks");
+                });
+
             modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.KnownDevice", b =>
                 {
                     b.Property<long>("Id")
@@ -2952,6 +2998,15 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Classroom");
+                });
+
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.KanbanTask", b =>
+                {
+                    b.HasOne("MindSprintAI_ASP.NET_MVC.Data.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.Notification", b =>

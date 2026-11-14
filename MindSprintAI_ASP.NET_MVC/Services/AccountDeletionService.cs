@@ -128,6 +128,7 @@ public sealed class AccountDeletionService(AppDbContext db, UserManager<Applicat
         await db.Reminders.Where(x => x.UserId == userId).ExecuteDeleteAsync();
         await db.ReminderDigests.Where(x => x.UserId == userId).ExecuteDeleteAsync();
         await db.UserSettingPresets.Where(x => x.UserId == userId).ExecuteDeleteAsync();
+        await db.KanbanTasks.Where(x => x.UserId == userId).ExecuteDeleteAsync(); // việc cá nhân (Kanban) là dữ liệu riêng, xóa cùng tài khoản
 
         // Lời mời và chuyển lớp còn chờ: thu hồi để không ai nhận lời mời của/tới người đã xóa.
         var normalizedEmail = user.NormalizedEmail;

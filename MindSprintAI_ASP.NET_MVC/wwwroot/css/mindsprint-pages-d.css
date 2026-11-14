@@ -91,3 +91,84 @@ main h1 + p, main h1 + .text-muted { font-size: .8125rem; color: var(--text-mute
 :is(.set-card, .class-card, .learn-card) { border: 1px solid var(--line); }
 .card-body { padding: 24px; }
 .section-icon { width: 44px; height: 44px; border-radius: 14px; }
+
+/* Khối đáp án trang làm bài theo quiz của nhóm (đo getComputedStyle bản nhóm 15/11, ảnh 16):
+   lưới 2 cột cách 16px; ô đệm 16px viền mảnh bo 14px chữ 15.2px/500 căn trái; vòng chữ cái 26px;
+   đúng = nền #f0f0e8 viền/chữ xanh xám (#7e9a67), vòng tô xanh; sai = viền/chữ đỏ (#bf5b52); thanh phản hồi có khung. */
+#play .options { counter-reset: play-option; gap: 16px; }
+@media (min-width: 576px) { #play .options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+#play .options > .option { counter-increment: play-option; display: flex; align-items: center; justify-content: flex-start; gap: 12px; min-height: 60px; padding: 16px;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--text); font-size: .95rem; font-weight: 500; text-align: left; box-shadow: none; opacity: 1; }
+#play .options > .option::before { content: counter(play-option, upper-alpha); flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--line); color: var(--text-muted); font-size: .8rem; font-weight: 500; }
+#play .options > .option:hover:not(:disabled) { border-color: var(--accent-border); background: var(--acid-soft); }
+#play .options > .option.btn-primary { border-color: var(--accent-border); background: var(--acid-soft); color: var(--accent-ink); }
+#play .options > .option.btn-success { border-color: var(--sage); background: var(--muted); color: var(--sage); }
+#play .options > .option.btn-success::before { background: var(--sage); border-color: var(--sage); color: var(--surface); }
+#play .options > .option.btn-danger { border-color: var(--bad-text); background: var(--muted); color: var(--bad-text); }
+#play .options > .option.btn-danger::before { background: var(--bad-text); border-color: var(--bad-text); color: var(--surface); }
+#play .feedback:not(:empty) { padding: 16px 24px; border: 1px solid currentColor; border-radius: 12px; background: var(--muted); font-weight: 700; }
+#play .feedback.text-success { color: var(--sage) !important; }
+#play .feedback.text-danger { color: var(--bad-text) !important; }
+/* Trợ năng (giữ từ QuizEdu): đáp án đã chọn không chỉ báo bằng màu — vòng tròn hiện ✓ (đúng/đã chọn) hoặc ✗ (sai) thay chữ cái. */
+#play .options > .option[aria-pressed="true"]::before, #play .options > .option.btn-success::before { content: "✓"; }
+#play .options > .option.btn-danger::before { content: "✗"; }
+/* Điện thoại (ảnh 18): ô tìm + chuông + avatar trên một hàng; chỉ hiện avatar, ẩn tên/email. */
+@media (max-width: 575.98px) {
+  .app-topbar { flex-wrap: nowrap; gap: 8px; padding-top: 12px; }
+  .app-search { flex: 1 1 auto; min-width: 0; }
+  .app-actions { gap: 6px; }
+  .app-topbar .account-menu-toggle .account-copy, .app-topbar .account-menu-toggle::after { display: none; }
+  .app-topbar .account-menu-toggle { padding: 0; }
+}
+/* Tiêu đề mục: Manrope 700 như nhóm (Bootstrap .h4/.h5 mặc định 500 làm chữ mảnh). */
+h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 { font-weight: 700; }
+
+/* Trang Công việc (Kanban) — số đo từ bản nhóm đang chạy (kanban.css + ui-refresh.css, getComputedStyle 15/11/2026). */
+.kanban-head { margin-bottom: 24px; }
+.kanban-head h1 { margin: 0 0 6px; }
+.kanban-head p { margin: 0; color: var(--text-muted); }
+.kanban-toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.kanban-toolbar .form-control { flex: 1 1 220px; }
+.kanban-toolbar .form-select { flex: 0 1 220px; }
+.kanban-toolbar :is(.form-control, .form-select) { min-height: 44px; border-radius: 15px; border-color: var(--line); background-color: var(--surface); }
+.kanban-status { min-height: 1.5em; margin: 12px 0; color: var(--text-muted); }
+.kanban-status[data-type="error"] { color: var(--bad-text); }
+.kanban-board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.kanban-column { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); }
+.kanban-column-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
+main .kanban-column-head h2 { margin: 0; font-size: 1rem; font-weight: 600; }
+.kanban-count { display: inline-block; min-width: 1.5rem; padding: 4px 8px; border-radius: 6px; background: var(--muted); font-size: .8rem; text-align: center; }
+.kanban-list { min-height: 240px; border-radius: 15px; transition: background-color .15s; }
+.kanban-list.drop-over { background: var(--acid-soft); outline: 2px dashed var(--accent-border); }
+.kanban-empty { padding: 32px 8px; margin: 0; color: var(--text-muted); font-size: .88rem; text-align: center; }
+.kanban-list:has(.kanban-card) .kanban-empty { display: none; }
+.kanban-card { padding: 16px; margin-bottom: 12px; border: 1px solid transparent; border-radius: 15px; background: var(--pastel-a);
+    box-shadow: 0 10px 30px rgba(34, 42, 54, .043); cursor: grab; overflow-wrap: anywhere; transition: transform .18s ease-out, box-shadow .18s ease-out, border-color .18s ease-out; }
+.kanban-card:nth-child(3n+2) { background: var(--pastel-b); }
+.kanban-card:nth-child(3n) { background: var(--pastel-c); }
+.kanban-card:hover:not(.is-dragging) { transform: translateY(-4px); border-color: var(--accent-border); box-shadow: var(--elev-2); }
+.kanban-card.is-dragging { opacity: .45; }
+.kanban-card.drop-before { box-shadow: inset 0 3px var(--accent-ink); }
+.kanban-card-top, .kanban-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.kanban-card-actions { display: flex; gap: 8px; }
+.kanban-card-actions form { margin: 0; }
+main .kanban-card-title { margin: 12px 0 8px; font-size: 1rem; font-weight: 700; line-height: 1.5; }
+.kanban-card-desc { margin: 0 0 12px; color: var(--text-muted); font-size: .88rem; line-height: 1.6; white-space: pre-wrap; }
+.kanban-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 999px; background: var(--muted); font-size: .75rem; }
+.kanban-badge .icon { width: 12px; height: 12px; }
+.kanban-badge-high { color: var(--bad-text); }
+.kanban-badge-medium { color: var(--warn-text); }
+.kanban-badge-low { color: var(--sage); }
+.kanban-due { display: inline-flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: .78rem; }
+.kanban-due .icon { width: 14px; height: 14px; }
+.kanban-round-btn { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0;
+    border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--text); transition: background-color .15s, color .15s, transform .15s; }
+.kanban-round-btn:hover:not(:disabled) { background: var(--acid-soft); color: var(--accent-ink); }
+.kanban-round-btn:active:not(:disabled) { transform: scale(.97); }
+.kanban-round-btn:disabled { opacity: .45; }
+.kanban-round-btn .icon { width: 16px; height: 16px; margin: 0; }
+#task-modal .modal-content { border-radius: 22px; }
+@media (max-width: 1000px) { .kanban-board { grid-template-columns: 1fr; } .kanban-list { min-height: 100px; } }
+@media (max-width: 768px) { .kanban-toolbar > * { flex: 1 1 100%; } }
+@media (hover: none), (prefers-reduced-motion: reduce) { .kanban-card:hover:not(.is-dragging) { transform: none; } }

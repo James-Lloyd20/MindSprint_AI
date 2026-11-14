@@ -155,6 +155,7 @@ builder.Services.AddSingleton<IQuestionGrader, SurveyGrader>();
 builder.Services.AddScoped<JoinCodeService>();
 builder.Services.AddScoped<StudyLibraryService>();
 builder.Services.AddScoped<UserSettingPresetService>();
+builder.Services.AddScoped<KanbanService>();
 builder.Services.AddScoped<TrashService>();
 builder.Services.AddScoped<TrashPurgeService>();
 builder.Services.AddHostedService<TrashPurgeWorker>();

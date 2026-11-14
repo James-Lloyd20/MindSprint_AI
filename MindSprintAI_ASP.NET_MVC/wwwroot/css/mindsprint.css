@@ -24,7 +24,7 @@
   --pastel-a: linear-gradient(135deg, #F2F6E7, #FBF8E9); --pastel-b: linear-gradient(135deg, #FFF0E9, #FFFEFA); --pastel-c: linear-gradient(135deg, #E9E9F5, #F3F2FA);
   --ok: #D9EBBD; --warn: #F1CDBB; --bad: #F3C9C2; --focus: #78964E;
   /* Màu trạng thái là nền, chữ trên đó luôn đậm. */
-  --ok-text: #55763C; --warn-text: #9A5B3F; --bad-text: #BF5B52;
+  --ok-text: #55763C; --warn-text: #9A5B3F; --bad-text: #BF5B52; --sage: #7E9A67;
   --btn-main-bg: #C7E977; --btn-main-fg: #24321D; --btn-main-hover: #BCE365;
   --btn-shadow: 0 6px 16px rgba(166, 202, 92, .22); --btn-shadow-hover: 0 9px 22px rgba(166, 202, 92, .29);
   --alert-ok-bg: #EEF6D9; --alert-ok-line: #DCE8C2; --alert-warn-bg: #FFF0E9; --alert-warn-line: #F1CDBB;
@@ -50,7 +50,7 @@
   --pink: #E2B08A; --purple: #2D3547; --sky: #2D3547; --blue: #C5DF9B; --on-blue: #1F291B;
   --pastel-a: linear-gradient(135deg, #2B3526, #303329); --pastel-b: linear-gradient(135deg, #3D302A, #39312D); --pastel-c: linear-gradient(135deg, #2C333F, #32313F);
   --ok: #89D5AA; --warn: #E2B08A; --bad: #EEA49A; --focus: #C6E77D;
-  --ok-text: #89D5AA; --warn-text: #E2B08A; --bad-text: #EEA49A;
+  --ok-text: #89D5AA; --warn-text: #E2B08A; --bad-text: #EEA49A; --sage: #A5C485;
   --btn-main-bg: #B5D965; --btn-main-fg: #1F291B; --btn-main-hover: #C6E77D;
   --btn-shadow: 0 6px 16px rgba(0, 0, 0, .2); --btn-shadow-hover: 0 9px 22px rgba(0, 0, 0, .28);
   --alert-ok-bg: #21382D; --alert-ok-line: #536541; --alert-warn-bg: #432D2A; --alert-warn-line: #6B4A3A;
