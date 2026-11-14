@@ -7,7 +7,8 @@ namespace MindSprintAI_ASP.NET_MVC.Data;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
-    // Bước service sẽ thêm: thuộc tính Audit (AuditLog) và SaveChangesAsync (chốt lượt + ghi nhật ký) như QuizEduManager.
+    // (NK3) Gắn theo scope HTTP; context dựng trực tiếp trong test vẫn có thể gắn AuditLog.
+    public Services.AuditLog? Audit { get; set; }
     public DbSet<DeviceChangeRequest> DeviceChangeRequests => Set<DeviceChangeRequest>();
     public DbSet<ScreenLeave> ScreenLeaves => Set<ScreenLeave>();
     public DbSet<SourceText> SourceTexts => Set<SourceText>();
@@ -387,5 +388,45 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
                 foreach (var fk in entity.GetForeignKeys())
                     fk.DeleteBehavior = DeleteBehavior.Restrict;
         }
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await Services.AttemptRules.FinalizeEndedAsync(this, cancellationToken);
+        Audit?.CaptureRestores(); // (NK3) Điểm chốt chung cho các thay đổi khôi phục.
+        foreach (var entry in ChangeTracker.Entries<IVersioned>())
+            if (entry.State == EntityState.Modified)
+                entry.Entity.Version++;
+        // (NK3) Ghi nghiệp vụ trước để có Id thật, nhật ký sau trong CÙNG giao dịch.
+        // Tách một SaveChanges để lỗi bảng nhật ký không làm hỏng thay đổi chính.
+        var audits = ChangeTracker.Entries<AuditEntry>().Where(e => e.State == EntityState.Added).Select(e => e.Entity).ToList();
+        if (audits.Count == 0) return await base.SaveChangesAsync(cancellationToken);
+        foreach (var row in audits) Entry(row).State = EntityState.Detached;
+        await using var owned = Database.CurrentTransaction == null ? await Database.BeginTransactionAsync(cancellationToken) : null;
+        var count = await base.SaveChangesAsync(cancellationToken);
+        try
+        {
+            foreach (var row in audits)
+            {
+                if (row.ResolveTarget != null) row.TargetId = row.ResolveTarget();
+                AuditEntries.Add(row);
+            }
+            // (NK3) Kết nối đã tắt MARS ở factory/Program để savepoint được hỗ trợ.
+            await Database.CurrentTransaction!.CreateSavepointAsync("BeforeAudit", cancellationToken);
+            try { count += await base.SaveChangesAsync(cancellationToken); }
+            catch
+            {
+                await Database.CurrentTransaction.RollbackToSavepointAsync("BeforeAudit", cancellationToken);
+                throw;
+            }
+        }
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            foreach (var row in audits) Entry(row).State = EntityState.Detached;
+            if (Audit != null) Audit.Warn();
+            else Serilog.Log.Warning("Audit write failed; business operation continues");
+        }
+        if (owned != null) await owned.CommitAsync(cancellationToken);
+        return count;
     }
 }
