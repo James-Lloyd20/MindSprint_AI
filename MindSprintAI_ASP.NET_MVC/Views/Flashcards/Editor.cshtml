@@ -1,0 +1,34 @@
+@model StudySet
+@{ ViewData["Title"] = "Thẻ ghi nhớ — " + Model.Title; var cards = (List<Flashcard>)ViewData["Cards"]!; }
+<a class="btn btn-sm b-back" asp-controller="StudySets" asp-action="Index"><icon name="chevron-right" class="b-back-icon" />Quay lại Bộ học</a>
+<div class="d-flex flex-wrap gap-2 align-items-center my-3"><h1 class="h3 me-auto">Thẻ ghi nhớ — @Model.Title</h1><a class="btn btn-primary" asp-action="Study" asp-route-id="@Model.Id">Tự ôn thẻ ghi nhớ</a></div>
+@if (Model.FlashcardMode == FlashcardMode.SpacedRepetition)
+{
+    <p role="status">Hôm nay có @(ViewData["SrsDueCount"] ?? 0) thẻ đến hạn ôn</p>
+}
+<form method="post" asp-action="Save" class="card card-body mb-3">
+    <h2 class="h6">Thêm thẻ mới</h2>
+    <input type="hidden" name="studySetId" value="@Model.Id" />
+    <label class="form-label" for="new-front">Mặt trước</label><textarea class="form-control mb-2" name="front" id="new-front" required></textarea>
+    <label class="form-label" for="new-back">Mặt sau</label><textarea class="form-control mb-2" name="back" id="new-back" required></textarea>
+    <button class="btn btn-primary align-self-start">Thêm thẻ</button>
+</form>
+<h2 class="h5">@(cards.Count == 0 ? "Chưa có thẻ nào" : $"{cards.Count} thẻ")</h2>
+@if (cards.Count == 0) { <p class="text-muted">Thêm thẻ đầu tiên bằng ô phía trên. Mỗi thẻ có mặt trước (câu hỏi hoặc từ) và mặt sau (đáp án hoặc nghĩa).</p> }
+@for (var i = 0; i < cards.Count; i++)
+{
+    var card = cards[i];
+    <div class="card card-body mb-2" id="card-@card.Id">
+        <h3 class="h6">Thẻ @(i + 1)@if (card.EditedAt != null) { <span class="small text-muted fw-normal"> · đã sửa @VnTime.Format(card.EditedAt)</span> }</h3>
+        <form method="post" asp-action="Save">
+            <input type="hidden" name="studySetId" value="@Model.Id" /><input type="hidden" name="cardId" value="@card.Id" />
+            <label class="form-label" for="front-@card.Id">Mặt trước</label><textarea class="form-control mb-2" name="front" id="front-@card.Id" required>@card.Front</textarea>
+            <label class="form-label" for="back-@card.Id">Mặt sau</label><textarea class="form-control mb-2" name="back" id="back-@card.Id" required>@card.Back</textarea>
+            <button class="btn btn-outline-primary">Lưu thẻ @(i + 1)</button>
+        </form>
+        <form method="post" asp-action="Delete" class="mt-2" data-confirm="Xóa thẻ @(i + 1)? Thẻ vào Thùng rác, khôi phục được trong 30 ngày. Bài giao dùng bộ này sẽ bớt một thẻ học viên phải học.">
+            <input type="hidden" name="studySetId" value="@Model.Id" /><input type="hidden" name="cardId" value="@card.Id" />
+            <button class="btn btn-outline-danger">Xóa thẻ @(i + 1)</button>
+        </form>
+    </div>
+}

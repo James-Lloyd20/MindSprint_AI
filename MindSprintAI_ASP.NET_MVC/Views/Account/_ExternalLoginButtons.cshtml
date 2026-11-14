@@ -1,0 +1,15 @@
+@model LoginModel
+@{
+    // Lấy từ schemes đã đăng ký, không đọc/đưa secret vào view.
+    var schemes = Context.RequestServices.GetService<Microsoft.AspNetCore.Authentication.IAuthenticationSchemeProvider>();
+    var providers = schemes == null ? [] :
+        (await schemes.GetAllSchemesAsync()).Where(s => ExternalProviderConfig.Known(s.Name)).Select(s => s.Name).ToArray();
+}
+@foreach (var provider in providers)
+{
+    <form method="post" asp-action="ExternalLogin" data-action="ExternalLogin" class="mt-3">
+        <input type="hidden" name="provider" value="@provider" />
+        <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+        <button class="btn btn-outline-primary w-100">Đăng nhập bằng @provider</button>
+    </form>
+}

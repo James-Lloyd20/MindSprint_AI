@@ -1,0 +1,42 @@
+@model RegisterModel
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+<div class="row justify-content-center g-4 auth-page">
+    <div class="col-md-8 col-lg-6 auth-form">
+<h1 class="h3 mb-3 mindsprint-title">Tạo tài khoản</h1>
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" autocomplete="email" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="DisplayName" class="form-label"></label>
+                <input asp-for="DisplayName" class="form-control" autocomplete="name" />
+                <span asp-validation-for="DisplayName" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <div class="consent-check">
+                    <input asp-for="AcceptTerms" type="checkbox" class="form-check-input" />
+                    <label asp-for="AcceptTerms" class="form-check-label">Tôi từ đủ 16 tuổi, đã đọc và đồng ý với <a asp-controller="Home" asp-action="Terms" target="_blank">Điều khoản sử dụng</a>.</label>
+                </div>
+                <span asp-validation-for="AcceptTerms" class="text-danger small d-block mb-2"></span>
+                <div class="consent-check">
+                    <input asp-for="AcceptPrivacy" type="checkbox" class="form-check-input" />
+                    <label asp-for="AcceptPrivacy" class="form-check-label">Tôi đồng ý để MindSprint AI xử lý dữ liệu của tôi như <a asp-controller="Home" asp-action="Privacy" target="_blank">Chính sách quyền riêng tư</a> mô tả.</label>
+                </div>
+                <span asp-validation-for="AcceptPrivacy" class="text-danger small d-block"></span>
+            </div>
+            <partial name="_Turnstile" />
+            <button class="btn btn-primary w-100">Đăng ký</button>
+        </form>
+        <p class="form-text">MindSprint AI sẽ gửi link vào email này để bạn đặt mật khẩu.</p>
+        <p class="mt-3 small">Đã có tài khoản? <a asp-action="Login">Đăng nhập</a></p>
+    </div>
+    <aside class="col-lg-6 d-none d-lg-block auth-photo" aria-label="Góc học tập">
+        <img class="study-photo" src="~/img/landing/photo-c822.webp" width="1280" height="854" alt="Hai bút chì trên nền vàng" loading="lazy" decoding="async" data-source="library-057" data-subject="desk" />
+        <p class="small photo-credit">Nguồn ảnh: <a href="https://commons.wikimedia.org/wiki/File:Minimal_pencils_on_yellow_(Unsplash).jpg">Joanna Kosinska</a> · <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a>.</p>
+    </aside>
+</div>

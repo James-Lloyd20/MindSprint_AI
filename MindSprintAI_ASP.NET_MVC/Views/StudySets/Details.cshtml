@@ -1,0 +1,73 @@
+@model StudySet
+@{
+    ViewData["Title"] = Model.Title;
+    var quizzes = Model.Quizzes.OrderBy(q => q.CreatedAt).ToList();
+    var questions = quizzes.SelectMany(q => q.Questions).ToList();
+}
+<div class="c-study-details">
+<a class="btn btn-sm b-back" asp-action="Index"><icon name="chevron-right" class="b-back-icon" />Quay lại Bộ học</a>
+<header class="learn-head">
+    <div><p class="eyebrow">BỘ HỌC</p><h1 class="mindsprint-title">@Model.Title</h1><p>@questions.Count câu · @questions.Where(q => !SurveyRules.IsSurvey(q.Type)).Sum(q => q.Points).ToString("0.##") điểm</p></div>
+    @if (Model.HiddenByAdminAt == null) { <a class="btn btn-primary" asp-controller="Assignments" asp-action="ChooseClass" asp-route-studySetId="@Model.Id"><icon name="send" />Giao bài</a> }
+</header>
+@if (Model.HiddenByAdminAt != null)
+{
+    var request = ViewData["UnhideRequest"] as UnhideRequest;
+    var canAsk = request?.Status != UnhideRequestStatus.Pending;
+    <p class="alert alert-warning">Bộ học bị quản trị viên ẩn. Lý do: @Model.HiddenReason<br />Bộ này không giao bài mới hay nhân bản được nữa; các bài giao đang chạy dùng bộ này đã được đóng.@if (canAsk) { <text> Nếu bạn đã sửa nội dung hoặc thấy việc ẩn là nhầm, hãy gửi yêu cầu xem xét lại ở bên dưới.</text> }</p>
+    <div class="card card-body mb-3">
+        @if (request?.Status == UnhideRequestStatus.Pending)
+        {
+            <p class="mb-0" role="status">Đã gửi yêu cầu xem xét lại lúc @VnTime.Format(request.CreatedAt). Đang chờ quản trị viên.</p>
+        }
+        else
+        {
+            @if (request?.Status == UnhideRequestStatus.Rejected)
+            {
+                <p style="white-space:pre-wrap">Lần trước chưa được chấp nhận: @request.DecisionNote</p>
+            }
+            <form method="post" asp-action="RequestUnhide" asp-route-id="@Model.Id">
+                <label for="unhide-message" class="form-label">Gửi yêu cầu xem xét lại</label>
+                <textarea id="unhide-message" name="message" maxlength="1000" required class="form-control mb-2" aria-describedby="unhide-help">@ViewData["UnhideMessage"]</textarea>
+                <p id="unhide-help" class="small">Ví dụ: Tôi đã xóa câu 3 có nội dung không phù hợp.</p>
+                <button class="btn btn-outline-primary">Gửi yêu cầu</button>
+            </form>
+        }
+    </div>
+}
+<div class="c-detail-toolbar">
+    <a class="btn" asp-action="Index" asp-fragment="set-menu-@Model.Id"><icon name="pencil" />Sửa bộ học</a>
+    <a class="btn" asp-controller="Flashcards" asp-action="Editor" asp-route-id="@Model.Id"><icon name="layers" />Soạn và tự ôn thẻ ghi nhớ</a>
+    <div class="dropdown"><button class="btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Thao tác khác"><icon name="ellipsis" /></button>
+        <ul class="dropdown-menu"><li><a class="dropdown-item" asp-controller="SourceTexts" asp-action="Edit" asp-route-id="@Model.Id">Văn bản nguồn</a></li>
+        @if (Model.HiddenByAdminAt == null) { <li><a class="dropdown-item" asp-action="Clone" asp-route-id="@Model.Id">Nhân bản bộ học</a></li> }</ul>
+    </div>
+    <div class="form-check form-switch ms-sm-auto"><input id="show-answers" type="checkbox" class="form-check-input" checked data-answer-toggle /><label for="show-answers" class="form-check-label">Hiện đáp án</label></div>
+</div>
+@if (quizzes.Count == 0) { <div class="empty-state"><h2 class="h4">Chưa có quiz</h2><a class="btn" asp-action="Index" asp-fragment="quiz-title-@Model.Id">Thêm quiz</a></div> }
+@foreach (var quiz in quizzes)
+{
+    <section class="c-quiz-section">
+        <div class="c-detail-toolbar"><h2 class="h4 me-auto">@quiz.Title</h2>
+            <a class="btn" asp-action="Quiz" asp-route-id="@quiz.Id"><icon name="pencil" />Sửa</a>
+            @if (quiz.EverAssignedAt == null) { <a class="btn" asp-controller="Import" asp-action="Index" asp-route-id="@quiz.Id"><icon name="download" />Nhập câu hỏi từ Excel</a> }
+            @if (Model.HiddenByAdminAt == null) { <a class="btn btn-outline-primary" asp-controller="Assignments" asp-action="ChooseClass" asp-route-studySetId="@Model.Id" asp-route-quizId="@quiz.Id"><icon name="send" />Giao bài</a> }
+        </div>
+        @if (quiz.Questions.Count == 0)
+        {
+            <div class="empty-state c-quiz-empty"><icon name="book-open-text" /><h3 class="h5">Bài này chưa có câu hỏi</h3><p class="mb-0">Chọn Sửa để mở phần câu hỏi của bài này.</p></div>
+        }
+        <ol class="c-question-list">
+        @foreach (var question in quiz.Questions.OrderBy(q => q.OrderIndex))
+        {
+            <li class="c-question-card">
+                <p class="c-question-meta">@((question.OrderIndex + 1).ToString("00")) · @DisplayText.Of(question.Type) · @(SurveyRules.IsSurvey(question.Type) ? "Không chấm điểm" : question.Points.ToString("0.##") + " điểm")</p>
+                <h3 class="h6 c-question-prompt">@question.Prompt</h3>
+                <partial name="_QuestionAnswers" model="question" />
+            </li>
+        }
+        </ol>
+    </section>
+}
+</div>
+@section Scripts { <script src="~/js/library-tools.js" asp-append-version="true"></script> }

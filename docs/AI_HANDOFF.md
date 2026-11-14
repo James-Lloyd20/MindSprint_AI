@@ -34,3 +34,11 @@
 - Chép 23 controller từ QuizEdu (đổi thương hiệu như bước 2; `HomeController` thay bản template). Build 0 lỗi. Thêm project test vào `MindSprintAI_ASP.NET_MVC.slnx`.
 - Mang thêm `RekalDashboardTests`, `Tang2ConcurrencyTests`: **20/20 qua**. Tổng đã mang: 262 test, đều qua.
 - **Chưa có view** → các trang (trừ trang chủ template) sẽ lỗi khi mở cho tới bước giao diện. 45 file test còn lại kiểm cả view/wwwroot (Razor render, PlainLanguageAudit, play.js…) — mang cùng bước giao diện. `GiangDuongTests` chờ `Tang5bPureTests` (trong Tang5bTests).
+
+### 2026-11-14 — Claude: bước 4a, view + tài nguyên QuizEdu (nhịp 1: tương đương)
+
+- Chép nguyên `Views/` (106 file), `TagHelpers/`, `wwwroot/` (css/js đổi thương hiệu; `rekal*.css` → `mindsprint*.css`; `img/`, `lib/` chép nguyên), `libman.json`. Giao diện **vẫn là Rekal (Acid neo-brutalism)** — nhịp 2 đổi sang giao diện nhóm.
+- Mang **toàn bộ** test còn lại (+ 3 script `*.check.cjs`). Test kiểm migration lịch sử theo tên (Tang4b, 4d, 5a, 5b, 5c1, 5d1, 5d2, 5e, 6b, 7c, 7c2, 7d, 7d2, 7e, 7e2, 8_AuditLog, 8_CongTacTuOn) đổi sang kiểm trên model/mặc định/snapshot; riêng `Tang7eTests.MigrationChiThemCotCoMacDinhHoacChoPhepTrong` bỏ hẳn (luật chung ở Tang2RuleTests). `NK6` đọc `.gitignore` ở gốc repo (`Root/..`). `GiaoDienTests.KhongConFontCu…` bỏ phần `docs/design/preview.html` (không mang).
+- `tools/`: mang `run-tests.ps1/.sh`, `graphify.ps1`, `loadtest/hoc-vien-khach.js`, `loadtest/phan-tich-trace.py`. **Không mang** `tools/debian/*`, `rekal-backup.sh`, `loadtest/phan-tich-log.sh` (riêng máy chủ Debian của người dùng: dịch vụ `rekal`, Cloudflare Tunnel, Google Drive).
+- **Đã kiểm:** build 0 lỗi; **1720/1720 test qua** (QuizEdu 1721, bỏ 1 test migration Tang7e); 3 script Node OK; web chạy, các trang công khai 200, xem trang Đăng nhập trên Chrome.
+- **Tiếp theo:** nhịp 2 đổi giao diện theo `MindSprint-AI-D-n/frontend/tokens.css` (cam/pastel, Inter tự lưu trên máy chủ, sidebar nhóm); rồi chuyển chức năng riêng của nhóm: Kanban, lịch học/streak, điểm yếu, Sổ tay AI, gia sư OCR, thư viện từ vựng hệ thống + game ghép thẻ, Tổng quan. Bản Python `backend/app` của nhóm không chuyển (trùng bản ASP.NET).

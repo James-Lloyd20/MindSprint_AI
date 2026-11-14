@@ -1,0 +1,18 @@
+@model int
+@{ ViewData["Title"] = "Nhập câu hỏi từ Excel"; }
+<a class="btn btn-sm b-back" asp-controller="StudySets" asp-action="Quiz" asp-route-id="@Model"><icon name="chevron-right" class="b-back-icon" />Quay lại Quiz</a>
+<h1 class="h3 my-3">Nhập câu hỏi từ Excel</h1>
+<p>File Excel (.xlsx) tối đa 5 MB; tối đa 500 dòng mỗi sheet Excel. Dán giá trị ô, không dùng công thức.</p>
+<p class="small text-muted">File mẫu có hai sheet Excel tên <b>CauHoi</b> (câu hỏi) và <b>Flashcard</b> (thẻ ghi nhớ). Dòng 1 là tên cột, dòng 2 ghi cột nào bắt buộc hay tùy chọn, các dòng sau là ví dụ cho từng loại câu: xóa ví dụ rồi nhập câu của bạn từ dòng 3. Hãy giữ nguyên tên hai sheet và dòng tên cột.</p>
+<ul class="small text-muted">
+    <li><b>Chọn một / Chọn nhiều:</b> ghi các lựa chọn vào cột Lựa chọn 1–6, cột Đáp án đúng ghi số (1,3) hoặc chữ (A,C).</li>
+    <li><b>Điền chữ:</b> mỗi cột Lựa chọn là một ô trống; nhiều cách trả lời đúng ghi cách nhau bằng dấu |, ví dụ <i>Hà Nội|Thủ đô Hà Nội</i>.</li>
+    <li><b>Điền số:</b> ghi con số đúng vào cột Đáp án đúng, ví dụ 3,14.</li>
+    <li>Các cột tô xám ở cuối là cài đặt nâng cao, để trống là dùng mặc định. File theo mẫu cũ (trước 13/11/2026) không nhập được: hãy tải file mẫu mới.</li>
+</ul>
+<a class="btn btn-outline-primary mb-3" asp-action="Template" asp-route-id="@Model">Tải file mẫu</a>
+<form method="post" asp-action="Preview" asp-route-id="@Model" enctype="multipart/form-data">
+    <label class="form-label" for="excel-file">File Excel theo mẫu</label>
+    <input class="form-control mb-3" id="excel-file" name="file" type="file" accept=".xlsx" required />
+    <button class="btn btn-primary">Xem trước</button>
+</form>

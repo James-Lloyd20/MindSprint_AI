@@ -1,8 +1,154 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Ôn tập và kiểm tra bằng quiz";
+    ViewData["Description"] = "Giảng viên giao bài quiz, theo dõi lớp làm bài ngay lúc đó; học viên ôn bằng quiz và thẻ ghi nhớ, xem lại phần cần học trên MindSprint AI.";
+    ViewData["OgTitle"] = $"{Brand.Name} · Ôn tập và kiểm tra bằng quiz";
+    ViewData["OgImage"] = "~/img/landing/photo-d183.webp";
+    ViewData["PageKind"] = "software";
 }
+@* Bố cục người dùng chọn 2026-11-09: xấp câu hỏi quiz (màn đầu) + điện thoại lướt ôn (học viên) + bảng theo dõi trực tiếp (giảng viên). Mảnh giao diện là minh họa, ghi rõ. *@
+<div class="home-page">
+    <section class="home-hero" aria-labelledby="home-title">
+        <div class="home-split">
+            <div class="home-hero-copy">
+                <h1 class="display" id="home-title">Ôn tập và kiểm tra bằng <span class="acid-highlight">quiz</span></h1>
+                <p class="lead">Giảng viên giao bài và thấy cả lớp làm bài ngay lúc đó. Học viên biết mình cần ôn phần nào.</p>
+                <div class="home-actions">
+                    <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Tạo tài khoản</a>
+                    <a class="btn btn-outline-secondary" asp-controller="Classrooms" asp-action="Join">Nhập mã vào lớp</a>
+                </div>
+                <ul class="home-proof">
+                    <li><svg aria-hidden="true"><use href="#i-check" /></svg>Kiểm tra có giám sát</li>
+                    <li><svg aria-hidden="true"><use href="#i-check" /></svg>Ôn bằng thẻ ghi nhớ</li>
+                    <li><svg aria-hidden="true"><use href="#i-check" /></svg>Tiếng Việt dễ hiểu</li>
+                    <li><svg aria-hidden="true"><use href="#i-check" /></svg>Miễn phí, trường tự chạy</li>
+                </ul>
+            </div>
+            <div class="home-deck" role="img" aria-label="Minh họa một câu hỏi quiz đang làm: câu 3 trên 20, đã chọn đáp án B, Ampe.">
+                <span class="home-deck-card home-deck-3"></span>
+                <span class="home-deck-card home-deck-2"></span>
+                <span class="home-deck-card home-deck-1"></span>
+                <div class="home-deck-card home-quiz question" aria-hidden="true">
+                    <div class="home-fragment-head"><span class="eyebrow">Câu 3 / 20</span><span class="home-timer"><svg><use href="#i-clock" /></svg>12:40</span></div>
+                    <p class="home-question">Đơn vị đo cường độ dòng điện là gì?</p>
+                    <div class="home-options">
+                        <div class="home-answer"><b>A</b><span>Vôn</span></div>
+                        <div class="home-answer home-answer-picked"><b>B</b><span>Ampe</span><svg class="home-answer-mark"><use href="#i-check" /></svg></div>
+                        <div class="home-answer"><b>C</b><span>Oát</span></div>
+                        <div class="home-answer"><b>D</b><span>Ôm</span></div>
+                    </div>
+                    <div class="home-quiz-foot"><span class="home-chip"><svg><use href="#i-flag" /></svg>Đánh dấu</span><span class="btn btn-primary btn-sm">Nộp bài</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <section class="home-section home-learner" aria-labelledby="learner-title">
+        <div class="home-split">
+            <div>
+                <p class="eyebrow">Học viên</p>
+                <h2 id="learner-title">Bài ôn của học viên, ngay trên điện thoại</h2>
+                <p class="lead">Mỗi lần lướt là một thẻ. Nhớ thì đi tiếp, chưa nhớ thì thẻ quay lại sau.</p>
+                <ul class="home-points">
+                    <li><b>Thẻ ghi nhớ</b>Tự chấm “Nhớ” hoặc “Chưa nhớ” để biết thẻ nào cần ôn tiếp.</li>
+                    <li><b>Xem lại câu sai</b>Sau mỗi bài, MindSprint AI chỉ ra câu sai và lời giải.</li>
+                    <li><b>Hỏi trợ lý AI</b>Dùng khóa Gemini của chính bạn, hỏi ngay trong bài.</li>
+                </ul>
+            </div>
+            <div class="home-phone" aria-hidden="true">
+                <div class="home-phone-screen">
+                    <div class="home-fragment-head"><span class="eyebrow">Thẻ 12 / 40</span><span>Địa lý</span></div>
+                    <p class="home-card-q">Thủ đô của Úc là gì?</p>
+                    <p class="home-card-a">Canberra, không phải Sydney.</p>
+                    <div class="home-rail">
+                        <span class="is-on"><svg><use href="#i-check" /></svg><small>Nhớ</small></span>
+                        <span><svg><use href="#i-x" /></svg><small>Chưa</small></span>
+                        <span><svg><use href="#i-flag" /></svg><small>Đánh dấu</small></span>
+                        <span><svg><use href="#i-circle-help" /></svg><small>Hỏi AI</small></span>
+                    </div>
+                    <p class="home-phone-cap">Còn 28 thẻ · minh họa</p>
+                </div>
+                <span class="home-phone-next"></span>
+            </div>
+        </div>
+    </section>
+
+    <section class="home-section home-lecturer" aria-labelledby="lecturer-title">
+        <div class="home-split home-split-wide">
+            <div>
+                <p class="eyebrow">Giảng viên</p>
+                <h2 id="lecturer-title">Bài giao của giảng viên: thấy cả lớp làm bài</h2>
+                <p class="lead">Mở giờ làm bài rồi theo dõi từng học viên: ai đang làm, ai đã nộp, ai vừa rời màn hình.</p>
+                <ul class="home-points">
+                    <li><b>Khóa một thiết bị</b>Mỗi học viên làm trên một thiết bị; đổi thiết bị cần giảng viên duyệt.</li>
+                    <li><b>Giám sát rời màn hình</b>Rời màn hình đến số lần giảng viên đặt thì bài tự nộp.</li>
+                </ul>
+            </div>
+            <div class="home-board" role="img" aria-label="Minh họa bảng theo dõi trực tiếp: 4 học viên, một bạn rời màn hình 2 lần. Không phải dữ liệu thật.">
+                <div class="home-board-head" aria-hidden="true">
+                    <div><span class="eyebrow home-live-dot">Đang diễn ra</span><p>Lập trình Web · Kiểm tra giữa kỳ</p></div>
+                    <span class="home-board-clock">42:15</span>
+                </div>
+                <ol class="home-board-rows" aria-hidden="true">
+                    <li><span class="home-av" style="--av:var(--acid)">A</span><span>Học viên A</span><span class="home-track" style="--done:14"></span><span class="home-state">Đang làm 14/20</span></li>
+                    <li class="is-ok"><span class="home-av" style="--av:var(--pink)">B</span><span>Học viên B</span><span class="home-track" style="--done:20"></span><span class="home-state"><svg><use href="#i-check" /></svg>Đã nộp</span></li>
+                    <li class="is-warn"><span class="home-av" style="--av:var(--warn)">C</span><span>Học viên C</span><span class="home-track" style="--done:7"></span><span class="home-state"><svg><use href="#i-flag" /></svg>Rời màn hình 2 lần</span></li>
+                    <li><span class="home-av" style="--av:var(--blue)">D</span><span>Học viên D</span><span class="home-track" style="--done:10"></span><span class="home-state">Đang làm 10/20</span></li>
+                </ol>
+                <p class="home-board-foot" aria-hidden="true"><span><b>28</b> đang làm</span><span><b>6</b> đã nộp</span><span><b>1</b> cần chú ý</span><span class="eyebrow">Minh họa</span></p>
+            </div>
+        </div>
+    </section>
+
+    <section class="home-section home-chapters" data-moment="pinned-chapters" aria-labelledby="steps-title">
+        <div class="home-chapter-stage">
+            <p class="eyebrow">Ba bước</p>
+            <h2 id="steps-title" tabindex="-1">Ba bước vào bài học</h2>
+            <ol class="home-steps">
+                <li>
+                    <div class="home-step-copy"><p class="eyebrow">Bước 1</p><h3>Nhận mã vào lớp</h3><p>Nhập mã giảng viên gửi, hoặc quét mã QR trên bảng.</p></div>
+                    <div class="home-step-visual" aria-hidden="true"><div class="home-fragment-head">Tham gia bằng mã</div><p class="join-code">4815 2093</p><span class="btn btn-primary btn-sm">Vào lớp</span></div>
+                </li>
+                <li>
+                    <div class="home-step-copy"><p class="eyebrow">Bước 2</p><h3>Làm bài, ôn thẻ</h3><p>Mở bài được giao, trả lời câu hỏi hoặc ôn thẻ ghi nhớ.</p></div>
+                    <div class="home-step-visual" aria-hidden="true"><div class="home-fragment-head">Câu 3 / 20</div><p class="home-card-q">Đơn vị đo cường độ dòng điện là gì?</p><div class="home-answer home-answer-picked"><b>B</b><span>Ampe</span><svg class="home-answer-mark"><use href="#i-check" /></svg></div></div>
+                </li>
+                <li>
+                    <div class="home-step-copy"><p class="eyebrow">Bước 3</p><h3>Xem kết quả</h3><p>Biết đúng sai từng câu, ôn lại đúng phần còn yếu.</p></div>
+                    <div class="home-step-visual" aria-hidden="true"><div class="home-fragment-head">Kết quả bài làm</div><p class="home-score">17<small>/20</small></p><p class="mb-0">3 câu cần xem lại · 2 thẻ chưa nhớ</p></div>
+                </li>
+            </ol>
+            <div class="home-chapter-frame" aria-hidden="true"></div>
+        </div>
+    </section>
+
+    <section class="home-section home-close" aria-labelledby="close-title">
+        <div class="home-split">
+            <div>
+                <h2 id="close-title">Bắt đầu buổi ôn tập</h2>
+                <p class="lead">Tạo tài khoản để lưu kết quả học, hoặc nhập mã vào lớp để vào làm bài ngay.</p>
+                <div class="home-actions">
+                    <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Tạo tài khoản</a>
+                    <a class="btn btn-outline-secondary" asp-controller="Classrooms" asp-action="Join">Nhập mã vào lớp</a>
+                </div>
+            </div>
+            <div class="home-illustration-frame">
+                <img class="home-illustration" src="~/img/landing/study-ai-together.webp" width="960" height="640" alt="Tranh minh họa: hai học viên cùng ôn thẻ ghi nhớ bên bàn học" loading="lazy" decoding="async" />
+            </div>
+        </div>
+        <div class="home-subjects" data-moment="marquee-row" aria-label="Các môn học có thể ôn tập">
+            <div class="home-subject-head"><p class="eyebrow">Môn bạn học</p><button class="btn" type="button" data-marquee-pause aria-pressed="false" hidden>Dừng chữ chạy</button></div>
+            <div class="home-marquee-rail"><ul class="home-marquee-track"><li>Toán</li><li>Vật lý</li><li>Hóa học</li><li>Lập trình Web</li><li>Tiếng Anh</li><li>Lịch sử</li><li>Kinh tế</li><li>Triết học</li></ul></div>
+        </div>
+    </section>
 </div>
+@section PhotoCredits {
+    <div class="home-photo-credits" aria-labelledby="photo-credits-title">
+        <h2 class="h6" id="photo-credits-title">Nguồn ảnh</h2>
+        <p class="small mb-0">Tranh minh họa tạo bằng AI: <a href="~/img/landing/study-ai-together.webp">tranh cuối trang</a>, <a href="~/img/landing/study-ai-solo.webp">tranh ở trang Bài của tôi</a>.</p>
+        <p class="small mb-0"><a href="https://commons.wikimedia.org/wiki/File:Tabel_day_1_(Unsplash).jpg">Sổ tay · Jan Kahánek</a> · <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a> · <a href="~/img/landing/photo-d183.webp">ảnh hiện khi chia sẻ link</a>.</p>
+        <p class="small mb-0"><a href="https://commons.wikimedia.org/wiki/File:Minimal_pencils_on_yellow_(Unsplash).jpg">Bút chì · Joanna Kosinska</a> · <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a> · <a href="~/img/landing/photo-c822.webp">ảnh ở trang Đăng nhập và Đăng ký</a>.</p>
+    </div>
+}
+@section Scripts {
+    <script src="~/js/home-moments.js" asp-append-version="true" defer></script>
+}

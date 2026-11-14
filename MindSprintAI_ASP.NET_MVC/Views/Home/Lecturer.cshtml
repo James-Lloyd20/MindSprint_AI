@@ -1,0 +1,40 @@
+@model LecturerDashboard
+@{ ViewData["Title"] = "Tổng quan giảng viên"; }
+<div class="c-dashboard">
+<header class="learn-head"><div><p class="eyebrow">GIẢNG VIÊN</p><h1 class="mindsprint-title">@Model.Greeting, <span class="acid-highlight">@Model.Name</span></h1><p class="learn-summary">Hôm nay bạn muốn làm gì?</p></div></header>
+<div class="c-quick-actions">
+    <a class="c-quick-action" asp-controller="StudySets" asp-action="Index" asp-fragment="new-set-title"><span class="section-icon"><icon name="notebook-pen" /></span><strong>Tạo bộ học</strong><span>Soạn câu hỏi và thẻ ghi nhớ</span></a>
+    <a class="c-quick-action" asp-controller="Classrooms" asp-action="Index" asp-fragment="new-class-name"><span class="section-icon"><icon name="users" /></span><strong>Tạo lớp</strong><span>Mời học viên bằng mã vào lớp</span></a>
+    <a class="c-quick-action" asp-controller="StudySets" asp-action="Index"><span class="section-icon"><icon name="send" /></span><strong>Giao bài</strong><span>Chọn bộ học để giao cho lớp</span></a>
+</div>
+<div class="c-dashboard-sections">
+<section>
+    <div class="c-detail-toolbar"><h2 class="section-head me-auto"><icon name="play" />Đang diễn ra</h2><a class="btn" asp-controller="Reports" asp-action="Index">Xem tất cả</a></div>
+    @if (Model.Open.Count == 0) { <div class="empty-state"><h3 class="h5">Chưa có bài đang mở</h3><p>Khi bạn mở bài cho lớp, bài đó sẽ hiện ở đây để theo dõi.</p></div> }
+    else
+    {
+        <ul class="c-dashboard-list">
+        @foreach (var assignment in Model.Open)
+        {
+            <li><div><h3 class="h5">@assignment.Title</h3><p>@assignment.Classroom · @DisplayText.Of(assignment.Mode) · @(assignment.EndsAt == null ? "không có hạn" : (assignment.Mode == AssignmentMode.Test ? "kết thúc " : "hạn ") + VnTime.Format(assignment.EndsAt)) · giao @VnTime.Format(assignment.CreatedAt)</p><p>@assignment.Working đang làm · @assignment.Submitted đã nộp</p></div><a class="btn btn-outline-primary" asp-controller="Assignments" asp-action="Details" asp-route-id="@assignment.Id"><icon name="eye" />Theo dõi</a></li>
+        }
+        </ul>
+    }
+</section>
+<section>
+    <div class="c-detail-toolbar"><h2 class="section-head"><icon name="circle-alert" />Cần xem <span class="badge bg-secondary">@Model.Review.Sum(c => c.Count)</span></h2></div>
+    @if (Model.Review.Count == 0) { <div class="empty-state">Bạn đã xem hết các việc đang chờ.</div> }
+    else
+    {
+        <ul class="c-dashboard-list">
+        @foreach (var room in Model.Review)
+        {
+            <li><a asp-controller="Classrooms" asp-action="Details" asp-route-id="@room.Id">@room.Name</a><strong>@room.Count việc chờ</strong>
+                @if (room.Work?.Describe().ToList() is { Count: > 0 } parts) { <p class="c-review-parts">@string.Join(" · ", parts)</p> }</li>
+        }
+        </ul>
+    }
+    <aside class="sticky-note is-acid mt-4"><strong>Mẹo cho buổi học</strong><p class="mb-0">Mở mã QR của bài giao để học viên quét bằng điện thoại. Bạn có thể theo dõi ngay khi các bạn bắt đầu.</p></aside>
+</section>
+</div>
+</div>

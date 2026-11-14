@@ -1,0 +1,13 @@
+.d-reopen { display: grid; gap: 8px; }
+.d-reopen .form-control { min-width: 0; }
+.d-self-review { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+.d-self-review > p { flex-basis: 100%; margin-bottom: 0; }
+.d-self-review .btn, .d-reopen .btn { min-height: 44px; }
+.d-review-count { margin: 8px 0 0; }
+.d-review-available { font-weight: 700; }
+/* Pháp lý 2026-11-12: trang Chính sách/Điều khoản đọc dài, dòng ≤ 70ch theo DESIGN.md. */
+.legal-doc { max-width: 70ch; }
+.legal-doc h2 { margin-top: 32px; }
+.legal-doc .table-responsive > .table { min-width: 0; } /* chữ dài tự xuống dòng, không bắt kéo ngang trên điện thoại */
+.consent-check { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+.consent-check .form-check-input { flex: none; width: 1.25em; height: 1.25em; margin-top: 2px; }
