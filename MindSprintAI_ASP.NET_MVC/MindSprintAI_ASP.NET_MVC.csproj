@@ -4,6 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Project test nằm trong thư mục con; không để project web biên dịch file của nó. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);tests\**</DefaultItemExcludes>
     <UserSecretsId>e0eed434-c9cc-4ca3-aaa4-42293b68d8f8</UserSecretsId>
   </PropertyGroup>
 
