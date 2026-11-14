@@ -28,3 +28,9 @@
 - **Test:** project `tests/MindSprintAI_ASP.NET_MVC.Tests` đặt trong thư mục project giống QuizEdu (để `Tang8PureTests.Root` dò `Program.cs` vẫn đúng); DB test `MindSprintAI_Tests`, biến môi trường `MINDSPRINT_TEST_DB`. Mang 20 file test chỉ-service; `SafetyEmail` tách thành file riêng (khi mang `Tang5bTests` sang thì xóa bản trùng). Thay `Tang2RuleTests.Migration_ChiThemBangVaKhoaNgoai_KhongSuaBangCu` (riêng migration Tang2 không còn) bằng `Migration_SauKhoiTao_ChiThemKhongXoaHayDoiTen` — tự kiểm luật "migration chỉ thêm".
 - **Đã kiểm:** build web + test 0 lỗi (3 cảnh báo có sẵn ở trên); web chạy, trang chủ 200, SignalR chưa đăng nhập 401, 6 worker nền chạy không lỗi. **242/242 test qua** (99 không DB ~5 s; 143 DB theo 3 đợt ~20–40 s/đợt, gồm KhoaHocVienTests).
 - **Test chưa mang (cần helper của test view/controller):** LopSoLieu, PhanTrangHocVien, RaSoatGiaoDienDot1, SecurityRound3, Tang4c, Tang5a, Tang5c1 (kiểm migration Tang5c1 → viết lại), Tang8ErrorPage, EmailLayout + 40 file dùng controller/view. Helper cần: `Tang4ViewTests`, `PlainLanguageAudit`, `TestLearnHub`, `RecordingLearnNotifier`, `SafetyIdentity`, `Tang5bPureTests`, `Tang8PureTests`.
+
+### 2026-11-14 — Claude: bước 3, controller
+
+- Chép 23 controller từ QuizEdu (đổi thương hiệu như bước 2; `HomeController` thay bản template). Build 0 lỗi. Thêm project test vào `MindSprintAI_ASP.NET_MVC.slnx`.
+- Mang thêm `RekalDashboardTests`, `Tang2ConcurrencyTests`: **20/20 qua**. Tổng đã mang: 262 test, đều qua.
+- **Chưa có view** → các trang (trừ trang chủ template) sẽ lỗi khi mở cho tới bước giao diện. 45 file test còn lại kiểm cả view/wwwroot (Razor render, PlainLanguageAudit, play.js…) — mang cùng bước giao diện. `GiangDuongTests` chờ `Tang5bPureTests` (trong Tang5bTests).
