@@ -70,16 +70,21 @@ public class GiaoDienTests
                 Assert.Contains("SIL OPEN FONT LICENSE", File.ReadAllText(Path.Combine(Path.GetDirectoryName(path)!, "OFL.txt")));
             }
         }
-        // MindSprint: font chính Inter Variable theo giao diện nhóm (tokens.css), JetBrains Mono cho mã/đồng hồ.
-        foreach (var family in new[] { "inter", "jetbrains-mono" })
+        // MindSprint: font theo giao diện nhóm đang chạy (ui-refresh.css): Manrope tiêu đề, DM Sans nội dung.
+        // DM Sans không có bộ tiếng Việt nên chữ có dấu phải rơi về Inter (có bộ tiếng Việt). JetBrains Mono cho mã/đồng hồ.
+        foreach (var family in new[] { "manrope", "inter", "jetbrains-mono" })
         {
             Assert.Contains("vietnamese", Read($"wwwroot/lib/fonts/{family}/metadata.json"));
             Assert.Contains(family + "-vietnamese-", Read("wwwroot/css/mindsprint-fonts.css"));
         }
-        Assert.Contains("inter@5.1.1", Read("wwwroot/lib/fonts/README.md"));
-        Assert.Contains("jetbrains-mono@5.3.0", Read("wwwroot/lib/fonts/README.md"));
-        foreach (var subset in new[] { "latin", "latin-ext", "vietnamese" })
-            Assert.True(File.Exists(Path.Combine(Root, $"wwwroot/lib/fonts/inter/inter-{subset}-wght-normal.woff2")));
+        var fonts = Read("wwwroot/css/mindsprint-fonts.css");
+        Assert.Contains("'DM Sans Variable'", fonts);
+        Assert.Contains("'DM Sans Variable', 'Inter Variable'", Read("wwwroot/css/mindsprint.css")); // chữ có dấu → Inter
+        Assert.Contains("--font-heading: 'Manrope Variable'", Read("wwwroot/css/mindsprint.css"));
+        foreach (var pkg in new[] { "manrope@5.1.1", "dm-sans@5.1.1", "inter@5.1.1", "jetbrains-mono@5.3.0" })
+            Assert.Contains(pkg, Read("wwwroot/lib/fonts/README.md"));
+        foreach (var file in new[] { "manrope/manrope-vietnamese", "dm-sans/dm-sans-latin", "dm-sans/dm-sans-latin-ext", "inter/inter-vietnamese" })
+            Assert.True(File.Exists(Path.Combine(Root, $"wwwroot/lib/fonts/{file}-wght-normal.woff2")), file);
         foreach (var old in new[] { "space-grotesk", "bricolage-grotesque", "dela-gothic-one" })
             Assert.False(Directory.Exists(Path.Combine(Root, "wwwroot/lib/fonts", old)));
     }
@@ -99,9 +104,10 @@ public class GiaoDienTests
     public void TokenVaChuyenDongTheoBanDuyet()
     {
         var css = Read("wwwroot/css/mindsprint.css");
-        // MindSprint: bảng màu giao diện nhóm (MindSprint-AI-D-n/frontend/tokens.css), sáng + tối.
-        foreach (var token in new[] { "#FF7A45", "#F7F5FA", "#1A1A2E", "#625C70", "#E5E0ED", "#B23E13", "#FFF0E8", "#191721", "#25212F", "#F5F1F9" }) Assert.Contains(token, css);
-        foreach (var old in new[] { "#D2E823", "#F3F7DC", "#09090B" }) Assert.DoesNotContain(old, css);
+        // MindSprint: bảng màu giao diện nhóm ĐANG CHẠY (MindSprint-AI-D-n main, ui-refresh.css, đo lại 15/11/2026; docs/GIAO_DIEN_NHOM.md), sáng + tối.
+        foreach (var token in new[] { "#C7E977", "#FFFEFA", "#202B3E", "#536071", "#EAE8E0", "#EEF6D9", "#526D31", "#191721", "#25212F", "#F5F1F9", "#B5D965" }) Assert.Contains(token, css);
+        // Không còn màu Rekal (Acid) hay màu cam lỗi thời của tokens.css 06/10.
+        foreach (var old in new[] { "#D2E823", "#F3F7DC", "#09090B", "#FF7A45", "#B23E13", "#FFF0E8" }) Assert.DoesNotContain(old, css);
         Assert.Contains("[data-bs-theme=\"dark\"]", css);
         Assert.Contains("prefers-reduced-motion: reduce", css);
         Assert.Contains("outline: 3px solid var(--focus)", css);
@@ -158,9 +164,9 @@ public class GiaoDienTests
             var source = File.ReadAllText(path);
             Assert.DoesNotContain("Bricolage", source, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotMatch(@"(?i)dela[ +_-]+gothic", source);
-            Assert.DoesNotContain("Space Grotesk", source, StringComparison.OrdinalIgnoreCase); // MindSprint thay bằng Inter
+            Assert.DoesNotContain("Space Grotesk", source, StringComparison.OrdinalIgnoreCase); // MindSprint thay bằng Manrope/DM Sans
         }
-        Assert.Contains("Inter Variable", Read("wwwroot/css/mindsprint-fonts.css"));
+        Assert.Contains("Manrope Variable", Read("wwwroot/css/mindsprint-fonts.css"));
     }
 
     [Fact]
@@ -278,8 +284,8 @@ public class GiaoDienTests
         {
             var source = Read(path);
             Assert.Contains("viewport-fit=cover", source);
-            // MindSprint: nền sáng/tối theo tokens.css của nhóm.
-            Assert.Matches("<meta name=\"theme-color\" content=\"#F7F5FA\" media=\"\\(prefers-color-scheme: light\\)\"", source);
+            // MindSprint: nền sáng/tối theo giao diện nhóm đang chạy (ui-refresh.css).
+            Assert.Matches("<meta name=\"theme-color\" content=\"#FFFEFA\" media=\"\\(prefers-color-scheme: light\\)\"", source);
             Assert.Matches("<meta name=\"theme-color\" content=\"#191721\" media=\"\\(prefers-color-scheme: dark\\)\"", source);
         }
         Assert.Contains("meta[name=\"theme-color\"]", Read("wwwroot/js/theme.js"));
@@ -328,7 +334,8 @@ public class GiaoDienTests
         foreach (Match label in Regex.Matches(home, "class=\"eyebrow\">([^<]+)<")) Assert.InRange(label.Groups[1].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length, 1, 4);
         Assert.Contains("#i-check", home); Assert.Contains("<symbol id=\"i-check\"", Read("Views/Shared/_Icons.cshtml")); // icon Lucide dùng chung thay ký tự ✓ ✗ (2026-11-09)
         Assert.DoesNotContain("asp-action=\"Login\"", home);
-        Assert.DoesNotMatch(@"font-weight:\s*[89]00", Read("wwwroot/css/mindsprint.css"));
+        // MindSprint: giao diện nhóm dùng Manrope 800 cho logo/tiêu đề (đo 15/11); Manrope có tới 800 nên chỉ cấm 900 (sẽ bị tô đậm giả).
+        Assert.DoesNotMatch(@"font-weight:\s*900", Read("wwwroot/css/mindsprint.css"));
     }
 
     [Fact]

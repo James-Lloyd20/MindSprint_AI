@@ -18,7 +18,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#F7F5FA" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#FFFEFA" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#191721" media="(prefers-color-scheme: dark)" />
     <title>@ViewData["Title"] - @Brand.Name</title>
     @if (ViewData["Description"] is string description)
@@ -40,7 +40,7 @@
             try { theme = localStorage.getItem('mindsprint-theme'); } catch { }
             if (theme !== 'light' && theme !== 'dark') theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             document.documentElement.setAttribute('data-bs-theme', theme);
-            document.querySelectorAll('meta[name="theme-color"]').forEach(meta => meta.setAttribute('content', theme === 'dark' ? '#191721' : '#F7F5FA'));
+            document.querySelectorAll('meta[name="theme-color"]').forEach(meta => meta.setAttribute('content', theme === 'dark' ? '#191721' : '#FFFEFA'));
             let rail;
             try { rail = localStorage.getItem('mindsprint-sidebar'); } catch { }
             // Mặc định mở rộng như giao diện nhóm (QuizEdu từng mặc định thu gọn); chỉ thu gọn khi người dùng đã tự bấm.
@@ -67,7 +67,7 @@
         Func<object?, object> accountMenu = @<div class="dropdown account-menu">
             <button class="btn dropdown-toggle account-menu-toggle" type="button" id="account-menu" data-bs-toggle="dropdown" aria-expanded="false" title="@me!.DisplayName">
                 <partial name="_Avatar" model="me" />
-                <span class="account-copy"><span class="nav-label account-name">@me.DisplayName</span><span class="account-mode">@modeLabel</span></span>
+                <span class="account-copy"><span class="nav-label account-name">@me.DisplayName</span><span class="account-mode">@modeLabel</span>@if (!string.IsNullOrWhiteSpace(me.Email)) { <span class="account-mail">@me.Email</span> }</span>
                 <span class="nav-short" aria-hidden="true">Tôi</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="account-menu">
@@ -105,7 +105,16 @@
                         aria-expanded="false" aria-label="Mở menu">
                     <icon name="menu" />
                 </button>
-                <div class="navbar-collapse collapse">
+                <div class="navbar-collapse collapse" id="app-menu">
+                    @if (sidebar)
+                    {
+                        @* Thẻ người dùng dưới logo như sidebar nhóm (docs/GIAO_DIEN_NHOM.md); nhóm ghi khẩu hiệu, MVC ghi chế độ đang dùng vì có 2 chế độ. *@
+                        <div class="sidebar-user nav-label">
+                            <span class="sidebar-user-name">@me!.DisplayName</span>
+                            <span class="sidebar-user-mode">Đang dùng: @modeLabel</span>
+                            <form method="post" asp-controller="Account" asp-action="Logout"><button class="btn btn-sm btn-outline-secondary"><icon name="log-out" />Đăng xuất</button></form>
+                        </div>
+                    }
                     <ul class="navbar-nav me-auto">
                         @if (sidebar)
                         {
@@ -181,6 +190,26 @@
             </div>
         </nav>
     </header>
+    @if (sidebar)
+    {
+        @* Điện thoại: thanh tab dưới đáy như nhóm (Hôm nay · Thư viện · Luyện tập · Công việc · Khác); "Khác" mở menu đầy đủ. *@
+        <nav class="app-tabbar" aria-label="Điều hướng nhanh">
+            @if (lecturer)
+            {
+                <a class="@Current("StudySets")" asp-controller="StudySets" asp-action="Index"><icon name="book-open-text" /><span>Bộ học</span></a>
+                <a class="@(controller == "Classrooms" && action != "Join" ? "active" : "")" asp-controller="Classrooms" asp-action="Index"><icon name="users" /><span>Lớp</span></a>
+                <a class="@Current("Reports")" asp-controller="Reports" asp-action="Index"><icon name="chart-column" /><span>Báo cáo</span></a>
+            }
+            else
+            {
+                <a class="@Current("Learn")" asp-controller="Learn" asp-action="Index"><icon name="list-checks" /><span>Bài học</span></a>
+                <a class="@(controller == "Classrooms" && action != "Join" ? "active" : "")" asp-controller="Classrooms" asp-action="Index"><icon name="users" /><span>Lớp</span></a>
+                <a class="@Current("Classrooms", "Join")" asp-controller="Classrooms" asp-action="Join"><icon name="ticket" /><span>Mã lớp</span></a>
+            }
+            <a class="@Current("Notifications")" asp-controller="Notifications" asp-action="Index"><icon name="bell" /><span>Thông báo</span></a>
+            <button type="button" data-bs-toggle="collapse" data-bs-target="#app-menu" aria-controls="app-menu" aria-expanded="false"><icon name="menu" /><span>Khác</span></button>
+        </nav>
+    }
     <div class="container">
         @if (sidebar)
         {

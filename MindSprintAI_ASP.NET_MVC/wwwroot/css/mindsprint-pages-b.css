@@ -126,7 +126,6 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-score-result h2 { color: inherit; }
 .b-score-value { margin: 0; font: 700 3rem/1.15 var(--bs-font-sans-serif); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
 .b-learner-action { margin-top: 24px; }
-.b-learner-action .btn-primary { --bs-btn-bg: var(--blue); --bs-btn-color: var(--on-blue); --bs-btn-hover-bg: var(--blue); --bs-btn-hover-color: var(--on-blue); }
 .b-learner-action > :last-child { margin-bottom: 0 !important; }
 .b-history-title { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .b-attempt-table { font-size: .9375rem; margin-bottom: 0; }
@@ -187,16 +186,16 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-qr-small { display: block; width: 132px; height: 132px; padding: 0; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: #000; overflow: hidden; }
 .b-qr-small svg, .b-qr-large svg { display: block; width: 100%; height: 100%; }
 .b-assignment .b-qr-enlarge { margin-top: 8px; width: 100%; padding: 8px 4px; font-size: .8125rem; }
-.b-qr-modal { --ink: #1A1A2E; }
+.b-qr-modal { --ink: #202B3E; }
 .b-qr-modal .modal-dialog { --bs-modal-width: 960px; }
-.b-qr-modal .modal-content { overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: var(--ink); color: #F7F5FA; }
-.b-qr-modal .modal-header { gap: 16px; border-bottom: 2px solid #F7F5FA; background: var(--ink); }
-.b-qr-modal .modal-title { min-width: 0; font: 700 1.75rem/1.4 var(--bs-font-monospace); color: #F7F5FA; overflow-wrap: anywhere; }
+.b-qr-modal .modal-content { overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: var(--ink); color: #FFFEFA; }
+.b-qr-modal .modal-header { gap: 16px; border-bottom: 2px solid #FFFEFA; background: var(--ink); }
+.b-qr-modal .modal-title { min-width: 0; font: 700 1.75rem/1.4 var(--bs-font-monospace); color: #FFFEFA; overflow-wrap: anywhere; }
 .b-qr-modal .modal-title span { display: inline-block; }
-.b-qr-modal .b-qr-close { flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 8px; border-color: #F7F5FA; background: var(--ink); color: #F7F5FA; box-shadow: none; }
+.b-qr-modal .b-qr-close { flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 8px; border-color: #FFFEFA; background: var(--ink); color: #FFFEFA; box-shadow: none; }
 .b-qr-modal .modal-body { display: grid; justify-items: center; gap: 24px; padding: 24px; background: var(--ink); }
 .b-qr-large { width: min(70vh, 520px, 100%); aspect-ratio: 1; padding: 0; border: 2px solid var(--line); border-radius: 20px; overflow: hidden; background: #fff; color: #000; }
-.b-qr-modal .modal-body p { max-width: 38rem; margin: 0; text-align: center; color: #F7F5FA; }
+.b-qr-modal .modal-body p { max-width: 38rem; margin: 0; text-align: center; color: #FFFEFA; }
 @media (min-width: 768px) {
   .b-assignment .card:has(.b-code-layout) { container-type: inline-size; }
   main .b-code-layout:has(.b-qr-preview:not([hidden])) .b-assignment-code { font-size: clamp(1.25rem, 6cqi, 2rem); }
@@ -297,7 +296,7 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-grade-table > thead > tr > th { white-space: normal; height: auto; }
 
 /* Việc cần xem ở trang lớp: từng việc ghi rõ, dẫn tới chỗ xử lý. */
-.b-attention { margin-bottom: 24px; padding: 16px 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 4px 4px 0 var(--warn); }
+.b-attention { margin-bottom: 24px; padding: 16px 20px; border: 1px solid var(--alert-warn-line); border-radius: 16px; background: var(--alert-warn-bg); box-shadow: none; }
 .b-attention h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
 .b-attention ul { margin: 0; padding-left: 1.25rem; }
 .b-attention li { padding-block: 4px; }

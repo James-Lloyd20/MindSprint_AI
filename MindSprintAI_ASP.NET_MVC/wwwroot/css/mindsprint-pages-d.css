@@ -13,9 +13,81 @@
 .consent-check .form-check-input { flex: none; width: 1.25em; height: 1.25em; margin-top: 2px; }
 
 /* Thẻ danh sách theo giao diện nhóm: nền pastel chuyển màu xoay vòng A/B/C (tokens.css --pastel-a/b/c),
-   không viền, bóng cam nhẹ khi rê chuột. File này nạp cuối nên thắng các rule thẻ ở pages-a/mindsprint.css. */
+   không viền, bóng nhẹ khi rê chuột. File này nạp cuối nên thắng các rule thẻ ở pages-a/mindsprint.css. */
 :is(.set-card, .class-card, .learn-card) { border-color: transparent; border-radius: 20px; box-shadow: var(--elev-1); }
 :is(.set-card, .class-card, .learn-card):nth-child(3n+1) { background: var(--pastel-a); }
 :is(.set-card, .class-card, .learn-card):nth-child(3n+2) { background: var(--pastel-b); }
 :is(.set-card, .class-card, .learn-card):nth-child(3n) { background: var(--pastel-c); }
 :is(.class-card, .learn-card):hover { transform: translateY(-2px); box-shadow: var(--elev-accent); }
+
+/* --blue vừa là chữ link xanh rêu, vừa được view/model dùng làm màu nền (AvatarText.Tint, tints của lớp/bộ học, avatar minh họa).
+   Trong các khối làm nền, đổi --blue thành màu nền pastel (--sky) để chữ tối đọc được; link ngoài các khối này giữ cam đậm. */
+:is(.account-avatar, .class-initial, .set-initial, .home-av) { --blue: var(--sky); color: var(--text); }
+
+/* ===== Khung theo giao diện nhóm đang chạy (docs/GIAO_DIEN_NHOM.md, ảnh 01 và 18) ===== */
+/* Nút phụ: nền trắng viền xám, rê chuột thì xanh nhạt (ui-refresh.css .btn-secondary). */
+:is(.btn-secondary, .btn-outline-primary, .btn-outline-secondary) { --bs-btn-bg: var(--surface); --bs-btn-color: var(--text); --bs-btn-border-color: var(--line);
+  --bs-btn-hover-bg: var(--acid-soft); --bs-btn-hover-color: var(--accent-ink); --bs-btn-hover-border-color: var(--accent-border);
+  --bs-btn-active-bg: var(--acid-soft); --bs-btn-active-color: var(--accent-ink); --bs-btn-active-border-color: var(--accent-border); }
+/* Thẻ người dùng dưới logo. */
+.sidebar-user { display: none; }
+@media (min-width: 992px) {
+  .has-sidebar .sidebar-user { display: grid; gap: 2px; justify-items: start; padding: 12px 10px 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--bg); }
+  .has-sidebar .sidebar-user-name { font-weight: 700; font-size: .875rem; }
+  .has-sidebar .sidebar-user-mode { font-size: .75rem; color: var(--text-muted); margin-bottom: 8px; }
+  .has-sidebar .sidebar-user .btn { min-height: 34px; padding: 4px 12px; font-size: .8125rem; display: inline-flex; align-items: center; gap: 6px; }
+  .has-sidebar .sidebar-user .btn .icon { width: 14px; height: 14px; margin: 0; }
+  :root[data-sidebar="collapsed"] .has-sidebar .sidebar-user { display: none; }
+  /* Tiêu đề nhóm mục IN HOA nhỏ, giãn chữ. */
+  .has-sidebar .nav-heading { text-transform: uppercase; font-size: .66rem; font-weight: 800; letter-spacing: .12em; }
+}
+/* Avatar trên header: ô vuông bo góc nền xanh nhạt, chữ xanh rêu; dưới tên là email (như nhóm), ẩn chế độ (đã ở thẻ người dùng). */
+.app-topbar .account-avatar { border-radius: 12px; background: var(--acid-soft); color: var(--accent-ink); border-color: var(--accent-border); }
+.app-topbar .account-menu-toggle .account-mode { display: none; }
+.app-topbar .account-menu-toggle .account-mail { font-size: .75rem; color: var(--text-muted); }
+.account-mail { display: none; }
+.app-topbar .account-mail { display: block; }
+/* Thanh tab dưới đáy trên điện thoại (ảnh 18); máy tính dùng sidebar. */
+.app-tabbar { display: none; }
+@media (max-width: 991.98px) {
+  .app-tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1040; display: grid; grid-template-columns: repeat(5, 1fr);
+    padding: 6px 8px calc(6px + var(--safe-bottom)); background: var(--sidebar-bg); border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(34, 42, 54, .05); }
+  .app-tabbar > :is(a, button) { display: grid; justify-items: center; gap: 2px; padding: 6px 2px; min-height: 52px; border: 0; border-radius: 12px; background: none;
+    color: var(--text-muted); font: 600 .6875rem/1.2 var(--bs-font-sans-serif); text-decoration: none; }
+  .app-tabbar > :is(a, button) .icon { width: 20px; height: 20px; margin: 0; }
+  .app-tabbar > .active { background: var(--acid-soft); color: var(--accent-ink); }
+  body.has-sidebar { padding-bottom: calc(72px + var(--safe-bottom)); }
+  .has-sidebar .navbar-toggler { display: none; }
+}
+
+/* ===== Số đo lấy bằng getComputedStyle từ bản nhóm đang chạy (MindSprint-AI-D-n main, 15/11/2026) — không ước lượng bằng mắt ===== */
+@media (min-width: 992px) {
+  .has-sidebar { --sb-w: 260px; }
+  .has-sidebar .navbar { padding: 26px 17px 20px; }
+  .has-sidebar .nav-heading { font-size: .66rem; font-weight: 800; letter-spacing: .12em; color: #727A80; padding-left: 11px; margin-inline: 0; }
+  .has-sidebar .navbar .nav-link { min-height: 43px; height: auto; padding: 10px 12px; gap: 12px; border-radius: 12px; font-size: .875rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; }
+  .has-sidebar .navbar .nav-link .icon { width: 16px; height: 16px; color: #928A9C; }
+  .has-sidebar .navbar .nav-link.active { font-weight: 700; color: var(--accent-ink); background: var(--acid-soft); }
+  .has-sidebar .navbar .nav-link.active .icon { color: var(--accent-ink); }
+  .has-sidebar .sidebar-user { padding: 14px; border-radius: 16px; background: var(--surface); }
+}
+[data-bs-theme="dark"] .has-sidebar .nav-heading { color: var(--text-muted); }
+.navbar-brand { font-size: 1.22rem; font-weight: 800; letter-spacing: -.045em; }
+.navbar-brand .brand-icon { width: 40px; height: 40px; padding: 10px; border-radius: 13px; border: 1px solid var(--accent-border); background: var(--surface); color: var(--text); }
+/* Tiêu đề trang 32px/800, chữ khít; mô tả 13px. */
+main h1, main h1.h3, main h1.h4 { font-size: 2rem; font-weight: 800; letter-spacing: -.055em; line-height: 1.3; }
+main h1 + p, main h1 + .text-muted { font-size: .8125rem; color: var(--text-muted); }
+/* Nút chính: 14.4px/700, cao 44px, đệm 8px 20px, bo 13px. */
+.btn { font-size: .9rem; font-weight: 700; min-height: 44px; padding: 8px 20px; }
+.btn-sm { min-height: 36px; padding: 6px 14px; font-size: .8125rem; }
+/* Header: ô tìm bo 14px viền #a3aa9a rộng 510px; nút icon vuông 44px bo 14px; avatar 44px bo 13px. */
+.app-search { max-width: 510px; }
+.app-search .form-control { border-radius: 14px; border-color: #A3AA9A; font-size: .875rem; padding-left: 40px; }
+[data-bs-theme="dark"] .app-search .form-control { border-color: var(--line-strong); }
+.app-icon-btn { border-radius: 14px; }
+.app-topbar .account-avatar { flex-basis: 44px; width: 44px; height: 44px; border-radius: 13px; font-weight: 700; }
+/* Thẻ: bo 20px, viền mảnh, bóng 0 10px 30px rgba(34,42,54,.043), đệm 24px; ô icon trong thẻ 44px bo 14px. */
+.card, :is(.set-card, .class-card, .learn-card) { border-radius: 20px; box-shadow: 0 10px 30px rgba(34, 42, 54, .043); }
+:is(.set-card, .class-card, .learn-card) { border: 1px solid var(--line); }
+.card-body { padding: 24px; }
+.section-icon { width: 44px; height: 44px; border-radius: 14px; }

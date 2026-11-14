@@ -21,7 +21,7 @@
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--tint, var(--acid));
-  color: #1A1A2E;
+  color: #202B3E;
   box-shadow: var(--elev-1);
   font: 700 1.75rem/1 var(--bs-font-sans-serif);
   text-transform: uppercase;
@@ -45,7 +45,7 @@
 .acc-pill .icon { width: 16px; height: 16px; }
 .acc-pill.is-mode { background: var(--acid); color: var(--on-acid); }
 [data-bs-theme="dark"] .acc-pill.is-mode { background: var(--muted); color: var(--acid); border-color: var(--acid); }
-.acc-pill.is-admin { background: var(--pink); color: #1A1A2E; }
+.acc-pill.is-admin { background: var(--pink); color: #202B3E; }
 [data-bs-theme="dark"] .acc-pill.is-admin { background: var(--muted); color: var(--pink); border-color: var(--pink); }
 .acc-privacy {
   grid-column: 1 / -1;
@@ -160,7 +160,7 @@ main .acc-card .section-head { margin: 0; }
   overflow-wrap: anywhere;
 }
 .acc-state .icon { width: 15px; height: 15px; }
-.acc-state.is-on { background: var(--ok); color: #1A1A2E; }
+.acc-state.is-on { background: var(--ok); color: #202B3E; }
 [data-bs-theme="dark"] .acc-state.is-on { background: var(--muted); color: var(--ok-text); border-color: var(--ok); }
 .acc-state.is-off { background: var(--muted); color: var(--text); border-style: dashed; }
 [data-bs-theme="dark"] .acc-state.is-off { color: var(--text-muted); }
@@ -264,8 +264,8 @@ main a.acc-inline-link { display: inline-flex; align-items: center; gap: 6px; mi
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--blue);
-  border: 2px solid #1A1A2E;
+  background: var(--acid);
+  border: 0;
   flex: none;
 }
 [data-bs-theme="dark"] .notif-dot { background: var(--acid); border-color: var(--acid); }
@@ -424,7 +424,7 @@ main .set-card-title {
   padding: 2px 10px;
   border: 1px solid var(--line);
   background: var(--warn);
-  color: #1A1A2E;
+  color: #202B3E;
 }
 [data-bs-theme="dark"] .set-stat.is-due {
   background: var(--muted);
@@ -453,7 +453,7 @@ main .set-card-title {
   font-weight: 700;
 }
 .set-dropdown .set-delete-btn { color: var(--bad-text); }
-.set-dropdown .set-delete-btn:hover { background: var(--bad); color: #1A1A2E; }
+.set-dropdown .set-delete-btn:hover { background: var(--bad); color: #202B3E; }
 
 .set-primary-links {
   display: grid;

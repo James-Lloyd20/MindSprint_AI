@@ -293,7 +293,8 @@ public class RaSoatTkAiHvTests
         Assert.DoesNotContain("Ô ${", Source("wwwroot/js/play.js"));
         Assert.Contains("Chỗ trống ${empty + 1} chưa điền.", Source("wwwroot/js/play.js"));
         Assert.Contains("Điền vào từng chỗ trống bên dưới.", Source("Views/Learn/_PlayQuestionBody.cshtml"));
-        var menu = Source("Views/Shared/_Layout.cshtml").Split('\n').Single(l => l.Contains("asp-controller=\"Classrooms\"") && l.Contains("asp-action=\"Index\""));
+        // MindSprint: thanh tab điện thoại cũng có link Lớp; kiểm dòng menu thanh bên (nav-link).
+        var menu = Source("Views/Shared/_Layout.cshtml").Split('\n').Single(l => l.Contains("nav-link") && l.Contains("asp-controller=\"Classrooms\"") && l.Contains("asp-action=\"Index\""));
         Assert.Contains("lecturer ? \"Lớp tôi dạy\" : \"Lớp của tôi\"", menu);
     }
 
