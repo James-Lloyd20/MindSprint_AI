@@ -40,16 +40,6 @@
       "height": 1024,
       "bytes": 114492,
       "edited": "2026-11-12: image_gen EDIT (bản v7) xoay cuốn vở cho nếp gấp hướng ra trước mặt người viết, mép dưới bìa thẳng; WebP chất lượng 0.9 bằng canvas trình duyệt"
-    },
-    {
-      "file": "study-ai-together.webp",
-      "alt": "Hai học viên cùng ôn thẻ ghi nhớ bên bàn học",
-      "variant": "B — cùng ôn thẻ, dùng ở màn đầu",
-      "source": "Tranh minh họa tạo bằng AI",
-      "tool": "Built-in image_gen",
-      "width": 960,
-      "height": 640,
-      "bytes": 53996
     }
   ]
 }

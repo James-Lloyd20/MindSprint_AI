@@ -10,7 +10,7 @@ public class NutQuayLaiTests
     // Trang chính trên thanh bên, trang đăng nhập, trang đang làm bài và hộp xác nhận (đã có nút Hủy) không cần.
     private static readonly string[] Exempt =
     [
-        "Home/Index", "Home/Lecturer", "Learn/Index", "Learn/Play", "Learn/Consent", "Classrooms/Index", "Classrooms/Join",
+        "Home/Index", "Learn/Index", "Learn/Play", "Learn/Consent", "Classrooms/Index", "Classrooms/Join",
         "StudySets/Index", "StudySets/Trash", "Notifications/Index", "Kanban/Index", "Reports/Index", "Admin/Index", "Account/Index",
         "Account/Login", "Account/Register", "Account/ForgotPassword", "Account/ResetPassword", "Account/CheckEmail",
         "Account/Message", "Account/LoginTwoFactor", "Account/ConfirmLock", "Account/RecoveryCodes", "Account/AcceptPolicy", "Account/DeleteAccountConfirm",

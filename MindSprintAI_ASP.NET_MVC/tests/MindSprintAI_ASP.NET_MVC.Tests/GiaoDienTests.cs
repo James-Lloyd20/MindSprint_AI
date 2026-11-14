@@ -113,8 +113,9 @@ public class GiaoDienTests
         Assert.Contains("outline: 3px solid var(--focus)", css);
         Assert.Contains(".mindsprint-still *", css);
         Assert.Contains("animation: none !important", css);
-        Assert.Contains(".home-page .home-hero", css);
-        Assert.Contains("home-marquee", css); // vòng lặp mới chỉ ở dải môn học có nút dừng
+        // MindSprint 15/11: trang giới thiệu QuizEdu (.home-page, dải chạy home-marquee) đã bỏ theo quyết định người dùng; không còn CSS của nó.
+        Assert.DoesNotContain(".home-page", css);
+        Assert.DoesNotContain("home-marquee", css);
         Assert.DoesNotContain("transition: all", css);
     }
 
@@ -172,12 +173,15 @@ public class GiaoDienTests
     [Fact]
     public void TrangChuCoMotTieuDeVaNamPhanCungMoTaChiaSe()
     {
+        // MindSprint 15/11 (người dùng chốt): trang chủ theo bố cục nhóm (docs/giao-dien-nhom/01–03) cho khách và người đã đăng nhập.
         var home = Read("Views/Home/Index.cshtml");
         Assert.Single(Regex.Matches(home, @"<h1\b", RegexOptions.IgnoreCase).Cast<Match>());
-        Assert.Equal(5, Regex.Matches(home, @"<section\b").Count);
         Assert.Contains("ViewData[\"Description\"]", home);
         Assert.Contains("ViewData[\"OgImage\"]", home);
-        foreach (var text in new[] { "Ôn tập và kiểm tra bằng", "Bài ôn của học viên", "Bài giao của giảng viên", "Ba bước vào bài học", "Bắt đầu buổi ôn tập" }) Assert.Contains(text, home);
+        foreach (var text in new[] { "Hôm nay học gì?", "Tiến độ của bạn", "Việc hôm nay", "Bộ học của bạn", "Góc học tập của bạn" }) Assert.Contains(text, home);
+        // Khách (model null) chỉ thấy lời chào, thẻ "Hôm nay học gì?" và góc học tập; số liệu cá nhân nằm trong nhánh Model != null.
+        Assert.Contains("@if (Model == null)", home);
+        Assert.Contains("@if (Model != null)", home);
         var layout = Read("Views/Shared/_Layout.cshtml");
         Assert.Contains("ViewData[\"Description\"] is string description", layout);
         Assert.Contains("<meta name=\"description\"", layout);
@@ -188,8 +192,11 @@ public class GiaoDienTests
     [Fact]
     public void AnhCoKichThuocChuThayTheVaNguonCongKhai()
     {
+        // Trang chủ kiểu nhóm không có ảnh chụp; nó vẫn giữ khối "Nguồn ảnh" cho ảnh chia sẻ link và ảnh các trang khác.
         var sources = new[] { "Views/Home/Index.cshtml", "Views/Account/Login.cshtml", "Views/Account/Register.cshtml" }.Select(Read).ToArray();
-        foreach (var source in sources)
+        Assert.Contains("Nguồn ảnh", sources[0]);
+        Assert.Contains("https://creativecommons.org/publicdomain/zero/1.0/", sources[0]);
+        foreach (var source in sources.Skip(1))
         {
             Assert.Contains("Nguồn ảnh", source);
             Assert.Contains("https://creativecommons.org/publicdomain/zero/1.0/", source);
@@ -232,10 +239,8 @@ public class GiaoDienTests
         var animated = new[] { "wwwroot/css", "wwwroot/js" }.SelectMany(Files)
             .SelectMany(p => Regex.Matches(File.ReadAllText(p), @"([^{}]+)\{([^{}]*\banimation(?:-name)?\s*:[^{}]*)\}").Cast<Match>())
             .Where(m => !Regex.IsMatch(m.Groups[2].Value, @"animation(?:-name)?\s*:\s*none\b")).ToList();
-        Assert.Equal(2, animated.Count);
-        Assert.Contains(animated, m => m.Value.Contains("home-arrive 320ms"));
-        Assert.Contains(animated, m => m.Value.Contains("home-marquee"));
-        Assert.All(animated, m => Assert.Contains(".home-page", m.Groups[1].Value));
+        // MindSprint 15/11: hai chuyển động trang trí của trang giới thiệu QuizEdu đã bỏ cùng trang đó; giao diện nhóm chỉ dùng transition ngắn.
+        Assert.Empty(animated);
         var reduced = css[css.IndexOf("@media (prefers-reduced-motion: reduce)", StringComparison.Ordinal)..];
         Assert.Contains("animation: none !important", reduced);
         Assert.Contains("transition: none !important", reduced);
@@ -307,15 +312,11 @@ public class GiaoDienTests
     }
 
     [Fact]
-    public void MomentChiTangCuongKhiHoTroVaCoNutDung()
+    public void KhongDungThuVienChuyenDongNgoaiVaBoMomentLanding()
     {
-        var script = Read("wwwroot/js/home-moments.js");
-        foreach (var text in new[] { "prefers-reduced-motion", "CSS.supports", "animation-timeline", "visibilitychange", "document.hidden", "requestAnimationFrame", "passive: true", "min-width: 992px", "min-height: 700px" }) Assert.Contains(text, script);
-        var home = Read("Views/Home/Index.cshtml");
-        Assert.Contains("data-moment=\"pinned-chapters\"", home);
-        Assert.Contains("data-moment=\"marquee-row\"", home);
-        Assert.Matches("<button[^>]*type=\"button\"[^>]*data-marquee-pause[^>]*aria-pressed=\"false\"", home);
-        Assert.Contains("~/js/home-moments.js", home);
+        // MindSprint 15/11: script hiệu ứng của trang giới thiệu cũ đã xóa cùng trang đó.
+        Assert.False(File.Exists(Path.Combine(Root, "wwwroot/js/home-moments.js")));
+        Assert.DoesNotContain("home-moments.js", Read("Views/Home/Index.cshtml"));
         Assert.DoesNotContain("home-moments.js", Read("Views/Shared/_Layout.cshtml"));
         foreach (var path in Files("wwwroot").Where(p => !p.EndsWith(".woff2") && !p.EndsWith(".webp") && !p.EndsWith(".ico")))
         {
@@ -328,12 +329,13 @@ public class GiaoDienTests
     [Fact]
     public void TieuDeCoDungMotDaiAcidVaNhanNgan()
     {
+        // MindSprint 15/11: trang chủ kiểu nhóm không dùng dải acid (đó là phong cách QuizEdu); nhãn nhỏ phía trên vẫn ngắn.
         var home = Read("Views/Home/Index.cshtml");
-        Assert.Single(Regex.Matches(home, "class=\"acid-highlight\"").Cast<Match>());
-        Assert.Matches("<h1[^>]*>[^<]*<span class=\"acid-highlight\">[^<]+</span></h1>", home);
-        foreach (Match label in Regex.Matches(home, "class=\"eyebrow\">([^<]+)<")) Assert.InRange(label.Groups[1].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length, 1, 4);
-        Assert.Contains("#i-check", home); Assert.Contains("<symbol id=\"i-check\"", Read("Views/Shared/_Icons.cshtml")); // icon Lucide dùng chung thay ký tự ✓ ✗ (2026-11-09)
-        Assert.DoesNotContain("asp-action=\"Login\"", home);
+        Assert.DoesNotContain("acid-highlight", home);
+        var eyebrows = Regex.Matches(home, "class=\"eyebrow\">([^<]+)<").Cast<Match>().ToList();
+        Assert.NotEmpty(eyebrows);
+        foreach (var label in eyebrows) Assert.InRange(label.Groups[1].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length, 1, 6);
+        Assert.Contains("<symbol id=\"i-check\"", Read("Views/Shared/_Icons.cshtml")); // icon Lucide dùng chung thay ký tự ✓ ✗ (2026-11-09)
         // MindSprint: giao diện nhóm dùng Manrope 800 cho logo/tiêu đề (đo 15/11); Manrope có tới 800 nên chỉ cấm 900 (sẽ bị tô đậm giả).
         Assert.DoesNotMatch(@"font-weight:\s*900", Read("wwwroot/css/mindsprint.css"));
     }

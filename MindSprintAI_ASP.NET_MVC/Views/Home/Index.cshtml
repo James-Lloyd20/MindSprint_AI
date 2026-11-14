@@ -1,154 +1,161 @@
-﻿@{
-    ViewData["Title"] = "Ôn tập và kiểm tra bằng quiz";
-    ViewData["Description"] = "Giảng viên giao bài quiz, theo dõi lớp làm bài ngay lúc đó; học viên ôn bằng quiz và thẻ ghi nhớ, xem lại phần cần học trên MindSprint AI.";
-    ViewData["OgTitle"] = $"{Brand.Name} · Ôn tập và kiểm tra bằng quiz";
+﻿@model HomeDashboard?
+@{
+    ViewData["Title"] = "Trang chủ";
+    ViewData["Description"] = "Ôn tập bằng thẻ ghi nhớ và quiz, làm bài lớp giao, sắp xếp công việc học tập mỗi ngày trên MindSprint AI.";
+    ViewData["OgTitle"] = $"{Brand.Name} · Học mỗi ngày, tiến bộ một chút";
     ViewData["OgImage"] = "~/img/landing/photo-d183.webp";
     ViewData["PageKind"] = "software";
+    // Bố cục theo trang chủ nhóm (docs/giao-dien-nhom/01–03): lời chào · thẻ "Hôm nay học gì?" · tiến độ + việc hôm nay · bộ học · góc học tập.
+    string[] weekdays = ["Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+    var today = Model?.Today ?? VnTime.Date(DateTime.UtcNow);
+    var next = Model?.Todo.FirstOrDefault();
 }
-@* Bố cục người dùng chọn 2026-11-09: xấp câu hỏi quiz (màn đầu) + điện thoại lướt ôn (học viên) + bảng theo dõi trực tiếp (giảng viên). Mảnh giao diện là minh họa, ghi rõ. *@
-<div class="home-page">
-    <section class="home-hero" aria-labelledby="home-title">
-        <div class="home-split">
-            <div class="home-hero-copy">
-                <h1 class="display" id="home-title">Ôn tập và kiểm tra bằng <span class="acid-highlight">quiz</span></h1>
-                <p class="lead">Giảng viên giao bài và thấy cả lớp làm bài ngay lúc đó. Học viên biết mình cần ôn phần nào.</p>
-                <div class="home-actions">
-                    <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Tạo tài khoản</a>
-                    <a class="btn btn-outline-secondary" asp-controller="Classrooms" asp-action="Join">Nhập mã vào lớp</a>
+<div class="home-dash">
+    <header class="home-greet">
+        <div>
+            <h1>@(Model == null ? "Chào bạn" : $"{Model.Greeting}, {Model.Name}")</h1>
+            <p>Mỗi ngày một chút tiến bộ · Hôm nay mình học gì nhỉ?</p>
+        </div>
+        <span class="home-date"><icon name="calendar" />@weekdays[(int)today.DayOfWeek] · @today.Day tháng @today.Month</span>
+    </header>
+
+    <section class="home-hero-card" aria-labelledby="home-hero-title">
+        <p class="eyebrow">Mỗi ngày, một chút tiến bộ</p>
+        <h2 id="home-hero-title">Hôm nay học gì?</h2>
+        <p>Ôn lại thẻ ghi nhớ, làm bài lớp giao và ghi những việc cần làm để không bỏ sót.</p>
+        <div class="home-hero-actions">
+            @if (Model == null)
+            {
+                <a class="btn btn-primary" asp-controller="Account" asp-action="Login"><icon name="log-in" />Đăng nhập để bắt đầu</a>
+                <a class="btn btn-secondary" asp-controller="Classrooms" asp-action="Join"><icon name="ticket" />Nhập mã vào lớp</a>
+            }
+            else if (Model.Lecturer)
+            {
+                <a class="btn btn-primary" href="@Url.Action("Index", "StudySets")#tao-bo-hoc"><icon name="plus" />Tạo bộ học</a>
+                <a class="btn btn-secondary" asp-controller="Classrooms" asp-action="Index"><icon name="send" />Giao bài cho lớp</a>
+            }
+            else
+            {
+                @if (next != null) { <a class="btn btn-primary" asp-controller="Learn" asp-action="Assignment" asp-route-id="@next.Id"><icon name="play" />Làm bài: @next.Quiz.Title</a> }
+                else { <a class="btn btn-primary" asp-controller="StudySets" asp-action="Index"><icon name="play" />Mở thư viện để ôn</a> }
+                <a class="btn btn-secondary" href="@Url.Action("Index", "StudySets")#tao-bo-hoc"><icon name="plus" />Tạo bộ học</a>
+            }
+        </div>
+    </section>
+
+    @if (Model != null)
+    {
+        <div class="home-row">
+            <section class="home-panel" aria-labelledby="home-progress-title">
+                <div class="home-panel-head"><h2 id="home-progress-title">Tiến độ của bạn</h2><a asp-controller="Kanban" asp-action="Index">Bảng công việc</a></div>
+                <div class="home-progress">
+                    <div class="home-ring" style="--p: @Model.TaskPercent" role="img" aria-label="Đã xong @Model.TaskPercent% công việc"><strong>@Model.TaskPercent%</strong><span>việc đã xong</span></div>
+                    <dl class="home-stats">
+                        <div><dt><icon name="layers" />Thẻ cần ôn</dt><dd>@Model.CardsDue thẻ</dd></div>
+                        @if (Model.Lecturer) { <div><dt><icon name="play" />Bài đang mở</dt><dd>@Model.Teaching!.Open.Count bài</dd></div> }
+                        else { <div><dt><icon name="list-checks" />Bài cần làm</dt><dd>@Model.Todo.Count bài</dd></div> }
+                        <div><dt><icon name="square-kanban" />Công việc</dt><dd>@Model.TasksDone/@Model.TasksTotal</dd></div>
+                    </dl>
                 </div>
-                <ul class="home-proof">
-                    <li><svg aria-hidden="true"><use href="#i-check" /></svg>Kiểm tra có giám sát</li>
-                    <li><svg aria-hidden="true"><use href="#i-check" /></svg>Ôn bằng thẻ ghi nhớ</li>
-                    <li><svg aria-hidden="true"><use href="#i-check" /></svg>Tiếng Việt dễ hiểu</li>
-                    <li><svg aria-hidden="true"><use href="#i-check" /></svg>Miễn phí, trường tự chạy</li>
-                </ul>
-            </div>
-            <div class="home-deck" role="img" aria-label="Minh họa một câu hỏi quiz đang làm: câu 3 trên 20, đã chọn đáp án B, Ampe.">
-                <span class="home-deck-card home-deck-3"></span>
-                <span class="home-deck-card home-deck-2"></span>
-                <span class="home-deck-card home-deck-1"></span>
-                <div class="home-deck-card home-quiz question" aria-hidden="true">
-                    <div class="home-fragment-head"><span class="eyebrow">Câu 3 / 20</span><span class="home-timer"><svg><use href="#i-clock" /></svg>12:40</span></div>
-                    <p class="home-question">Đơn vị đo cường độ dòng điện là gì?</p>
-                    <div class="home-options">
-                        <div class="home-answer"><b>A</b><span>Vôn</span></div>
-                        <div class="home-answer home-answer-picked"><b>B</b><span>Ampe</span><svg class="home-answer-mark"><use href="#i-check" /></svg></div>
-                        <div class="home-answer"><b>C</b><span>Oát</span></div>
-                        <div class="home-answer"><b>D</b><span>Ôm</span></div>
+            </section>
+            <section class="home-panel" aria-labelledby="home-today-title">
+                <div class="home-panel-head"><h2 id="home-today-title">Việc hôm nay</h2><span>@Model.Tasks.Count việc chưa xong</span></div>
+                @if (Model.Tasks.Count == 0) { <p class="home-empty">Chưa có việc nào cần làm. Ghi việc mới ở bảng công việc nhé.</p> }
+                else
+                {
+                    <ul class="home-tasks">
+                        @foreach (var t in Model.Tasks)
+                        {
+                            <li><span class="home-task-dot @(t.Status == KanbanStatus.Doing ? "is-doing" : "")" aria-hidden="true"></span>
+                                <span>@t.Title<small>@(t.Status == KanbanStatus.Doing ? "Đang làm" : "Chưa bắt đầu")@(t.DueDate is { } d ? $" · hạn {d:dd/MM}" : "")</small></span></li>
+                        }
+                    </ul>
+                }
+                <a class="home-go" asp-controller="Kanban" asp-action="Index"><icon name="play" />Mở bảng công việc<icon name="chevron-right" /></a>
+            </section>
+        </div>
+
+        @if (Model.Lecturer)
+        {
+            <section class="home-section" aria-labelledby="home-open-title">
+                <div class="home-section-head"><h2 id="home-open-title">Bài đang diễn ra</h2><a asp-controller="Reports" asp-action="Index">Xem tất cả<icon name="chevron-right" /></a></div>
+                @if (Model.Teaching!.Open.Count == 0) { <p class="home-empty">Chưa có bài đang mở. Khi bạn giao bài cho lớp, bài sẽ hiện ở đây để theo dõi.</p> }
+                else
+                {
+                    <div class="home-cards">
+                        @foreach (var a in Model.Teaching.Open.Take(3))
+                        {
+                            <a class="home-card" asp-controller="Assignments" asp-action="Details" asp-route-id="@a.Id">
+                                <span class="home-card-tag"><span class="section-icon"><icon name="play" /></span>@a.Classroom</span>
+                                <strong>@a.Title</strong>
+                                <span class="home-card-meta"><span>@a.Working đang làm · @a.Submitted đã nộp</span><b>Theo dõi</b></span>
+                            </a>
+                        }
                     </div>
-                    <div class="home-quiz-foot"><span class="home-chip"><svg><use href="#i-flag" /></svg>Đánh dấu</span><span class="btn btn-primary btn-sm">Nộp bài</span></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="home-section home-learner" aria-labelledby="learner-title">
-        <div class="home-split">
-            <div>
-                <p class="eyebrow">Học viên</p>
-                <h2 id="learner-title">Bài ôn của học viên, ngay trên điện thoại</h2>
-                <p class="lead">Mỗi lần lướt là một thẻ. Nhớ thì đi tiếp, chưa nhớ thì thẻ quay lại sau.</p>
-                <ul class="home-points">
-                    <li><b>Thẻ ghi nhớ</b>Tự chấm “Nhớ” hoặc “Chưa nhớ” để biết thẻ nào cần ôn tiếp.</li>
-                    <li><b>Xem lại câu sai</b>Sau mỗi bài, MindSprint AI chỉ ra câu sai và lời giải.</li>
-                    <li><b>Hỏi trợ lý AI</b>Dùng khóa Gemini của chính bạn, hỏi ngay trong bài.</li>
-                </ul>
-            </div>
-            <div class="home-phone" aria-hidden="true">
-                <div class="home-phone-screen">
-                    <div class="home-fragment-head"><span class="eyebrow">Thẻ 12 / 40</span><span>Địa lý</span></div>
-                    <p class="home-card-q">Thủ đô của Úc là gì?</p>
-                    <p class="home-card-a">Canberra, không phải Sydney.</p>
-                    <div class="home-rail">
-                        <span class="is-on"><svg><use href="#i-check" /></svg><small>Nhớ</small></span>
-                        <span><svg><use href="#i-x" /></svg><small>Chưa</small></span>
-                        <span><svg><use href="#i-flag" /></svg><small>Đánh dấu</small></span>
-                        <span><svg><use href="#i-circle-help" /></svg><small>Hỏi AI</small></span>
+                }
+                @if (Model.Teaching.Review.Sum(c => c.Count) is > 0 and var waiting)
+                {
+                    <p class="home-note"><icon name="circle-alert" /><span>Có <b>@waiting việc</b> đang chờ bạn xem trong @string.Join(", ", Model.Teaching.Review.Select(r => r.Name)).</span></p>
+                }
+            </section>
+        }
+        else
+        {
+            <section class="home-section" aria-labelledby="home-todo-title">
+                <div class="home-section-head"><h2 id="home-todo-title">Bài cần làm</h2><a asp-controller="Learn" asp-action="Index">Xem tất cả<icon name="chevron-right" /></a></div>
+                @if (Model.Todo.Count == 0) { <p class="home-empty">Không còn bài nào cần làm ngay. Vào lớp bằng mã để nhận bài mới.</p> }
+                else
+                {
+                    <div class="home-cards">
+                        @foreach (var a in Model.Todo.Take(3))
+                        {
+                            var deadline = a.Mode == AssignmentMode.Test ? a.TestEndsAt : a.DueAt;
+                            <a class="home-card" asp-controller="Learn" asp-action="Assignment" asp-route-id="@a.Id">
+                                <span class="home-card-tag"><span class="section-icon"><icon name="list-checks" /></span>@(a.Classroom?.Name ?? "Bài làm")</span>
+                                <strong>@a.Quiz.Title</strong>
+                                <span class="home-card-meta"><span>@(deadline == null ? "Không có hạn" : "Hạn " + VnTime.Format(deadline))</span><b>@DisplayText.Of(a.Mode)</b></span>
+                            </a>
+                        }
                     </div>
-                    <p class="home-phone-cap">Còn 28 thẻ · minh họa</p>
-                </div>
-                <span class="home-phone-next"></span>
-            </div>
-        </div>
-    </section>
+                }
+            </section>
+        }
 
-    <section class="home-section home-lecturer" aria-labelledby="lecturer-title">
-        <div class="home-split home-split-wide">
-            <div>
-                <p class="eyebrow">Giảng viên</p>
-                <h2 id="lecturer-title">Bài giao của giảng viên: thấy cả lớp làm bài</h2>
-                <p class="lead">Mở giờ làm bài rồi theo dõi từng học viên: ai đang làm, ai đã nộp, ai vừa rời màn hình.</p>
-                <ul class="home-points">
-                    <li><b>Khóa một thiết bị</b>Mỗi học viên làm trên một thiết bị; đổi thiết bị cần giảng viên duyệt.</li>
-                    <li><b>Giám sát rời màn hình</b>Rời màn hình đến số lần giảng viên đặt thì bài tự nộp.</li>
-                </ul>
-            </div>
-            <div class="home-board" role="img" aria-label="Minh họa bảng theo dõi trực tiếp: 4 học viên, một bạn rời màn hình 2 lần. Không phải dữ liệu thật.">
-                <div class="home-board-head" aria-hidden="true">
-                    <div><span class="eyebrow home-live-dot">Đang diễn ra</span><p>Lập trình Web · Kiểm tra giữa kỳ</p></div>
-                    <span class="home-board-clock">42:15</span>
+        <section class="home-section" aria-labelledby="home-sets-title">
+            <div class="home-section-head"><h2 id="home-sets-title">Bộ học của bạn</h2><a asp-controller="StudySets" asp-action="Index">Xem tất cả<icon name="chevron-right" /></a></div>
+            @if (Model.Sets.Count == 0) { <p class="home-empty">Bạn chưa có bộ học nào. Tạo bộ học đầu tiên để ôn bằng thẻ ghi nhớ và quiz.</p> }
+            else
+            {
+                <div class="home-cards">
+                    @foreach (var s in Model.Sets)
+                    {
+                        <a class="home-card" asp-controller="StudySets" asp-action="Details" asp-route-id="@s.Id">
+                            <span class="home-card-tag"><span class="section-icon"><icon name="layers" /></span>Bộ học</span>
+                            <strong>@s.Title</strong>
+                            <span class="home-card-meta"><span>@s.Quizzes bài quiz</span><b>@(s.Due > 0 ? $"{s.Due} thẻ cần ôn" : "Đã ôn hết")</b></span>
+                        </a>
+                    }
                 </div>
-                <ol class="home-board-rows" aria-hidden="true">
-                    <li><span class="home-av" style="--av:var(--acid)">A</span><span>Học viên A</span><span class="home-track" style="--done:14"></span><span class="home-state">Đang làm 14/20</span></li>
-                    <li class="is-ok"><span class="home-av" style="--av:var(--pink)">B</span><span>Học viên B</span><span class="home-track" style="--done:20"></span><span class="home-state"><svg><use href="#i-check" /></svg>Đã nộp</span></li>
-                    <li class="is-warn"><span class="home-av" style="--av:var(--warn)">C</span><span>Học viên C</span><span class="home-track" style="--done:7"></span><span class="home-state"><svg><use href="#i-flag" /></svg>Rời màn hình 2 lần</span></li>
-                    <li><span class="home-av" style="--av:var(--blue)">D</span><span>Học viên D</span><span class="home-track" style="--done:10"></span><span class="home-state">Đang làm 10/20</span></li>
-                </ol>
-                <p class="home-board-foot" aria-hidden="true"><span><b>28</b> đang làm</span><span><b>6</b> đã nộp</span><span><b>1</b> cần chú ý</span><span class="eyebrow">Minh họa</span></p>
-            </div>
-        </div>
-    </section>
+            }
+        </section>
+    }
 
-    <section class="home-section home-chapters" data-moment="pinned-chapters" aria-labelledby="steps-title">
-        <div class="home-chapter-stage">
-            <p class="eyebrow">Ba bước</p>
-            <h2 id="steps-title" tabindex="-1">Ba bước vào bài học</h2>
-            <ol class="home-steps">
-                <li>
-                    <div class="home-step-copy"><p class="eyebrow">Bước 1</p><h3>Nhận mã vào lớp</h3><p>Nhập mã giảng viên gửi, hoặc quét mã QR trên bảng.</p></div>
-                    <div class="home-step-visual" aria-hidden="true"><div class="home-fragment-head">Tham gia bằng mã</div><p class="join-code">4815 2093</p><span class="btn btn-primary btn-sm">Vào lớp</span></div>
-                </li>
-                <li>
-                    <div class="home-step-copy"><p class="eyebrow">Bước 2</p><h3>Làm bài, ôn thẻ</h3><p>Mở bài được giao, trả lời câu hỏi hoặc ôn thẻ ghi nhớ.</p></div>
-                    <div class="home-step-visual" aria-hidden="true"><div class="home-fragment-head">Câu 3 / 20</div><p class="home-card-q">Đơn vị đo cường độ dòng điện là gì?</p><div class="home-answer home-answer-picked"><b>B</b><span>Ampe</span><svg class="home-answer-mark"><use href="#i-check" /></svg></div></div>
-                </li>
-                <li>
-                    <div class="home-step-copy"><p class="eyebrow">Bước 3</p><h3>Xem kết quả</h3><p>Biết đúng sai từng câu, ôn lại đúng phần còn yếu.</p></div>
-                    <div class="home-step-visual" aria-hidden="true"><div class="home-fragment-head">Kết quả bài làm</div><p class="home-score">17<small>/20</small></p><p class="mb-0">3 câu cần xem lại · 2 thẻ chưa nhớ</p></div>
-                </li>
-            </ol>
-            <div class="home-chapter-frame" aria-hidden="true"></div>
-        </div>
-    </section>
-
-    <section class="home-section home-close" aria-labelledby="close-title">
-        <div class="home-split">
-            <div>
-                <h2 id="close-title">Bắt đầu buổi ôn tập</h2>
-                <p class="lead">Tạo tài khoản để lưu kết quả học, hoặc nhập mã vào lớp để vào làm bài ngay.</p>
-                <div class="home-actions">
-                    <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Tạo tài khoản</a>
-                    <a class="btn btn-outline-secondary" asp-controller="Classrooms" asp-action="Join">Nhập mã vào lớp</a>
-                </div>
-            </div>
-            <div class="home-illustration-frame">
-                <img class="home-illustration" src="~/img/landing/study-ai-together.webp" width="960" height="640" alt="Tranh minh họa: hai học viên cùng ôn thẻ ghi nhớ bên bàn học" loading="lazy" decoding="async" />
-            </div>
-        </div>
-        <div class="home-subjects" data-moment="marquee-row" aria-label="Các môn học có thể ôn tập">
-            <div class="home-subject-head"><p class="eyebrow">Môn bạn học</p><button class="btn" type="button" data-marquee-pause aria-pressed="false" hidden>Dừng chữ chạy</button></div>
-            <div class="home-marquee-rail"><ul class="home-marquee-track"><li>Toán</li><li>Vật lý</li><li>Hóa học</li><li>Lập trình Web</li><li>Tiếng Anh</li><li>Lịch sử</li><li>Kinh tế</li><li>Triết học</li></ul></div>
+    <section class="home-section" aria-labelledby="home-corner-title">
+        <div class="home-section-head"><h2 id="home-corner-title">Góc học tập của bạn</h2></div>
+        <div class="home-corner">
+            <a class="home-card" asp-controller="StudySets" asp-action="Index"><span class="section-icon"><icon name="layers" /></span><strong>Thư viện</strong><span>Gom kiến thức thành những bộ học dễ ôn lại.</span><b>Mở thư viện →</b></a>
+            <a class="home-card" asp-controller="Learn" asp-action="Index"><span class="section-icon"><icon name="square-pen" /></span><strong>Luyện tập</strong><span>Làm bài lớp giao và xem lại câu cần chú ý.</span><b>Mở luyện tập →</b></a>
+            <a class="home-card" asp-controller="Classrooms" asp-action="Index"><span class="section-icon"><icon name="users" /></span><strong>Lớp học</strong><span>Vào lớp bằng mã, nhận bài và thông báo của lớp.</span><b>Mở lớp học →</b></a>
+            <a class="home-card" asp-controller="Kanban" asp-action="Index"><span class="section-icon"><icon name="square-kanban" /></span><strong>Công việc</strong><span>Sắp xếp việc cần làm và theo dõi hạn hoàn thành.</span><b>Mở công việc →</b></a>
         </div>
     </section>
 </div>
+
 @section PhotoCredits {
     <div class="home-photo-credits" aria-labelledby="photo-credits-title">
         <h2 class="h6" id="photo-credits-title">Nguồn ảnh</h2>
-        <p class="small mb-0">Tranh minh họa tạo bằng AI: <a href="~/img/landing/study-ai-together.webp">tranh cuối trang</a>, <a href="~/img/landing/study-ai-solo.webp">tranh ở trang Bài của tôi</a>.</p>
+        <p class="small mb-0">Tranh minh họa tạo bằng AI: <a href="~/img/landing/study-ai-solo.webp">tranh ở trang Luyện tập</a>.</p>
         <p class="small mb-0"><a href="https://commons.wikimedia.org/wiki/File:Tabel_day_1_(Unsplash).jpg">Sổ tay · Jan Kahánek</a> · <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a> · <a href="~/img/landing/photo-d183.webp">ảnh hiện khi chia sẻ link</a>.</p>
         <p class="small mb-0"><a href="https://commons.wikimedia.org/wiki/File:Minimal_pencils_on_yellow_(Unsplash).jpg">Bút chì · Joanna Kosinska</a> · <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a> · <a href="~/img/landing/photo-c822.webp">ảnh ở trang Đăng nhập và Đăng ký</a>.</p>
     </div>
-}
-@section Scripts {
-    <script src="~/js/home-moments.js" asp-append-version="true" defer></script>
 }

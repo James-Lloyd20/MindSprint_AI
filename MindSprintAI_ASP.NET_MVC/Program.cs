@@ -156,6 +156,7 @@ builder.Services.AddScoped<JoinCodeService>();
 builder.Services.AddScoped<StudyLibraryService>();
 builder.Services.AddScoped<UserSettingPresetService>();
 builder.Services.AddScoped<KanbanService>();
+builder.Services.AddScoped<HomeService>();
 builder.Services.AddScoped<TrashService>();
 builder.Services.AddScoped<TrashPurgeService>();
 builder.Services.AddHostedService<TrashPurgeWorker>();

@@ -8,8 +8,10 @@
     var unread = me == null || me.IsGuest ? 0 : await Notifications.UnreadAsync(me.Id);
     var controller = ViewContext.RouteData.Values["controller"]?.ToString();
     var action = ViewContext.RouteData.Values["action"]?.ToString();
-    // Thanh bên trái (≥ 992px) cho người đã đăng nhập; khách và trang giới thiệu giữ thanh trên.
-    var sidebar = me != null && !me.IsGuest;
+    var signedIn = me != null && !me.IsGuest;
+    // Như nhóm: ai cũng vào thẳng khung ứng dụng có thanh bên (người chưa đăng nhập thấy thẻ "Khách").
+    // Ngoại lệ: khách vào bằng mã (đang làm bài) và các trang Đăng nhập/Đăng ký (có bố cục riêng) giữ thanh trên.
+    var sidebar = signedIn || (me == null && controller != "Account");
     var modeLabel = me?.IsGuest == true ? "Khách" : lecturer ? "Giảng viên" : "Học viên";
     string Current(string c, string? a = null) => controller == c && (a == null || action == a) ? "active" : "";
 }
@@ -106,7 +108,7 @@
                     <icon name="menu" />
                 </button>
                 <div class="navbar-collapse collapse" id="app-menu">
-                    @if (sidebar)
+                    @if (signedIn)
                     {
                         @* Thẻ người dùng dưới logo như sidebar nhóm (docs/GIAO_DIEN_NHOM.md); nhóm ghi khẩu hiệu, MVC ghi chế độ đang dùng vì có 2 chế độ. *@
                         <div class="sidebar-user nav-label">
@@ -115,31 +117,27 @@
                             <form method="post" asp-controller="Account" asp-action="Logout"><button class="btn btn-sm btn-outline-secondary"><icon name="log-out" />Đăng xuất</button></form>
                         </div>
                     }
+                    else if (sidebar)
+                    {
+                        <div class="sidebar-user nav-label">
+                            <span class="sidebar-user-name">Khách</span>
+                            <span class="sidebar-user-mode">Đăng nhập để lưu tiến độ học.</span>
+                            <a class="btn btn-sm btn-outline-secondary" asp-controller="Account" asp-action="Login"><icon name="log-in" />Đăng nhập</a>
+                        </div>
+                    }
                     <ul class="navbar-nav me-auto">
                         @if (sidebar)
                         {
-                            @* Tiêu đề nhóm mục như sidebar nhóm (Học tập / Tổ chức / Ứng dụng); chỉ hiện khi thanh bên mở rộng. *@
+                            @* Menu theo nhóm (người dùng chốt 15/11/2026): HỌC TẬP · TỔ CHỨC · ỨNG DỤNG. Lớp và mã lớp là phần riêng của MVC. *@
                             <li class="nav-heading" aria-hidden="true">Học tập</li>
-                        }
-                        @if (me != null && !me.IsGuest && lecturer)
-                        {
-                            <li class="nav-item"><a class="nav-link @(action == "Trash" ? "" : Current("StudySets"))" aria-current="@(action != "Trash" && Current("StudySets") != "" ? "page" : null)" asp-controller="StudySets" asp-action="Index" title="Bộ học"><icon name="book-open-text" /><span class="nav-label">Bộ học</span><span class="nav-short" aria-hidden="true">Bộ học</span></a></li>
-                        }
-                        else if (me != null && !me.IsGuest)
-                        {
-                            <li class="nav-item"><a class="nav-link @Current("Learn")" aria-current="@(Current("Learn") != "" ? "page" : null)" asp-controller="Learn" asp-action="Index" title="Bài của tôi"><icon name="list-checks" /><span class="nav-label">Bài của tôi</span><span class="nav-short" aria-hidden="true">Bài học</span></a></li>
-                        }
-                        @if (me != null && !me.IsGuest)
-                        {
-                            <li class="nav-item"><a class="nav-link @(controller == "Classrooms" && action != "Join" ? "active" : "")" aria-current="@(controller == "Classrooms" && action != "Join" ? "page" : null)" asp-controller="Classrooms" asp-action="Index" title="@(lecturer ? "Lớp tôi dạy" : "Lớp của tôi")"><icon name="users" /><span class="nav-label">@(lecturer ? "Lớp tôi dạy" : "Lớp của tôi")</span><span class="nav-short" aria-hidden="true">Lớp</span></a></li>
-                            <li class="nav-item"><a class="nav-link @Current("Classrooms", "Join")" aria-current="@(Current("Classrooms", "Join") != "" ? "page" : null)" asp-controller="Classrooms" asp-action="Join" title="Tham gia bằng mã"><icon name="ticket" /><span class="nav-label">Tham gia bằng mã</span><span class="nav-short" aria-hidden="true">Mã lớp</span></a></li>
-                        }
-                        @if (me != null && !me.IsGuest)
-                        {
+                            <li class="nav-item"><a class="nav-link @Current("Home", "Index")" aria-current="@(Current("Home", "Index") != "" ? "page" : null)" asp-controller="Home" asp-action="Index" title="Trang chủ"><icon name="house" /><span class="nav-label">Trang chủ</span><span class="nav-short" aria-hidden="true">Hôm nay</span></a></li>
+                            <li class="nav-item"><a class="nav-link @(action == "Trash" ? "" : Current("StudySets"))" aria-current="@(action != "Trash" && Current("StudySets") != "" ? "page" : null)" asp-controller="StudySets" asp-action="Index" title="Thư viện"><icon name="layers" /><span class="nav-label">Thư viện</span><span class="nav-short" aria-hidden="true">Thư viện</span></a></li>
+                            <li class="nav-item"><a class="nav-link @Current("Learn")" aria-current="@(Current("Learn") != "" ? "page" : null)" asp-controller="Learn" asp-action="Index" title="Luyện tập"><icon name="square-pen" /><span class="nav-label">Luyện tập</span><span class="nav-short" aria-hidden="true">Luyện tập</span></a></li>
+                            <li class="nav-item"><a class="nav-link @(controller == "Classrooms" ? "active" : "")" aria-current="@(controller == "Classrooms" ? "page" : null)" asp-controller="Classrooms" asp-action="Index" title="@(lecturer ? "Lớp tôi dạy" : "Lớp của tôi")"><icon name="users" /><span class="nav-label">@(lecturer ? "Lớp tôi dạy" : "Lớp của tôi")</span><span class="nav-short" aria-hidden="true">Lớp</span></a></li>
                             <li class="nav-heading" aria-hidden="true">Tổ chức</li>
                             <li class="nav-item"><a class="nav-link @Current("Kanban")" aria-current="@(Current("Kanban") != "" ? "page" : null)" asp-controller="Kanban" asp-action="Index" title="Công việc"><icon name="square-kanban" /><span class="nav-label">Công việc</span><span class="nav-short" aria-hidden="true">Việc</span></a></li>
                         }
-                        @if (me != null && !me.IsGuest && lecturer)
+                        @if (signedIn && lecturer)
                         {
                             <li class="nav-item"><a class="nav-link @Current("Reports", "Index")" aria-current="@(Current("Reports", "Index") != "" ? "page" : null)" asp-controller="Reports" asp-action="Index" title="Báo cáo"><icon name="chart-column" /><span class="nav-label">Báo cáo</span><span class="nav-short" aria-hidden="true">Báo cáo</span></a></li>
                         }
@@ -168,7 +166,7 @@
                     {
                         @accountMenu(null)
                     }
-                    else if (me == null)
+                    else if (me == null && !sidebar)
                     {
                         <a class="btn btn-outline-secondary" asp-controller="Account" asp-action="Login">Đăng nhập</a>
                         <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Tạo tài khoản</a>
@@ -177,7 +175,11 @@
                     {
                         @* Đáy sidebar như nhóm: một nút chính + link phụ (chân trang website ẩn trong ứng dụng). *@
                         <div class="sidebar-footer">
-                            @if (lecturer)
+                            @if (!signedIn)
+                            {
+                                <a class="btn btn-primary sidebar-cta" asp-controller="Account" asp-action="Register" title="Tạo tài khoản"><icon name="user-plus" /><span class="nav-label">Tạo tài khoản</span></a>
+                            }
+                            else if (lecturer)
                             {
                                 <a class="btn btn-primary sidebar-cta" href="@Url.Action("Index", "StudySets")#tao-bo-hoc" title="Bộ học mới"><icon name="plus" /><span class="nav-label">Bộ học mới</span></a>
                             }
@@ -198,19 +200,10 @@
     {
         @* Điện thoại: thanh tab dưới đáy như nhóm (Hôm nay · Thư viện · Luyện tập · Công việc · Khác); "Khác" mở menu đầy đủ. *@
         <nav class="app-tabbar" aria-label="Điều hướng nhanh">
-            @if (lecturer)
-            {
-                <a class="@Current("StudySets")" asp-controller="StudySets" asp-action="Index"><icon name="book-open-text" /><span>Bộ học</span></a>
-                <a class="@(controller == "Classrooms" && action != "Join" ? "active" : "")" asp-controller="Classrooms" asp-action="Index"><icon name="users" /><span>Lớp</span></a>
-                <a class="@Current("Reports")" asp-controller="Reports" asp-action="Index"><icon name="chart-column" /><span>Báo cáo</span></a>
-            }
-            else
-            {
-                <a class="@Current("Learn")" asp-controller="Learn" asp-action="Index"><icon name="list-checks" /><span>Bài học</span></a>
-                <a class="@(controller == "Classrooms" && action != "Join" ? "active" : "")" asp-controller="Classrooms" asp-action="Index"><icon name="users" /><span>Lớp</span></a>
-                <a class="@Current("Classrooms", "Join")" asp-controller="Classrooms" asp-action="Join"><icon name="ticket" /><span>Mã lớp</span></a>
-            }
-            <a class="@Current("Notifications")" asp-controller="Notifications" asp-action="Index"><icon name="bell" /><span>Thông báo</span></a>
+            <a class="@Current("Home", "Index")" asp-controller="Home" asp-action="Index"><icon name="house" /><span>Hôm nay</span></a>
+            <a class="@(action == "Trash" ? "" : Current("StudySets"))" asp-controller="StudySets" asp-action="Index"><icon name="layers" /><span>Thư viện</span></a>
+            <a class="@Current("Learn")" asp-controller="Learn" asp-action="Index"><icon name="square-pen" /><span>Luyện tập</span></a>
+            <a class="@Current("Kanban")" asp-controller="Kanban" asp-action="Index"><icon name="square-kanban" /><span>Công việc</span></a>
             <button type="button" data-bs-toggle="collapse" data-bs-target="#app-menu" aria-controls="app-menu" aria-expanded="false"><icon name="menu" /><span>Khác</span></button>
         </nav>
     }
@@ -225,9 +218,17 @@
                     <datalist id="app-pages"></datalist>
                 </form>
                 <div class="app-actions">
-                    <a class="app-icon-btn @Current("Notifications")" id="notification-bell" asp-controller="Notifications" asp-action="Index" aria-label="Thông báo, @unread chưa đọc" title="Thông báo">
-                        <icon name="bell" /><span class="badge bg-danger" id="notification-unread" aria-live="polite" aria-label="@unread thông báo chưa đọc">@unread</span></a>
-                    @accountMenu(null)
+                    @if (signedIn)
+                    {
+                        <a class="app-icon-btn @Current("Notifications")" id="notification-bell" asp-controller="Notifications" asp-action="Index" aria-label="Thông báo, @unread chưa đọc" title="Thông báo">
+                            <icon name="bell" /><span class="badge bg-danger" id="notification-unread" aria-live="polite" aria-label="@unread thông báo chưa đọc">@unread</span></a>
+                        @accountMenu(null)
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-secondary" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                        <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Tạo tài khoản</a>
+                    }
                 </div>
             </div>
         }

@@ -11,15 +11,16 @@ namespace MindSprintAI_ASP.NET_MVC.Controllers;
 [AllowAnonymous]
 public class HomeController(UserManager<ApplicationUser> users) : Controller
 {
-    // Đã đăng nhập thì vào màn hình chính theo vai đang chọn (37B, 38A).
-    public async Task<IActionResult> Index([FromServices] AssignmentService? assignments = null)
+    // Trang chủ kiểu nhóm cho cả hai chế độ (người dùng chốt 15/11/2026, thay cho chuyển hướng theo vai 37B/38A);
+    // chưa đăng nhập thì cùng trang, bản cho khách (model null). Khách vào bằng mã về trang nhập mã như cũ.
+    public async Task<IActionResult> Index([FromServices] HomeService? home = null)
     {
         if (User.Identity?.IsAuthenticated != true) return View();
         var user = await users.GetUserAsync(User);
         if (user == null) return View();
-        if (user.CurrentMode != UserMode.Lecturer) return RedirectToAction("Index", "Learn");
-        assignments ??= HttpContext.RequestServices.GetRequiredService<AssignmentService>();
-        return View("Lecturer", await assignments.GetLecturerDashboardAsync(user.Id, user.DisplayName));
+        if (user.IsGuest) return RedirectToAction("Join", "Classrooms");
+        home ??= HttpContext.RequestServices.GetRequiredService<HomeService>();
+        return View(await home.GetAsync(user));
     }
 
     [HttpGet("chinh-sach"), AllowGuest, AllowWithoutPolicy]

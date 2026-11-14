@@ -39,11 +39,40 @@ public class RekalDashboardTests
             new PasswordHasher<ApplicationUser>(), [], [], new UpperInvariantLookupNormalizer(), new IdentityErrorDescriber(), null!, NullLogger<UserManager<ApplicationUser>>.Instance);
         var user = await users.FindByIdAsync(s.Lecturer); user!.CurrentMode = UserMode.Lecturer; await h.Db.SaveChangesAsync();
         var controller = new HomeController(users) { ControllerContext = new() { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, s.Lecturer)], "test")) } } };
-        var result = Assert.IsType<ViewResult>(await controller.Index(h.Assignments));
-        Assert.Equal("Lecturer", result.ViewName);
-        Assert.IsType<LecturerDashboard>(result.Model);
+        // MindSprint 15/11 (người dùng chốt): một trang chủ kiểu nhóm cho cả hai chế độ, số liệu theo chế độ đang dùng.
+        var home = new HomeService(h.Assignments, h.Attempts, h.Library, new KanbanService(h.Db), h.Clock);
+        var lecturerView = Assert.IsType<HomeDashboard>(Assert.IsType<ViewResult>(await controller.Index(home)).Model);
+        Assert.True(lecturerView.Lecturer);
+        Assert.Single(lecturerView.Teaching!.Open);
+        Assert.Empty(lecturerView.Todo);
         user.CurrentMode = UserMode.Learner; await h.Db.SaveChangesAsync();
-        Assert.Equal("Learn", Assert.IsType<RedirectToActionResult>(await controller.Index(h.Assignments)).ControllerName);
+        var learnerView = Assert.IsType<HomeDashboard>(Assert.IsType<ViewResult>(await controller.Index(home)).Model);
+        Assert.False(learnerView.Lecturer);
+        Assert.Null(learnerView.Teaching);
+        // Người chưa đăng nhập: cùng trang, bản cho khách (không model).
+        var anonymous = new HomeController(users) { ControllerContext = new() { HttpContext = new DefaultHttpContext() } };
+        Assert.Null(Assert.IsType<ViewResult>(await anonymous.Index(home)).Model);
+    }
+
+    [Fact]
+    public async Task TrangChuHocVienChiDemBaiConLamDuocVaViecChuaXong()
+    {
+        using var h = new Harness(); var s = await h.ScenarioAsync(1);
+        var student = await h.Db.Users.FindAsync(s.Student);
+        var kanban = new KanbanService(h.Db);
+        await kanban.CreateAsync(s.Student, new("Đang làm", null, null, null, KanbanStatus.Doing));
+        await kanban.CreateAsync(s.Student, new("Chưa làm", null, null));
+        await kanban.CreateAsync(s.Student, new("Xong", null, null, null, KanbanStatus.Done));
+        var view = await new HomeService(h.Assignments, h.Attempts, h.Library, kanban, h.Clock).GetAsync(student!);
+        Assert.Equal(s.Assignment.Id, Assert.Single(view.Todo).Id);
+        Assert.Equal(["Đang làm", "Chưa làm"], view.Tasks.Select(t => t.Title));  // việc đang làm lên trước, việc xong không hiện
+        Assert.Equal((3, 1, 33), (view.TasksTotal, view.TasksDone, view.TaskPercent));
+        // Bài đã quá hạn hoặc đã hoàn thành không mời làm nữa (cùng quy tắc "Cần làm" của Bài của tôi).
+        var past = new Assignment { Id = 1, Mode = AssignmentMode.Practice, DueAt = h.Clock.UtcNow.AddMinutes(-1) };
+        var done = new Assignment { Id = 2, Mode = AssignmentMode.Practice };
+        var open = new Assignment { Id = 3, Mode = AssignmentMode.Practice };
+        var todo = HomeService.LearnerTodo([past, done, open], [new Participant { AssignmentId = 2, CompletionStatus = CompletionStatus.Completed }], h.Clock.UtcNow);
+        Assert.Equal(3, Assert.Single(todo).Id);
     }
 
     [Fact]

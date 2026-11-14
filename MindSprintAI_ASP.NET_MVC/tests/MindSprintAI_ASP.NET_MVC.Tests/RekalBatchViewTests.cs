@@ -107,7 +107,8 @@ public class RekalBatchViewTests
     public void ThanhBenCoTenNganVaThungRacChung()
     {
         var layout = Read("Views/Shared/_Layout.cshtml");
-        foreach (var label in new[] { "Bài học", "Bộ học", "Lớp", "Quản trị", "Mã lớp", "Thùng rác", "Báo cáo" })
+        // MindSprint 15/11: tên mục theo menu nhóm (Trang chủ/Thư viện/Luyện tập); vào lớp bằng mã chuyển xuống nút cuối thanh bên.
+        foreach (var label in new[] { "Hôm nay", "Thư viện", "Luyện tập", "Lớp", "Việc", "Quản trị", "Thùng rác", "Báo cáo" })
             Assert.Contains($"class=\"nav-short\" aria-hidden=\"true\">{label}</span>", layout);
         // MindSprint: chuông thông báo nằm ở header ứng dụng như giao diện nhóm, không còn trong thanh bên.
         var bell = layout.Split('\n').Single(l => l.Contains("id=\"notification-bell\""));
