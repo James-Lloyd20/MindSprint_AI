@@ -1,6 +1,6 @@
 # MindSprintAI_ASP.NET_MVC — hướng dẫn cho AI
 
-Project chính của nhóm MindSprint. Logic, database và quy tắc nghiệp vụ lấy từ QuizEduManager_MVC (`../Project_Tham_Khao/QuizEduManager_MVC`); **giao diện dùng của nhóm** (`../MindSprint-AI-D-n/frontend`), không dùng giao diện QuizEdu.
+Project chính của nhóm MindSprint. Logic, database và quy tắc nghiệp vụ lấy từ QuizEduManager_MVC — **chỉ dùng bản sao** `../Project_Tham_Khao/QuizEduManager_MVC`; **không đụng** bản chính của người dùng `LapTrinhWeb/Hung/QuizEduManager_MVC` (không sửa, không build, không chạy cả lệnh git đọc như `git status`; bản sao cũ thì nhờ người dùng chép lại); **giao diện dùng của nhóm** (`../MindSprint-AI-D-n/frontend`), không dùng giao diện QuizEdu.
 
 Đọc `docs/AI_HANDOFF.md` trước khi làm; xong việc thì ghi thêm nhật ký (thay đổi thật, kết quả kiểm tra, phần còn dở).
 

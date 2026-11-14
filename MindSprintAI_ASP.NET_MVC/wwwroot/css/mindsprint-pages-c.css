@@ -44,7 +44,7 @@ main a.c-quick-action { display:grid; gap:12px; padding:24px; border:1px solid v
 .c-quick-action strong { font-size:1.25rem; }
 .c-quick-action > span:last-child { color:var(--text-muted); }
 .c-quick-action .icon { width:28px; height:28px; }
-.c-quick-action .section-icon { background:var(--muted); color:var(--text); box-shadow:none; }
+.c-quick-action .section-icon { background: var(--acid-soft); color: var(--accent-ink); box-shadow:none; }
 .c-dashboard .c-detail-toolbar { min-height:48px; margin:0 0 16px; }
 .c-dashboard .section-head { margin:0; }
 .c-dashboard .mindsprint-title { overflow-wrap:anywhere; }

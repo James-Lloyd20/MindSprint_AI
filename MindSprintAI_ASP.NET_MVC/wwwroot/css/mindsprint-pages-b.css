@@ -5,7 +5,7 @@
 .b-page-section { margin-block: 32px; }
 .b-section-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-bottom: 16px; }
 .b-section-toolbar > :is(h2, p, .section-head) { margin: 0; }
-.b-count { display: inline-grid; place-items: center; min-width: 32px; min-height: 32px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px; font: 700 .875rem/1.4 var(--bs-font-monospace); color: var(--text); background: var(--surface); }
+.b-count { display: inline-grid; place-items: center; min-width: 32px; min-height: 32px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px; font: 700 .875rem/1.4 var(--bs-font-sans-serif); color: var(--text); background: var(--surface); }
 .b-classroom .btn-sm, .b-assignment .btn-sm, .b-learner .btn-sm { min-height: 44px; }
 .b-classroom :is(a:not(.btn), summary), .b-assignment :is(a:not(.btn), summary), .b-learner :is(a:not(.btn), summary) { min-height: 44px; }
 .b-section-toolbar > a, .b-class-settings a { display: inline-flex; align-items: center; gap: 8px; padding-block: 8px; }
@@ -30,7 +30,7 @@ main a.b-class-assignment { display: flex; padding: 20px; }
 .b-classroom .list-group-item > .me-auto { flex: 1 1 14rem; }
 .b-classroom .list-group-item .small { overflow-wrap: anywhere; }
 .b-class-settings > *, .b-class-entry > * { min-width: 0; }
-.b-classroom .section-icon { background: var(--muted); color: var(--text); box-shadow: none; }
+.b-classroom .section-icon { background: var(--acid-soft); color: var(--accent-ink); box-shadow: none; }
 .b-classroom :is(.learn-card-title, .list-group-item > .me-auto) { overflow-wrap: anywhere; min-width: 0; }
 .b-classroom input, .b-assignment input { min-width: 0; }
 .b-classroom .btn, .b-assignment .btn { max-width: 100%; white-space: normal; }
@@ -65,7 +65,7 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-assignment .tab-content, .b-assignment .tab-pane { min-width: 0; }
 .b-assignment .tab-pane { scroll-margin-top: 120px; }
 .b-assignment .tab-pane > .b-page-section:first-child { margin-top: 0; }
-.b-assignment .section-icon { background: var(--muted); color: var(--text); filter: none; box-shadow: none; }
+.b-assignment .section-icon { background: var(--acid-soft); color: var(--accent-ink); filter: none; box-shadow: none; }
 .b-settings-body { padding-block: 8px; }
 .b-settings-body > :last-child { margin-bottom: 0 !important; }
 .b-preserve-lines { white-space: pre-wrap; }
@@ -73,7 +73,7 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-live-counts > div { display: flex; flex-direction: column; gap: 4px; padding: 16px; min-width: 0; }
 .b-live-counts > div + div { border-left: 1px solid var(--line); }
 .b-live-counts dt { font-size: .8125rem; line-height: 1.5; color: var(--text-muted); }
-.b-live-counts dd { margin: 0; font: 700 1.75rem/1.25 var(--bs-font-monospace); }
+.b-live-counts dd { margin: 0; font: 700 1.75rem/1.25 var(--bs-font-sans-serif); }
 .b-live-board h2 { font-size: 1.25rem; }
 .b-live-table { font-size: .9375rem; }
 .b-live-board .b-grade-table { table-layout: fixed; width: 100%; min-width: 1100px; }
@@ -309,5 +309,5 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-more-settings > summary { min-height: 44px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; cursor: pointer; padding-block: 8px; }
 .b-more-settings > summary .h5 { margin: 0; }
 .b-more-settings > summary::-webkit-details-marker { display: none; }
-.b-more-settings > summary::before { content: "+"; width: 1.25rem; font: 700 1.25rem/1 var(--bs-font-monospace); }
+.b-more-settings > summary::before { content: "+"; width: 1.25rem; font: 700 1.25rem/1 var(--bs-font-sans-serif); }
 .b-more-settings[open] > summary::before { content: "−"; }

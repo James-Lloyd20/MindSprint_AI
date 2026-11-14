@@ -11,3 +11,11 @@
 .legal-doc .table-responsive > .table { min-width: 0; } /* chữ dài tự xuống dòng, không bắt kéo ngang trên điện thoại */
 .consent-check { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
 .consent-check .form-check-input { flex: none; width: 1.25em; height: 1.25em; margin-top: 2px; }
+
+/* Thẻ danh sách theo giao diện nhóm: nền pastel chuyển màu xoay vòng A/B/C (tokens.css --pastel-a/b/c),
+   không viền, bóng cam nhẹ khi rê chuột. File này nạp cuối nên thắng các rule thẻ ở pages-a/mindsprint.css. */
+:is(.set-card, .class-card, .learn-card) { border-color: transparent; border-radius: 20px; box-shadow: var(--elev-1); }
+:is(.set-card, .class-card, .learn-card):nth-child(3n+1) { background: var(--pastel-a); }
+:is(.set-card, .class-card, .learn-card):nth-child(3n+2) { background: var(--pastel-b); }
+:is(.set-card, .class-card, .learn-card):nth-child(3n) { background: var(--pastel-c); }
+:is(.class-card, .learn-card):hover { transform: translateY(-2px); box-shadow: var(--elev-accent); }

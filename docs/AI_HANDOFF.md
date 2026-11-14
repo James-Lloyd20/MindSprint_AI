@@ -64,3 +64,14 @@
 - **Test:** `RekalBatchViewTests.ThanhBenCoTenNganVaThungRacChung` bỏ "Thông báo" khỏi danh sách nhãn thanh bên, thêm kiểm chuông nằm trong header. Lượt đầy đủ: 1719/1720, 1 test trên sửa lại → lớp đó 14/14 → **1720/1720**. Lượt trước bị Claude Code dừng vì máy thiếu RAM (chạy lại khi máy còn 3,2 GB trống).
 - **Thử Chrome:** Bài của tôi, Tài khoản, Thùng rác (qua ô tìm trang) ở 1920px; khung 390px (iframe) không cuộn ngang.
 - **Còn dở (bước 2):** thành phần trong trang theo kiểu nhóm (đầu trang có ô icon, thẻ pastel, dải số liệu, tab viên thuốc); chế độ thanh bên thu gọn chưa xem lại; chưa thử điện thoại thật.
+- 14/11 khuya: người dùng yêu cầu commit + push lên `https://github.com/James-Lloyd20/MindSprint_AI` (repo **công khai**, đã có sẵn commit "Initial commit" chỉ chứa README). Claude commit `91fdf65`, gộp README bằng merge (không force) `61e79f8`, push `main`. Nhánh `du-phong-truoc-bo-ghi-cong` chỉ ở máy. Từ nay vẫn theo quy tắc: chỉ commit/push khi người dùng yêu cầu rõ.
+
+### 2026-11-14 khuya — Claude: bước 4d, thành phần trong trang theo nhóm (nhịp 2b, bước 2, đợt 1)
+
+- Tiêu đề trang: `main h1` (kể cả `.h3/.h4`) cỡ clamp(1.625–2.25rem) đậm, dòng mô tả sau h1 màu xám (`mindsprint.css` cuối).
+- Thẻ `.set-card/.class-card/.learn-card`: nền pastel xoay vòng A/B/C, bỏ viền, rê chuột bóng cam (`mindsprint-pages-d.css`, nạp cuối nên thắng).
+- `.section-icon`: nền cam nhạt + icon cam đậm đồng nhất (`mindsprint-decor.css`; bỏ `--tint`); 4 rule "icon xám" ở pages-a/b/c đổi theo; bỏ rule ép chữ trắng khi `--tint:var(--blue)`.
+- Font mono chỉ còn cho mã/đồng hồ (code, join-code, timer, mã bài giao, QR); nhãn/số đếm/chữ cái đáp án/sticky-note/sticker chuyển Inter.
+- Dữ liệu thử trong DB dev: bộ học "Tiếng Anh giao tiếp", lớp "Lập trình Web – Nhóm 1"; tài khoản thử đang ở chế độ Giảng viên.
+- **Đã kiểm:** Chrome — Bộ học, Lớp tôi dạy, chi tiết lớp, Báo cáo, chi tiết bộ học; **1720/1720 test qua**.
+- **Còn dở:** trang làm bài, chấm lại, theo dõi trực tiếp, trang chủ khách (cần dữ liệu bài giao/học viên); chế độ tối của thẻ pastel; hình minh họa neon Rekal.
