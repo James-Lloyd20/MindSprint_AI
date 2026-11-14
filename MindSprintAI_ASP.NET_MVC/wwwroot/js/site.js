@@ -77,3 +77,30 @@ document.querySelectorAll('textarea[data-limit]').forEach(box => {
     box.addEventListener('input', update);
     update();
 });
+
+// Ô tìm trang ở header (như giao diện nhóm): gợi ý các trang có trong thanh bên, chọn tên trang thì chuyển tới. Không gọi máy chủ.
+(() => {
+    const form = document.querySelector('[data-app-search]');
+    if (!form) return;
+    const input = form.querySelector('input'), list = form.querySelector('datalist');
+    const pages = new Map();
+    document.querySelectorAll('.mindsprint-header a.nav-link[href], .account-menu a.dropdown-item[href]').forEach(a => {
+        const name = (a.querySelector('.nav-label')?.textContent || a.textContent).trim();
+        if (name && !pages.has(name)) pages.set(name, a.href);
+    });
+    for (const name of pages.keys()) list.append(new Option(name));
+    const go = () => {
+        const text = input.value.trim().toLocaleLowerCase('vi');
+        if (!text) return;
+        const hit = [...pages].find(([name]) => name.toLocaleLowerCase('vi').includes(text));
+        if (hit) location.href = hit[1];
+    };
+    input.addEventListener('change', () => { if (pages.has(input.value.trim())) go(); });
+    form.addEventListener('submit', e => { e.preventDefault(); go(); });
+})();
+
+// Link tới một mục thu gọn (<details id="…">) thì mở mục đó, ví dụ nút "Bộ học mới" → /StudySets#tao-bo-hoc.
+(() => {
+    const open = () => { const box = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1))); if (box instanceof HTMLDetailsElement) box.open = true; };
+    open(); window.addEventListener('hashchange', open);
+})();

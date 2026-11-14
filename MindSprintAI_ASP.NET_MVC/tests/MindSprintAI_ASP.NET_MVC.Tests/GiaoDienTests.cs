@@ -70,18 +70,18 @@ public class GiaoDienTests
                 Assert.Contains("SIL OPEN FONT LICENSE", File.ReadAllText(Path.Combine(Path.GetDirectoryName(path)!, "OFL.txt")));
             }
         }
-        foreach (var family in new[] { "space-grotesk", "jetbrains-mono" })
+        // MindSprint: font chính Inter Variable theo giao diện nhóm (tokens.css), JetBrains Mono cho mã/đồng hồ.
+        foreach (var family in new[] { "inter", "jetbrains-mono" })
         {
             Assert.Contains("vietnamese", Read($"wwwroot/lib/fonts/{family}/metadata.json"));
             Assert.Contains(family + "-vietnamese-", Read("wwwroot/css/mindsprint-fonts.css"));
         }
-        Assert.Contains("5.3.0", Read("wwwroot/lib/fonts/README.md"));
-        Assert.Contains("space-grotesk@5.3.0", Read("wwwroot/lib/fonts/README.md"));
-        foreach (var weight in new[] { 500, 700 })
-            foreach (var subset in new[] { "latin", "vietnamese" })
-                Assert.True(File.Exists(Path.Combine(Root, $"wwwroot/lib/fonts/space-grotesk/space-grotesk-{subset}-{weight}-normal.woff2")));
-        Assert.False(Directory.Exists(Path.Combine(Root, "wwwroot/lib/fonts/bricolage-grotesque")));
-        Assert.False(Directory.Exists(Path.Combine(Root, "wwwroot/lib/fonts/dela-gothic-one")));
+        Assert.Contains("inter@5.1.1", Read("wwwroot/lib/fonts/README.md"));
+        Assert.Contains("jetbrains-mono@5.3.0", Read("wwwroot/lib/fonts/README.md"));
+        foreach (var subset in new[] { "latin", "latin-ext", "vietnamese" })
+            Assert.True(File.Exists(Path.Combine(Root, $"wwwroot/lib/fonts/inter/inter-{subset}-wght-normal.woff2")));
+        foreach (var old in new[] { "space-grotesk", "bricolage-grotesque", "dela-gothic-one" })
+            Assert.False(Directory.Exists(Path.Combine(Root, "wwwroot/lib/fonts", old)));
     }
 
     [Fact]
@@ -99,7 +99,9 @@ public class GiaoDienTests
     public void TokenVaChuyenDongTheoBanDuyet()
     {
         var css = Read("wwwroot/css/mindsprint.css");
-        foreach (var token in new[] { "#D2E823", "#F3F7DC", "#E6EDC4", "#09090B", "#131317", "#E6E1D6", "#AEBD3A", "#9A958A", "#4A4740" }) Assert.Contains(token, css);
+        // MindSprint: bảng màu giao diện nhóm (MindSprint-AI-D-n/frontend/tokens.css), sáng + tối.
+        foreach (var token in new[] { "#FF7A45", "#F7F5FA", "#1A1A2E", "#625C70", "#E5E0ED", "#B23E13", "#FFF0E8", "#191721", "#25212F", "#F5F1F9" }) Assert.Contains(token, css);
+        foreach (var old in new[] { "#D2E823", "#F3F7DC", "#09090B" }) Assert.DoesNotContain(old, css);
         Assert.Contains("[data-bs-theme=\"dark\"]", css);
         Assert.Contains("prefers-reduced-motion: reduce", css);
         Assert.Contains("outline: 3px solid var(--focus)", css);
@@ -156,8 +158,9 @@ public class GiaoDienTests
             var source = File.ReadAllText(path);
             Assert.DoesNotContain("Bricolage", source, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotMatch(@"(?i)dela[ +_-]+gothic", source);
+            Assert.DoesNotContain("Space Grotesk", source, StringComparison.OrdinalIgnoreCase); // MindSprint thay bằng Inter
         }
-        Assert.Contains("Space Grotesk", Read("wwwroot/css/mindsprint-fonts.css"));
+        Assert.Contains("Inter Variable", Read("wwwroot/css/mindsprint-fonts.css"));
     }
 
     [Fact]
@@ -275,8 +278,9 @@ public class GiaoDienTests
         {
             var source = Read(path);
             Assert.Contains("viewport-fit=cover", source);
-            Assert.Matches("<meta name=\"theme-color\" content=\"#F3F7DC\" media=\"\\(prefers-color-scheme: light\\)\"", source);
-            Assert.Matches("<meta name=\"theme-color\" content=\"#131317\" media=\"\\(prefers-color-scheme: dark\\)\"", source);
+            // MindSprint: nền sáng/tối theo tokens.css của nhóm.
+            Assert.Matches("<meta name=\"theme-color\" content=\"#F7F5FA\" media=\"\\(prefers-color-scheme: light\\)\"", source);
+            Assert.Matches("<meta name=\"theme-color\" content=\"#191721\" media=\"\\(prefers-color-scheme: dark\\)\"", source);
         }
         Assert.Contains("meta[name=\"theme-color\"]", Read("wwwroot/js/theme.js"));
         Assert.Contains("setAttribute('content'", Read("wwwroot/js/theme.js"));

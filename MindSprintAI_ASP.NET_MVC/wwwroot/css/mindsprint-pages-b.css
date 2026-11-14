@@ -5,13 +5,13 @@
 .b-page-section { margin-block: 32px; }
 .b-section-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-bottom: 16px; }
 .b-section-toolbar > :is(h2, p, .section-head) { margin: 0; }
-.b-count { display: inline-grid; place-items: center; min-width: 32px; min-height: 32px; padding: 2px 8px; border: 2px solid var(--ink); border-radius: 999px; font: 700 .875rem/1.4 var(--bs-font-monospace); color: var(--text); background: var(--surface); }
+.b-count { display: inline-grid; place-items: center; min-width: 32px; min-height: 32px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px; font: 700 .875rem/1.4 var(--bs-font-monospace); color: var(--text); background: var(--surface); }
 .b-classroom .btn-sm, .b-assignment .btn-sm, .b-learner .btn-sm { min-height: 44px; }
 .b-classroom :is(a:not(.btn), summary), .b-assignment :is(a:not(.btn), summary), .b-learner :is(a:not(.btn), summary) { min-height: 44px; }
 .b-section-toolbar > a, .b-class-settings a { display: inline-flex; align-items: center; gap: 8px; padding-block: 8px; }
 
 /* Mã lớp dễ chiếu và ghi chú như giấy nhắc việc trên bàn học. */
-.b-class-entry { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 18rem); align-items: center; gap: 24px 32px; padding: 24px 32px; background: var(--surface); border: 2px solid var(--ink); border-radius: 20px; box-shadow: 4px 4px 0 var(--shadow); }
+.b-class-entry { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 18rem); align-items: center; gap: 24px 32px; padding: 24px 32px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--elev-2); }
 main .b-class-entry .b-join-code { font: 700 3rem/1.25 var(--bs-font-monospace); letter-spacing: .06em; margin-block: 8px 20px; user-select: all; }
 .b-copy-status { color: var(--text-muted); margin-top: 12px; }
 .b-copy-status:empty { margin-top: 0; }
@@ -22,11 +22,11 @@ main a.b-class-assignment { display: flex; padding: 20px; }
 .b-class-assignment .learn-card-top { gap: 8px; }
 .b-class-assignment .learn-card-when { line-height: 1.5; }
 .b-class-assignment .learn-card-when .icon { margin-right: 4px; }
-.b-work-link { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 12px; margin-top: 8px; border-top: 2px solid var(--ink); font-size: .875rem; font-weight: 700; }
-.b-class-work .learn-card, .b-class-work .learn-card:hover, .b-class-work .learn-card:active { transform: none; transition: none; box-shadow: 4px 4px 0 var(--shadow); }
+.b-work-link { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 12px; margin-top: 8px; border-top: 1px solid var(--line); font-size: .875rem; font-weight: 700; }
+.b-class-work .learn-card, .b-class-work .learn-card:hover, .b-class-work .learn-card:active { transform: none; transition: none; box-shadow: var(--elev-2); }
 .b-class-work .learn-card:hover, .b-class-work .learn-card:focus-visible { background: var(--muted); }
-.b-class-settings { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 32px; padding-top: 24px; border-top: 2px solid var(--ink); }
-.b-code-settings { padding-left: 24px; border-left: 2px solid var(--ink); }
+.b-class-settings { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 32px; padding-top: 24px; border-top: 1px solid var(--line); }
+.b-code-settings { padding-left: 24px; border-left: 1px solid var(--line); }
 .b-classroom .list-group-item > .me-auto { flex: 1 1 14rem; }
 .b-classroom .list-group-item .small { overflow-wrap: anywhere; }
 .b-class-settings > *, .b-class-entry > * { min-width: 0; }
@@ -40,9 +40,9 @@ main a.b-class-assignment { display: flex; padding: 20px; }
 .b-learner *, .b-learner *::before, .b-learner *::after,
 .b-live-board *, .b-device-change * { animation: none !important; transition: none !important; }
 .b-assignment .btn:active, .b-learner .btn:active, .b-live-board .btn:active, .b-device-change .btn:active { transform: none; }
-.b-scoreboard { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 17rem); gap: 24px; padding: 24px; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); box-shadow: 4px 4px 0 var(--shadow); }
+.b-scoreboard { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 17rem); gap: 24px; padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--elev-2); }
 .b-scoreboard .mindsprint-title, .b-learner-head .mindsprint-title { font-size: 2.25rem; line-height: 1.15; letter-spacing: -.03em; }
-.b-scoreboard-time { display: grid; align-content: center; gap: 8px; border-left: 2px solid var(--ink); padding-left: 24px; }
+.b-scoreboard-time { display: grid; align-content: center; gap: 8px; border-left: 1px solid var(--line); padding-left: 24px; }
 .b-scoreboard-time > span { font-size: .875rem; color: var(--text-muted); }
 .b-scoreboard-time strong { font-size: 1.25rem; line-height: 1.4; }
 .b-scoreboard-time strong.font-monospace { font-size: 2rem; }
@@ -56,11 +56,11 @@ main a.b-class-assignment { display: flex; padding: 20px; }
 .b-entry-edit > summary { line-height:1.5; }
 .b-entry-edit[open] > summary { margin-bottom:16px; }
 main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-spacing: .04em; margin-block: 12px 16px; user-select: all; }
-.b-tabs { position: sticky; top: calc(16px + var(--safe-top)); z-index: 1010; display: flex; flex-wrap: nowrap; gap: 4px; padding: 8px; margin: 0 4px 24px 0; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); box-shadow: 4px 4px 0 var(--shadow); overflow-x: auto; }
+.b-tabs { position: sticky; top: calc(16px + var(--safe-top)); z-index: 1010; display: flex; flex-wrap: nowrap; gap: 4px; padding: 8px; margin: 0 4px 24px 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: var(--elev-2); overflow-x: auto; }
 .b-tabs > li { flex: 1 0 auto; }
 .b-tabs .nav-link { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 44px; padding: 8px 10px; border: 2px solid transparent; border-radius: 6px; background: var(--surface); color: var(--text); white-space: nowrap; font-size:.9375rem; font-weight: 700; }
 .b-tabs .nav-link:hover { background: var(--muted); }
-.b-tabs .nav-link.active { border-color: var(--ink); background: var(--acid); color: var(--on-acid); }
+.b-tabs .nav-link.active { border-color: var(--line); background: var(--acid); color: var(--on-acid); }
 .b-tabs .nav-link:focus-visible { outline-offset: -3px !important; }
 .b-assignment .tab-content, .b-assignment .tab-pane { min-width: 0; }
 .b-assignment .tab-pane { scroll-margin-top: 120px; }
@@ -69,9 +69,9 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-settings-body { padding-block: 8px; }
 .b-settings-body > :last-child { margin-bottom: 0 !important; }
 .b-preserve-lines { white-space: pre-wrap; }
-.b-live-counts { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 0 0 24px; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); }
+.b-live-counts { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 0 0 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .b-live-counts > div { display: flex; flex-direction: column; gap: 4px; padding: 16px; min-width: 0; }
-.b-live-counts > div + div { border-left: 2px solid var(--ink); }
+.b-live-counts > div + div { border-left: 1px solid var(--line); }
 .b-live-counts dt { font-size: .8125rem; line-height: 1.5; color: var(--text-muted); }
 .b-live-counts dd { margin: 0; font: 700 1.75rem/1.25 var(--bs-font-monospace); }
 .b-live-board h2 { font-size: 1.25rem; }
@@ -101,7 +101,7 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-live-table :is(summary, .btn) { font-size: .875rem; }
 .b-live-table .btn { max-width: 100%; }
 .b-live-table td details { min-width: min(12rem, 100%); }
-.b-table-empty { max-width:none; padding: 16px; border: 2px dashed var(--ink); border-radius: 6px; color: var(--text-muted); background:var(--surface); }
+.b-table-empty { max-width:none; padding: 16px; border: 1px dashed var(--line-strong); border-radius: 6px; color: var(--text-muted); background:var(--surface); }
 .b-live-board .table-responsive:not(:has(tbody tr)) { display:none; }
 .b-live-table [role="status"], .b-warning-list [role="status"] { display:flex; flex-wrap:wrap; gap:4px 12px; }
 .b-live-table [role="status"] > p, .b-warning-list [role="status"] > p { flex-basis:100%; margin-top:4px; }
@@ -111,13 +111,13 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-device-change .btn { min-height: 44px; }
 
 .b-learner-head { margin-bottom: 24px; }
-.b-learner-links { padding-block:8px; border-bottom:2px solid var(--ink); margin-block:16px 24px; }
+.b-learner-links { padding-block:8px; border-bottom:1px solid var(--line); margin-block:16px 24px; }
 .b-learner-links a { display:inline-flex; align-items:center; min-height:44px; }
 .b-learner .b-retake-form { margin-top:24px; max-width:48rem; padding:24px; gap:8px; }
 .b-retake-form textarea { min-height:96px; }
 .b-learner .b-retake-form .btn { width:auto; max-width:100%; min-height:48px; }
 .b-learner-head h1 { margin-bottom: 16px; }
-.b-assignment-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding-block: 16px; border-block: 2px solid var(--ink); gap: 16px 24px; }
+.b-assignment-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding-block: 16px; border-block: 1px solid var(--line); gap: 16px 24px; }
 .b-assignment-facts > div { min-width: 0; }
 .b-assignment-facts dt { font-size: .875rem; color: var(--text-muted); margin-bottom: 4px; }
 .b-assignment-facts dd { margin: 0; font-weight: 700; }
@@ -136,10 +136,10 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 @media (max-width: 991.98px) {
   .b-class-entry { grid-template-columns: minmax(0, 1fr) minmax(0, 16rem); padding: 24px; }
   .b-class-settings { grid-template-columns: minmax(0, 1fr); gap: 24px; }
-  .b-code-settings { padding: 24px 0 0; border-left: 0; border-top: 2px solid var(--ink); }
+  .b-code-settings { padding: 24px 0 0; border-left: 0; border-top: 1px solid var(--line); }
   .b-live-counts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .b-live-counts > div:nth-child(4) { border-left: 0; }
-  .b-live-counts > div:nth-child(n+4) { border-top: 2px solid var(--ink); }
+  .b-live-counts > div:nth-child(n+4) { border-top: 1px solid var(--line); }
 }
 @media (max-width: 767.98px) {
   .b-live-board .table-responsive { overflow: visible; }
@@ -147,18 +147,18 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
   .b-grade-table colgroup { display: none; }
   .b-live-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .b-live-table :is(tbody, tr, td) { display: block; width: 100%; }
-  .b-live-table tbody tr { margin-bottom: 16px; padding: 8px 16px; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); }
+  .b-live-table tbody tr { margin-bottom: 16px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
   .b-live-table tbody tr.table-warning { background: var(--warn); border-left: 8px solid var(--warn-text); }
   [data-bs-theme="dark"] .b-live-table tbody tr.table-warning { background: var(--muted); border-left-color: var(--warn); }
   .b-live-table > tbody > tr > td { max-width: none; padding: 12px 0; border: 0; background: transparent; box-shadow: none; text-align: left !important; }
-  .b-live-table > tbody > tr > td + td { border-top: 2px solid var(--ink); }
+  .b-live-table > tbody > tr > td + td { border-top: 1px solid var(--line); }
   .b-live-table td::before { content: attr(data-label); display: block; margin-bottom: 4px; font-size: .875rem; font-weight: 700; }
   .b-live-table td details { min-width: 0; }
   .b-class-entry, .b-scoreboard { grid-template-columns: minmax(0, 1fr); padding: 20px; }
   .b-class-entry .sticky-note { max-width: 100%; margin: 4px; }
   main .b-class-entry .b-join-code { font-size: 2rem; letter-spacing: .03em; }
   .b-classroom .section-head { flex-wrap: wrap; }
-  .b-scoreboard-time { padding: 16px 0 0; border-left: 0; border-top: 2px solid var(--ink); }
+  .b-scoreboard-time { padding: 16px 0 0; border-left: 0; border-top: 1px solid var(--line); }
   .b-scoreboard .mindsprint-title, .b-learner-head .mindsprint-title { font-size: 1.75rem; }
   .b-live-counts > div { padding: 12px; }
   .b-live-counts dd { font-size: 1.5rem; }
@@ -169,10 +169,10 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
   .b-attempt-table { min-width: 0 !important; }
   .b-attempt-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .b-attempt-table :is(tbody, tr, td) { display: block; width: 100%; }
-  .b-attempt-table tbody tr { padding: 8px 16px; margin-bottom: 16px; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); }
+  .b-attempt-table tbody tr { padding: 8px 16px; margin-bottom: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
   .b-attempt-table > tbody > tr > td { padding: 8px 0; border: 0; }
   .b-attempt-table td::before { content: attr(data-label); display: block; font-size: .8125rem; font-weight: 700; color: var(--text-muted); }
-  .b-attempt-table > tbody > tr > td + td { border-top: 2px solid var(--ink); }
+  .b-attempt-table > tbody > tr > td + td { border-top: 1px solid var(--line); }
   main .b-attempt-table a { display: inline-flex; }
 }
 .b-live-table .b-adjust-toggle { display: flex; align-items: center; gap: 8px; width: fit-content; max-width: 100%; min-height: 44px; padding: 8px; font-size: .8125rem; line-height: 1.4; }
@@ -184,19 +184,19 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-code-details { flex: 1; min-width: 0; }
 .b-qr-preview { flex: 0 0 132px; width: 132px; text-align: center; }
 .b-qr-preview[hidden] { display: none; }
-.b-qr-small { display: block; width: 132px; height: 132px; padding: 0; border: 2px solid var(--ink); border-radius: 12px; background: #fff; color: #000; overflow: hidden; }
+.b-qr-small { display: block; width: 132px; height: 132px; padding: 0; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: #000; overflow: hidden; }
 .b-qr-small svg, .b-qr-large svg { display: block; width: 100%; height: 100%; }
 .b-assignment .b-qr-enlarge { margin-top: 8px; width: 100%; padding: 8px 4px; font-size: .8125rem; }
-.b-qr-modal { --ink: #09090B; }
+.b-qr-modal { --ink: #1A1A2E; }
 .b-qr-modal .modal-dialog { --bs-modal-width: 960px; }
-.b-qr-modal .modal-content { overflow: hidden; border: 2px solid var(--ink); border-radius: 20px; background: var(--ink); color: #F3F7DC; }
-.b-qr-modal .modal-header { gap: 16px; border-bottom: 2px solid #F3F7DC; background: var(--ink); }
-.b-qr-modal .modal-title { min-width: 0; font: 700 1.75rem/1.4 var(--bs-font-monospace); color: #F3F7DC; overflow-wrap: anywhere; }
+.b-qr-modal .modal-content { overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: var(--ink); color: #F7F5FA; }
+.b-qr-modal .modal-header { gap: 16px; border-bottom: 2px solid #F7F5FA; background: var(--ink); }
+.b-qr-modal .modal-title { min-width: 0; font: 700 1.75rem/1.4 var(--bs-font-monospace); color: #F7F5FA; overflow-wrap: anywhere; }
 .b-qr-modal .modal-title span { display: inline-block; }
-.b-qr-modal .b-qr-close { flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 8px; border-color: #F3F7DC; background: var(--ink); color: #F3F7DC; box-shadow: none; }
+.b-qr-modal .b-qr-close { flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 8px; border-color: #F7F5FA; background: var(--ink); color: #F7F5FA; box-shadow: none; }
 .b-qr-modal .modal-body { display: grid; justify-items: center; gap: 24px; padding: 24px; background: var(--ink); }
-.b-qr-large { width: min(70vh, 520px, 100%); aspect-ratio: 1; padding: 0; border: 4px solid var(--ink); border-radius: 20px; overflow: hidden; background: #fff; color: #000; }
-.b-qr-modal .modal-body p { max-width: 38rem; margin: 0; text-align: center; color: #F3F7DC; }
+.b-qr-large { width: min(70vh, 520px, 100%); aspect-ratio: 1; padding: 0; border: 2px solid var(--line); border-radius: 20px; overflow: hidden; background: #fff; color: #000; }
+.b-qr-modal .modal-body p { max-width: 38rem; margin: 0; text-align: center; color: #F7F5FA; }
 @media (min-width: 768px) {
   .b-assignment .card:has(.b-code-layout) { container-type: inline-size; }
   main .b-code-layout:has(.b-qr-preview:not([hidden])) .b-assignment-code { font-size: clamp(1.25rem, 6cqi, 2rem); }
@@ -221,7 +221,7 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-grade-pages .btn { min-width:44px; min-height:52px; } /* 52 = cao nút số; nút mũi tên (biểu tượng 20px) trước đây chỉ 48 */
 .b-live-board .table-responsive { max-height: min(650px, 70dvh); overflow:auto; }
 .b-grade-table thead th { position:sticky; top:0; z-index:2; }
-.b-matrix-frame { overflow:auto; max-width:100%; max-height:70dvh; border:2px solid var(--ink); border-radius:12px; }
+.b-matrix-frame { overflow:auto; max-width:100%; max-height:70dvh; border:1px solid var(--line); border-radius:12px; }
 .b-matrix { margin:0; border-collapse:separate; border-spacing:0; width:max-content; min-width:100%; }
 .b-matrix th, .b-matrix td { min-width:88px; vertical-align:middle; }
 .b-matrix tr > :first-child { position:sticky; left:0; z-index:2; width:180px; min-width:180px; max-width:180px; overflow-wrap:anywhere; background:var(--surface); color:var(--text); }
@@ -232,7 +232,7 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-matrix details p { width:220px; white-space:normal; margin:8px 0; color:var(--th-fg); overflow-wrap:anywhere; }
 .b-matrix-description { max-width:70ch; margin-bottom:24px; }
 .b-matrix th:not(:first-child), .b-matrix td { text-align:center; }
-.b-matrix td { border-right:1px solid var(--ink); }
+.b-matrix td { border-right:1px solid var(--line-strong); }
 .b-matrix-frame:focus-visible { outline:3px solid var(--focus); outline-offset:3px; }
 .b-matrix-rate { display:block; border-radius:6px; padding:4px; color:var(--on-acid); }
 .b-matrix-rate.is-ok { background:var(--ok); }
@@ -244,7 +244,7 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-matrix-mark.state-pending { background:color-mix(in srgb, var(--warn) 25%, var(--surface)); }
 .b-matrix-search { max-width:28rem; margin-block:16px; }
 .b-warning-list { display:grid; gap:16px; }
-.b-mastery-overview { padding:16px; margin-block:24px; border:2px solid var(--ink); border-radius:12px; background:var(--surface); }
+.b-mastery-overview { padding:16px; margin-block:24px; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
 .b-mastery-overview progress { width:100%; height:24px; accent-color:var(--ok); }
 :root[data-bs-theme="dark"] .b-matrix-mark { background:var(--surface); }
 :root[data-bs-theme="dark"] .b-matrix-mark.state-correct { border-left:6px solid var(--ok); }
@@ -283,13 +283,13 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 }
 
 /* Rà soát 10/11: trang hiện tại của bảng điểm là nút bị khóa nên trước đây trông như nút mờ nét đứt; tô Acid cho dễ nhận. */
-.b-grade-pages .btn[aria-current="page"], .b-grade-pages .btn[aria-current="page"]:disabled { background: var(--acid); color: var(--on-acid); border: 2px solid var(--ink); border-style: solid; opacity: 1; }
+.b-grade-pages .btn[aria-current="page"], .b-grade-pages .btn[aria-current="page"]:disabled { background: var(--acid); color: var(--on-acid); border: 1px solid var(--line); border-style: solid; opacity: 1; }
 
 /* Bảng điểm trên điện thoại (11/11): mỗi học viên một thẻ gọn gồm tên, trạng thái, điểm; phần còn lại mở bằng "Xem chi tiết".
    Chỉ áp khi gradebook-rows.js đã chạy (lớp is-collapsible), nên không có JavaScript vẫn hiện đủ. */
 @media (max-width:767.98px) {
   #assignment-live.is-collapsible .b-grade-table tr[data-row]:not(.is-open) > td:not(:first-child):not(:nth-child(2)):not(:nth-child(5)) { display:none; }
-  .b-row-toggle { display:inline-flex; align-items:center; min-height:44px; margin:8px 0 0; padding:0 14px; border:2px solid var(--ink); border-radius:8px; background:var(--surface); color:var(--text); font-weight:700; }
+  .b-row-toggle { display:inline-flex; align-items:center; min-height:44px; margin:8px 0 0; padding:0 14px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--text); font-weight:700; }
   .b-row-toggle[aria-expanded="true"] { background:var(--muted); }
 }
 @media (min-width:768px) { .b-row-toggle { display:none !important; } }
@@ -297,12 +297,12 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-grade-table > thead > tr > th { white-space: normal; height: auto; }
 
 /* Việc cần xem ở trang lớp: từng việc ghi rõ, dẫn tới chỗ xử lý. */
-.b-attention { margin-bottom: 24px; padding: 16px 20px; border: 2px solid var(--ink); border-radius: 12px; background: var(--surface); box-shadow: 4px 4px 0 var(--warn); }
+.b-attention { margin-bottom: 24px; padding: 16px 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 4px 4px 0 var(--warn); }
 .b-attention h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
 .b-attention ul { margin: 0; padding-left: 1.25rem; }
 .b-attention li { padding-block: 4px; }
 .b-attention a { display: inline-block; min-height: 44px; padding-block: 10px; font-weight: 700; }
-.b-card-attention { display: block; padding: 6px 10px; border: 2px solid var(--ink); border-radius: 6px; background: var(--warn); color: var(--warn-text); font-size: .875rem; font-weight: 700; }
+.b-card-attention { display: block; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--warn); color: var(--warn-text); font-size: .875rem; font-weight: 700; }
 [data-bs-theme="dark"] .b-card-attention { background: var(--muted); color: var(--warn); border-color: var(--warn); }
 /* Trang Giao bài: phần cài đặt ít dùng gom vào một mục thu gọn. */
 /* summary đã có khung chung của details; không thêm khung ngoài để khỏi lồng hai viền. */

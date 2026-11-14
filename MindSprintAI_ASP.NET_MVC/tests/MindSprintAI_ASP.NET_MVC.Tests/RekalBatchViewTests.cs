@@ -107,8 +107,13 @@ public class RekalBatchViewTests
     public void ThanhBenCoTenNganVaThungRacChung()
     {
         var layout = Read("Views/Shared/_Layout.cshtml");
-        foreach (var label in new[] { "Bài học", "Bộ học", "Lớp", "Thông báo", "Quản trị", "Mã lớp", "Thùng rác", "Báo cáo" })
+        foreach (var label in new[] { "Bài học", "Bộ học", "Lớp", "Quản trị", "Mã lớp", "Thùng rác", "Báo cáo" })
             Assert.Contains($"class=\"nav-short\" aria-hidden=\"true\">{label}</span>", layout);
+        // MindSprint: chuông thông báo nằm ở header ứng dụng như giao diện nhóm, không còn trong thanh bên.
+        var bell = layout.Split('\n').Single(l => l.Contains("id=\"notification-bell\""));
+        Assert.Contains("class=\"app-icon-btn", bell);
+        Assert.True(layout.IndexOf("class=\"app-topbar\"", StringComparison.Ordinal) < layout.IndexOf("id=\"notification-bell\"", StringComparison.Ordinal));
+        Assert.Contains("id=\"notification-unread\"", layout);
         Assert.Contains("asp-action=\"Trash\"", layout);
         // Học viên cũng có báo cáo và hội thoại trợ lý trong Thùng rác, nên không giấu theo chế độ Giảng viên.
         var trashLine = layout.Split('\n').First(l => l.Contains("sidebar-trash"));

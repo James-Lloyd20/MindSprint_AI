@@ -54,7 +54,7 @@ public class SidebarPureTests
         Assert.DoesNotContain("asp-antiforgery=\"false\"", source);
         Assert.Contains("account-identity", source);
         Assert.Contains("@me.Email", source);
-        Assert.Contains("if (rail !== 'open')", source);
+        Assert.Contains("if (rail === 'collapsed')", source); // MindSprint: mặc định mở rộng như giao diện nhóm.
         Assert.Single(Regex.Matches(source, "id=\"account-menu\"").Cast<Match>());
     }
 

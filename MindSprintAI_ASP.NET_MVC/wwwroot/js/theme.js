@@ -30,7 +30,7 @@
     window.addEventListener('storage', event => {
         if (event.key === 'mindsprint-theme') apply(event.newValue === 'light' || event.newValue === 'dark'
             ? event.newValue : system.matches ? 'dark' : 'light');
-        if (event.key === 'mindsprint-sidebar') setRail(event.newValue !== 'open');
+        if (event.key === 'mindsprint-sidebar') setRail(event.newValue === 'collapsed');
     });
 
     // Thanh bên trái (≥ 992px): thu gọn chỉ còn icon hoặc mở rộng có chữ; nhớ lựa chọn trên máy này.

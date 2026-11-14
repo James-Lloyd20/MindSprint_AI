@@ -18,8 +18,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#F3F7DC" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#131317" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F7F5FA" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#191721" media="(prefers-color-scheme: dark)" />
     <title>@ViewData["Title"] - @Brand.Name</title>
     @if (ViewData["Description"] is string description)
     {
@@ -40,11 +40,11 @@
             try { theme = localStorage.getItem('mindsprint-theme'); } catch { }
             if (theme !== 'light' && theme !== 'dark') theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             document.documentElement.setAttribute('data-bs-theme', theme);
-            document.querySelectorAll('meta[name="theme-color"]').forEach(meta => meta.setAttribute('content', theme === 'dark' ? '#131317' : '#F3F7DC'));
+            document.querySelectorAll('meta[name="theme-color"]').forEach(meta => meta.setAttribute('content', theme === 'dark' ? '#191721' : '#F7F5FA'));
             let rail;
             try { rail = localStorage.getItem('mindsprint-sidebar'); } catch { }
-            // Mặc định thu gọn (người dùng chốt 2026-11-09); chỉ mở rộng khi người dùng đã tự bấm mở.
-            if (rail !== 'open') document.documentElement.setAttribute('data-sidebar', 'collapsed');
+            // Mặc định mở rộng như giao diện nhóm (QuizEdu từng mặc định thu gọn); chỉ thu gọn khi người dùng đã tự bấm.
+            if (rail === 'collapsed') document.documentElement.setAttribute('data-sidebar', 'collapsed');
         })();
     </script>
     <script type="importmap"></script>
@@ -62,10 +62,40 @@
 <body data-brand="@Brand.Name" class="@(controller is "Learn" or "Assignments" or "Admin" or "Reports" && !(controller == "Learn" && action == "Index") ? "mindsprint-still" : "") @(sidebar ? "has-sidebar" : "")">
     <partial name="_Icons" />
     <a class="skip-link" href="#main-content">Đến nội dung chính</a>
+    @{
+        // Menu tài khoản viết một lần: ở thanh trên (khách, trang ngoài) hoặc ở header ứng dụng (người đã đăng nhập). Chỉ gọi khi me != null.
+        Func<object?, object> accountMenu = @<div class="dropdown account-menu">
+            <button class="btn dropdown-toggle account-menu-toggle" type="button" id="account-menu" data-bs-toggle="dropdown" aria-expanded="false" title="@me!.DisplayName">
+                <partial name="_Avatar" model="me" />
+                <span class="account-copy"><span class="nav-label account-name">@me.DisplayName</span><span class="account-mode">@modeLabel</span></span>
+                <span class="nav-short" aria-hidden="true">Tôi</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="account-menu">
+                <li class="account-identity">
+                    <partial name="_Avatar" model="me" />
+                    <div class="account-copy"><span class="account-name">@me.DisplayName</span>
+                        <span class="account-mode">@modeLabel</span>
+                        @if (!string.IsNullOrWhiteSpace(me.Email)) { <span class="account-email">@me.Email</span> }
+                    </div>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                @if (!me.IsGuest)
+                {
+                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Index"><icon name="settings-2" />Tài khoản</a></li>
+                    <li><form method="post" asp-controller="Account" asp-action="SwitchMode">
+                        <button class="dropdown-item"><icon name="repeat-2" />@(lecturer ? "Chuyển sang Học viên" : "Chuyển sang Giảng viên")</button>
+                    </form></li>
+                }
+                <li><form method="post" asp-controller="Account" asp-action="Logout">
+                    <button class="dropdown-item"><icon name="log-out" />Đăng xuất</button>
+                </form></li>
+            </ul>
+        </div>;
+    }
     <header class="mindsprint-header container">
         <nav class="navbar navbar-expand-lg" aria-label="Điều hướng chính">
             <div class="container">
-                <a class="navbar-brand fw-bold" href="@(me?.IsGuest == true ? "/Classrooms/Join" : "/")"><span class="brand-full">@Brand.Name</span><span class="brand-short" aria-hidden="true">@Brand.Name.Substring(0, 1)</span></a>
+                <a class="navbar-brand fw-bold" href="@(me?.IsGuest == true ? "/Classrooms/Join" : "/")"><icon name="copy" class="brand-icon" /><span class="brand-full">@Brand.Name</span><span class="brand-short" aria-hidden="true">@Brand.Name.Substring(0, 1)</span></a>
                 <button class="btn theme-toggle" type="button" id="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Giao diện tối"><icon name="moon" /><span class="theme-label-full" aria-hidden="true">Giao diện tối</span><span class="theme-label-short" aria-hidden="true">Tối</span></button>
                 @if (sidebar)
                 {
@@ -77,9 +107,13 @@
                 </button>
                 <div class="navbar-collapse collapse">
                     <ul class="navbar-nav me-auto">
+                        @if (sidebar)
+                        {
+                            @* Tiêu đề nhóm mục như sidebar nhóm (Học tập / Tổ chức / Ứng dụng); chỉ hiện khi thanh bên mở rộng. *@
+                            <li class="nav-heading" aria-hidden="true">Học tập</li>
+                        }
                         @if (me != null && !me.IsGuest && lecturer)
                         {
-                            <li class="nav-item"><a class="nav-link @Current("Reports", "Index")" aria-current="@(Current("Reports", "Index") != "" ? "page" : null)" asp-controller="Reports" asp-action="Index" title="Báo cáo"><icon name="chart-column" /><span class="nav-label">Báo cáo</span><span class="nav-short" aria-hidden="true">Báo cáo</span></a></li>
                             <li class="nav-item"><a class="nav-link @(action == "Trash" ? "" : Current("StudySets"))" aria-current="@(action != "Trash" && Current("StudySets") != "" ? "page" : null)" asp-controller="StudySets" asp-action="Index" title="Bộ học"><icon name="book-open-text" /><span class="nav-label">Bộ học</span><span class="nav-short" aria-hidden="true">Bộ học</span></a></li>
                         }
                         else if (me != null && !me.IsGuest)
@@ -89,14 +123,18 @@
                         @if (me != null && !me.IsGuest)
                         {
                             <li class="nav-item"><a class="nav-link @(controller == "Classrooms" && action != "Join" ? "active" : "")" aria-current="@(controller == "Classrooms" && action != "Join" ? "page" : null)" asp-controller="Classrooms" asp-action="Index" title="@(lecturer ? "Lớp tôi dạy" : "Lớp của tôi")"><icon name="users" /><span class="nav-label">@(lecturer ? "Lớp tôi dạy" : "Lớp của tôi")</span><span class="nav-short" aria-hidden="true">Lớp</span></a></li>
-                            <li class="nav-item"><a class="nav-link @Current("Notifications")" id="notification-bell" asp-controller="Notifications" asp-action="Index" aria-label="Thông báo, @unread chưa đọc" title="Thông báo">
-                                <icon name="bell" /><span class="nav-label">Thông báo</span><span class="nav-short" aria-hidden="true">Thông báo</span> <span class="badge bg-danger" id="notification-unread" aria-live="polite" aria-label="@unread thông báo chưa đọc">@unread</span></a></li>
                             <li class="nav-item"><a class="nav-link @Current("Classrooms", "Join")" aria-current="@(Current("Classrooms", "Join") != "" ? "page" : null)" asp-controller="Classrooms" asp-action="Join" title="Tham gia bằng mã"><icon name="ticket" /><span class="nav-label">Tham gia bằng mã</span><span class="nav-short" aria-hidden="true">Mã lớp</span></a></li>
+                        }
+                        @if (me != null && !me.IsGuest && lecturer)
+                        {
+                            <li class="nav-heading" aria-hidden="true">Tổ chức</li>
+                            <li class="nav-item"><a class="nav-link @Current("Reports", "Index")" aria-current="@(Current("Reports", "Index") != "" ? "page" : null)" asp-controller="Reports" asp-action="Index" title="Báo cáo"><icon name="chart-column" /><span class="nav-label">Báo cáo</span><span class="nav-short" aria-hidden="true">Báo cáo</span></a></li>
                         }
                     </ul>
                     @if (me != null && !me.IsGuest)
                     {
                         <ul class="navbar-nav sidebar-secondary">
+                            <li class="nav-heading" aria-hidden="true">Ứng dụng</li>
                             @if (me != null && !me.IsGuest)
                             {
                                 <li class="nav-item"><a class="nav-link sidebar-trash @Current("StudySets", "Trash")" asp-controller="StudySets" asp-action="Trash" aria-current="@(Current("StudySets", "Trash") != "" ? "page" : null)" title="Thùng rác"><icon name="trash-2" /><span class="nav-label">Thùng rác</span><span class="nav-short" aria-hidden="true">Thùng rác</span></a></li>
@@ -113,46 +151,53 @@
                             }
                         </ul>
                     }
-                    @if (me != null)
+                    @if (me != null && !sidebar)
                     {
-                        <div class="dropdown account-menu">
-                            <button class="btn dropdown-toggle account-menu-toggle" type="button" id="account-menu" data-bs-toggle="dropdown" aria-expanded="false" title="@me.DisplayName">
-                                <partial name="_Avatar" model="me" />
-                                <span class="account-copy"><span class="nav-label account-name">@me.DisplayName</span><span class="account-mode">@modeLabel</span></span>
-                                <span class="nav-short" aria-hidden="true">Tôi</span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="account-menu">
-                                <li class="account-identity">
-                                    <partial name="_Avatar" model="me" />
-                                    <div class="account-copy"><span class="account-name">@me.DisplayName</span>
-                                        <span class="account-mode">@modeLabel</span>
-                                        @if (!string.IsNullOrWhiteSpace(me.Email)) { <span class="account-email">@me.Email</span> }
-                                    </div>
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                @if (!me.IsGuest)
-                                {
-                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Index"><icon name="settings-2" />Tài khoản</a></li>
-                                    <li><form method="post" asp-controller="Account" asp-action="SwitchMode">
-                                        <button class="dropdown-item"><icon name="repeat-2" />@(lecturer ? "Chuyển sang Học viên" : "Chuyển sang Giảng viên")</button>
-                                    </form></li>
-                                }
-                                <li><form method="post" asp-controller="Account" asp-action="Logout">
-                                    <button class="dropdown-item"><icon name="log-out" />Đăng xuất</button>
-                                </form></li>
-                            </ul>
-                        </div>
+                        @accountMenu(null)
                     }
-                    else
+                    else if (me == null)
                     {
                         <a class="btn btn-outline-secondary" asp-controller="Account" asp-action="Login">Đăng nhập</a>
                         <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Tạo tài khoản</a>
+                    }
+                    @if (sidebar)
+                    {
+                        @* Đáy sidebar như nhóm: một nút chính + link phụ (chân trang website ẩn trong ứng dụng). *@
+                        <div class="sidebar-footer">
+                            @if (lecturer)
+                            {
+                                <a class="btn btn-primary sidebar-cta" href="@Url.Action("Index", "StudySets")#tao-bo-hoc" title="Bộ học mới"><icon name="plus" /><span class="nav-label">Bộ học mới</span></a>
+                            }
+                            else
+                            {
+                                <a class="btn btn-primary sidebar-cta" asp-controller="Classrooms" asp-action="Join" title="Vào lớp bằng mã"><icon name="plus" /><span class="nav-label">Vào lớp bằng mã</span></a>
+                            }
+                            <div class="sidebar-links nav-label">
+                                <a asp-controller="Home" asp-action="Privacy">Chính sách</a> · <a asp-controller="Home" asp-action="Terms">Điều khoản</a>
+                            </div>
+                        </div>
                     }
                 </div>
             </div>
         </nav>
     </header>
     <div class="container">
+        @if (sidebar)
+        {
+            @* Header ứng dụng như giao diện nhóm: ô tìm trang bên trái; chuông + tài khoản bên phải. *@
+            <div class="app-topbar">
+                <form class="app-search" role="search" data-app-search>
+                    <icon name="search" />
+                    <input type="search" class="form-control" list="app-pages" placeholder="Tìm trang…" aria-label="Tìm trang trong MindSprint AI" autocomplete="off" />
+                    <datalist id="app-pages"></datalist>
+                </form>
+                <div class="app-actions">
+                    <a class="app-icon-btn @Current("Notifications")" id="notification-bell" asp-controller="Notifications" asp-action="Index" aria-label="Thông báo, @unread chưa đọc" title="Thông báo">
+                        <icon name="bell" /><span class="badge bg-danger" id="notification-unread" aria-live="polite" aria-label="@unread thông báo chưa đọc">@unread</span></a>
+                    @accountMenu(null)
+                </div>
+            </div>
+        }
         <main role="main" class="pb-3" id="main-content" tabindex="-1">
             @if (me?.IsGuest == true)
             {

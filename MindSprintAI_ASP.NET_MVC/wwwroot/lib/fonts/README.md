@@ -1,8 +1,6 @@
-# Font nội bộ của Rekal
+# Font nội bộ của MindSprint AI
 
-- **@fontsource/space-grotesk@5.3.0**: Latin + Vietnamese, 500/700, WOFF2.
-- **@fontsource/jetbrains-mono@5.3.0**: Latin + Vietnamese, 400/500/700, WOFF2 (mã, đồng hồ và nhãn nhỏ).
-- Nguồn ghim phiên bản: https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.3.0/ và https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.3.0/.
-- Mỗi thư mục giữ metadata.json và LICENSE gốc lưu thành OFL.txt (SIL Open Font License 1.1).
-- Font được phục vụ từ dự án; không tải từ bên thứ ba khi chạy. Khai báo từng bộ ký tự bằng unicode-range và font-display: swap ở rekal-fonts.css.
-- Space Grotesk: mọi chữ, tiêu đề và logo 700, thân bài 500; không giả đậm trên 700. JetBrains Mono 700 dành cho eyebrow (tối đa 4 từ), mã và đồng hồ.
+- **@fontsource-variable/inter@5.1.1**: Latin, Latin mở rộng, Vietnamese; trục độ đậm 100–900, WOFF2 (`inter/`, giấy phép SIL OFL 1.1 trong `inter/OFL.txt`, metadata.json gốc). Font chính của giao diện nhóm (`MindSprint-AI-D-n/frontend/tokens.css`).
+- **@fontsource/jetbrains-mono@5.3.0**: Latin + Vietnamese, 400/500/700, WOFF2 (mã, mã lớp, đồng hồ).
+- Nguồn ghim phiên bản: https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.1.1/ và https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.3.0/.
+- Font được phục vụ từ dự án; không tải từ bên thứ ba khi chạy (giao diện nhóm cũ tải Google Fonts — đã thay). Khai báo từng bộ ký tự bằng unicode-range và font-display: swap ở `css/mindsprint-fonts.css`.

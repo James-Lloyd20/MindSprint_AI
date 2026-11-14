@@ -9,5 +9,6 @@ Project chính của nhóm MindSprint. Logic, database và quy tắc nghiệp v�
 - Chữ trên trang cho người không rành máy: không dùng cookie, IP, token, session…; buộc dùng thì giải thích trong ngoặc.
 - Không đổi quy tắc nghiệp vụ (ngưỡng, giới hạn, cách chấm) khi chưa hỏi người dùng.
 - Trước khi mang/sửa phần khóa dữ liệu hay đường đi của học viên (vào bài, mở/lưu câu, tín hiệu giám sát): đọc `../Project_Tham_Khao/QuizEduManager_MVC/docs/BAI_HOC_TOI_UU_THU_TAI.md`. DB phải bật RCSI (migration `BatRcsi`).
+- **Không tự `git commit`/push.** Chỉ `git add` đúng file đã sửa rồi đưa người dùng lệnh commit bọc ngoặc đơn `'...'`, **không** có dòng `Co-Authored-By` hay ghi công AI (quy tắc người dùng, `PROMPT_CACH_LAM_VIEC.md` mục 5–6).
 - Cách làm: ponytail lite — thay đổi nhỏ nhất giải quyết trọn vấn đề; cuối câu trả lời ghi 1–2 dòng phần chưa kiểm chứng.
 - Graphify: `graphify query "<câu hỏi>"` trước khi tìm trong code; sau khi sửa code chạy `graphify update .`. `Program.cs` và nhiều `.cshtml` không có trong graph, đọc trực tiếp.
