@@ -1,6 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using MindSprintAI_ASP.NET_MVC.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+// Tắt MARS (AuditConnectionString) để EF dùng được savepoint khi ghi nhật ký.
+builder.Services.AddDbContext<AppDbContext>(o =>
+    o.UseSqlServer(AppDbContextFactory.AuditConnectionString(builder.Configuration.GetConnectionString("Default"))));
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
