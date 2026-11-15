@@ -20,6 +20,7 @@ public class ImportPreview
 {
     public int QuizId { get; set; }
     public string FileName { get; set; } = "";
+    public string? NewSetTitle { get; set; } // QuizId = 0: bản nháp sẽ thành bộ học mới mang tên này khi bấm Lưu
     public List<ImportEditRow> Rows { get; set; } = [];
 }
 
@@ -283,6 +284,7 @@ public class ExcelImportService(AppDbContext db, StudyLibraryService library, Ti
 
     public async Task EnsureCanImportAsync(int quizId, string userId)
     {
+        if (quizId == 0) return; // bản nháp cho bộ học MỚI (Sổ tay AI): bộ học + quiz chỉ tạo khi bấm Lưu
         await library.GetOwnedQuizAsync(quizId, userId);
         if (await library.WasAssignedAsync(quizId)) throw new BusinessException("Quiz này đã được giao cho lớp nên không nhập thêm câu từ file Excel được. Hãy nhân bản bộ học rồi nhập vào bản mới.");
     }
@@ -293,22 +295,31 @@ public class ExcelImportService(AppDbContext db, StudyLibraryService library, Ti
         return ToPreview(quizId, name, ExcelTemplate.Read(new MemoryStream(file), name));
     }
 
-    public static ImportPreview ToPreview(int quizId, string name, List<ImportRow> rows) => new()
+    public static ImportPreview ToPreview(int quizId, string name, List<ImportRow> rows, string? newSetTitle = null) => new()
     {
-        QuizId = quizId, FileName = name,
+        QuizId = quizId, FileName = name, NewSetTitle = quizId == 0 ? newSetTitle : null,
         Rows = rows.Select(r => new ImportEditRow { Sheet = r.Sheet, Row = r.Row, Values = r.Values ?? [], Include = r.Include, Error = r.Error }).ToList()
     };
 
     public async Task<ImportPreview> RecheckAsync(ImportPreview input, string userId)
     {
         await EnsureCanImportAsync(input.QuizId, userId);
-        return ToPreview(input.QuizId, input.FileName, ExcelTemplate.ValidateRows(input.Rows));
+        return ToPreview(input.QuizId, input.FileName, ExcelTemplate.ValidateRows(input.Rows), input.NewSetTitle);
     }
 
+    // Lưu xong, input.QuizId là quiz đã nhận câu (quiz mới nếu bản nháp dành cho bộ học mới) để controller chuyển tới đúng trang.
     public async Task<int> SaveAsync(ImportPreview input, string userId)
     {
-        var quizId = input.QuizId;
         await using var tx = await db.Database.BeginTransactionAsync();
+        int? newQuizId = null;
+        if (input.QuizId == 0)
+        {
+            // Bộ học mới (Sổ tay AI): chỉ tạo khi lưu, cùng giao dịch với câu hỏi → AI lỗi hay bấm Hủy thì không để lại bộ rỗng.
+            if (string.IsNullOrWhiteSpace(input.NewSetTitle)) throw new BusinessException("Thiếu tên bộ học mới. Hãy tạo lại từ Sổ tay AI.");
+            var set = await library.CreateStudySetAsync(input.NewSetTitle, userId);
+            newQuizId = (await library.CreateQuizAsync(set.Id, $"Quiz từ sổ tay {set.Title}", userId)).Id;
+        }
+        var quizId = newQuizId ?? input.QuizId;
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT [Id] FROM [Quizzes] WITH (UPDLOCK, HOLDLOCK) WHERE [Id] = {quizId}");
         await EnsureCanImportAsync(quizId, userId);
         // (79b) dữ liệu đã sửa là đầu vào mới: không tin cờ hợp lệ/đáp án đã chấm ở trang xem trước.
@@ -330,6 +341,7 @@ public class ExcelImportService(AppDbContext db, StudyLibraryService library, Ti
         db.Audit?.Add(AuditAction.ExcelImported, "Quiz", quizId, userId); // (NK3)
         await db.SaveChangesAsync();
         await tx.CommitAsync();
+        input.QuizId = quizId; // chỉ đổi sau khi đã lưu chắc chắn
         return rows.Count;
     }
 }

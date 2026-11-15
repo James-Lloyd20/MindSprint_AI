@@ -70,8 +70,10 @@ public class LichHocTests
         var today = new DateOnly(2026, 11, 15);
         var days = new[] { today.AddDays(-10), today.AddDays(-9), today.AddDays(-8), today.AddDays(-2), today.AddDays(-1), today };
         Assert.Equal(new StudyStreak(3, 3, today), StudyStatsService.Streak(days, today));
-        // Hôm nay chưa học: chuỗi hiện tại về 0 như bản nhóm (đếm lùi từ hôm nay).
-        Assert.Equal(0, StudyStatsService.Streak(days[..^1], today).Current);
+        // Người dùng chốt 15/11: hôm nay chưa học thì chuỗi vẫn giữ (tính từ hôm qua); bỏ trọn một ngày thì về 0.
+        Assert.Equal(2, StudyStatsService.Streak(days[..^1], today).Current);
+        Assert.Equal(0, StudyStatsService.Streak(days[..^2], today).Current); // hôm qua cũng không học → đứt
+        Assert.Equal(0, StudyStatsService.Streak(days[..3], today).Current);
         Assert.Equal(new StudyStreak(0, 0, null), StudyStatsService.Streak([], today));
     }
 

@@ -1,15 +1,17 @@
 @model ImportPreview
 @{ ViewData["Title"] = "Xem trước dữ liệu nhập"; }
-<a class="btn btn-sm b-back" asp-action="Index" asp-route-id="@Model.QuizId"><icon name="chevron-right" class="b-back-icon" />Quay lại chọn file khác</a>
+@if (Model.QuizId == 0) { <a class="btn btn-sm b-back" asp-controller="Notebooks" asp-action="Index"><icon name="chevron-right" class="b-back-icon" />Quay lại Sổ tay AI</a> }
+else { <a class="btn btn-sm b-back" asp-controller="Import" asp-action="Index" asp-route-id="@Model.QuizId"><icon name="chevron-right" class="b-back-icon" />Quay lại chọn file khác</a> }
 <h1 class="h3">Xem trước — @Model.FileName</h1>
+@if (Model.NewSetTitle != null) { <p class="alert alert-info">Khi bấm Lưu, MindSprint AI tạo bộ học mới <b>@Model.NewSetTitle</b> chứa các dòng đã chọn. Chưa lưu thì chưa có bộ học nào được tạo.</p> }
 <p>Chưa lưu dữ liệu. Có @Model.Rows.Count(r => r.Error == null) dòng hợp lệ, @Model.Rows.Count(r => r.Error != null) dòng lỗi.</p>
 <p class="small text-muted">Sửa trực tiếp các ô, hoặc bỏ tick Nhập để bỏ qua dòng. Bấm Kiểm tra lại để cập nhật lỗi trước khi Lưu. Vuốt ngang bảng để xem đủ cột trên điện thoại.</p>
-<form method="post" asp-action="Save">
-    <input type="hidden" name="QuizId" value="@Model.QuizId" /><input type="hidden" name="FileName" value="@Model.FileName" />
+<form method="post" asp-controller="Import" asp-action="Save">
+    <input type="hidden" name="QuizId" value="@Model.QuizId" /><input type="hidden" name="FileName" value="@Model.FileName" /><input type="hidden" name="NewSetTitle" value="@Model.NewSetTitle" />
     <div class="d-flex flex-wrap gap-2 mb-3">
         <button type="submit" class="btn btn-outline-primary" formaction="@Url.Action("Recheck", "Import")">Kiểm tra lại</button>
         <button class="btn btn-primary" disabled="@(!Model.Rows.Any(r => r.Include) || Model.Rows.Any(r => r.Include && r.Error != null))">Lưu các dòng đã chọn</button>
-        <a class="btn btn-outline-secondary" asp-action="Index" asp-route-id="@Model.QuizId">Tải lại file</a>
+        @if (Model.QuizId != 0) { <a class="btn btn-outline-secondary" asp-controller="Import" asp-action="Index" asp-route-id="@Model.QuizId">Tải lại file</a> }
     </div>
     @foreach (var sheet in new[] { "CauHoi", "Flashcard" })
     {

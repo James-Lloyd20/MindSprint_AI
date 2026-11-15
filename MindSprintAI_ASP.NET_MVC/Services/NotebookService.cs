@@ -109,15 +109,13 @@ public sealed class NotebookService(AppDbContext db, UserApiKeyService keys, Gem
         return SourceGrounding.Validate(answer, chunks, question);
     }
 
-    // "Tạo bộ học từ sổ tay": bộ học + quiz mới mang tên sổ tay, AI soạn nháp từ mọi nguồn → trang xem trước (chưa lưu câu nào).
+    // "Tạo bộ học từ sổ tay": AI soạn nháp từ mọi nguồn → trang xem trước; bộ học mang tên sổ tay chỉ được tạo khi bấm Lưu.
     public async Task<ImportPreview> CreateStudySetAsync(int id, int count, bool cards, string userId)
     {
         var notebook = await GetAsync(id, userId);
-        var text = Combined(notebook);
-        await keys.UseAsync(userId); // chưa có API key Gemini thì báo ngay, không tạo bộ học rỗng
-        var set = await library.CreateStudySetAsync(notebook.Title, userId);
-        var quiz = await library.CreateQuizAsync(set.Id, $"Quiz từ sổ tay {notebook.Title}", userId);
-        return await generator.GenerateAsync(quiz.Id, text, count, cards, userId);
+        // Người dùng chọn 15/11: chưa tạo gì cho tới khi bấm Lưu ở trang xem trước (ExcelImportService.SaveAsync tạo bộ + quiz
+        // cùng giao dịch) → AI lỗi hay bấm Hủy thì không còn bộ học rỗng.
+        return await generator.GenerateAsync(0, Combined(notebook), count, cards, userId, newSetTitle: notebook.Title);
     }
 
     public static string Combined(Notebook notebook)

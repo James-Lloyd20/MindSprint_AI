@@ -2,18 +2,17 @@
 @using MindSprintAI_ASP.NET_MVC.Controllers
 @model VocabPracticePage
 @{
-    ViewData["Title"] = "Trắc nghiệm từ vựng";
+    ViewData["Title"] = "Luyện tập";
     // "Luyện tập & Ôn luyện" của nhóm (docs/giao-dien-nhom/05): khung "Cài đặt bài ôn tập" (danh mục, chủ đề, chế độ, số câu) → câu hỏi từng câu.
 }
-<a class="btn btn-sm b-back" asp-controller="Learn" asp-action="Index"><icon name="chevron-right" class="b-back-icon" />Quay lại Luyện tập</a>
 <header class="page-head">
     <div>
         <h1>Luyện tập &amp; ôn luyện</h1>
         <p>Kiểm tra mức độ ghi nhớ từ vựng của bạn bằng trắc nghiệm hoặc tự luận.</p>
     </div>
-    <div class="page-head-actions"><a class="btn btn-secondary" asp-action="Game"><icon name="play" />Game ghép thẻ</a></div>
 </header>
 
+<partial name="_PracticeTabs" model="@("practice")" />
 <form class="practice-setup" method="get" asp-action="Practice">
     <h2>Cài đặt bài ôn tập</h2>
     <div class="practice-grid">

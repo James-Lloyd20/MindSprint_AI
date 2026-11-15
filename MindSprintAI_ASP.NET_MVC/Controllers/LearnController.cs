@@ -10,11 +10,16 @@ namespace MindSprintAI_ASP.NET_MVC.Controllers;
 [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
 public class LearnController(AssignmentService assignments, AttemptService attempts, ClassroomService classrooms, RetakeService retakes, SurveyService surveys, DeviceSignalService? deviceSignals = null) : AppController
 {
-    public async Task<IActionResult> Index()
+    // Trang Luyện tập 3 tab (người dùng chọn 15/11): mở trang mà không còn bài cần làm thì vào thẳng tab Trắc nghiệm & Tự luận;
+    // bấm tab "Bài được giao" (tab=assigned) thì luôn ở lại đây.
+    public async Task<IActionResult> Index(string? tab = null)
     {
-        ViewData["Participations"] = await attempts.ListMyParticipationsAsync(UserId);
-        ViewData["Classes"] = (await classrooms.ListMyClassesAsync(UserId)).Where(m => m.Role == ClassRole.Student).ToList();
+        var participations = await attempts.ListMyParticipationsAsync(UserId);
         var list = await assignments.ListForLearnerAsync(UserId);
+        if (tab != "assigned" && HomeService.LearnerTodo(list, participations, DateTime.UtcNow).Count == 0)
+            return RedirectToAction("Practice", "Vocab");
+        ViewData["Participations"] = participations;
+        ViewData["Classes"] = (await classrooms.ListMyClassesAsync(UserId)).Where(m => m.Role == ClassRole.Student).ToList();
         ViewData["SelfReviewAssignmentIds"] = await attempts.SelfReviewAssignmentIdsAsync(list, UserId);
         return View(list);
     }

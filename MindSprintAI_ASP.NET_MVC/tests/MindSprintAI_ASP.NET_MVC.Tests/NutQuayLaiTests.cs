@@ -11,7 +11,7 @@ public class NutQuayLaiTests
     private static readonly string[] Exempt =
     [
         "Home/Index", "Learn/Index", "Learn/Play", "Learn/Consent", "Classrooms/Index", "Classrooms/Join",
-        "StudySets/Index", "StudySets/Trash", "Notifications/Index", "Kanban/Index", "Schedule/Index", "WeakAreas/Index", "Overview/Index", "Notebooks/Index", "Settings/Index", "Reports/Index", "Admin/Index", "Account/Index",
+        "StudySets/Index", "StudySets/Trash", "Notifications/Index", "Kanban/Index", "Schedule/Index", "WeakAreas/Index", "Overview/Index", "Notebooks/Index", "Settings/Index", "Vocab/Practice", "Vocab/Game", "Reports/Index", "Admin/Index", "Account/Index",
         "Account/Login", "Account/Register", "Account/ForgotPassword", "Account/ResetPassword", "Account/CheckEmail",
         "Account/Message", "Account/LoginTwoFactor", "Account/ConfirmLock", "Account/RecoveryCodes", "Account/AcceptPolicy", "Account/DeleteAccountConfirm",
         "Assignments/ChangeParts", "Assignments/CloseChoice", "Assignments/SelfReview", "Classrooms/ConfirmMembership",

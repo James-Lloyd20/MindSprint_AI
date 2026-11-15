@@ -79,7 +79,7 @@ public record StudyStreak(int Current, int Longest, DateOnly? LastDay);
 
 // Chuỗi ngày học: nhóm để trình duyệt tự gửi số thẻ đã ôn (POST /api/study/days) → dễ khai khống. Ở đây tính từ dữ liệu thật
 // QuizEdu đã ghi: mỗi lần ôn thẻ (FlashcardReview) và mỗi câu tự trả lời lần đầu (AnswerSubmission, bỏ câu hết giờ "{}").
-// Quy tắc chuỗi giữ như nhóm: ngày học = ngày (giờ VN) có hoạt động; chuỗi hiện tại đếm lùi liên tục từ hôm nay.
+// Ngày học = ngày (giờ VN) có ôn thẻ hoặc làm quiz (người dùng chốt 15/11); chuỗi đứt khi bỏ trọn một ngày.
 public sealed class StudyStatsService(AppDbContext db, TimeProvider clock)
 {
     private static readonly TimeSpan Vn = TimeSpan.FromHours(7);
@@ -110,7 +110,9 @@ public sealed class StudyStatsService(AppDbContext db, TimeProvider clock)
         }
         var set = days.ToHashSet();
         var current = 0;
-        for (var check = today; set.Contains(check); check = check.AddDays(-1)) current++;
+        // Người dùng chốt 15/11: chuỗi chỉ đứt khi bỏ trọn một ngày — hôm nay chưa học thì vẫn tính tiếp từ hôm qua.
+        var start = set.Contains(today) ? today : today.AddDays(-1);
+        for (var check = start; set.Contains(check); check = check.AddDays(-1)) current++;
         return new(current, longest, prev);
     }
 

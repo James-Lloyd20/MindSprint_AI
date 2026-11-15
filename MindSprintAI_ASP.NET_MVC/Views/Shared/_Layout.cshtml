@@ -14,6 +14,7 @@
     var sidebar = signedIn || (me == null && controller != "Account");
     var modeLabel = me?.IsGuest == true ? "Khách" : lecturer ? "Giảng viên" : "Học viên";
     string Current(string c, string? a = null) => controller == c && (a == null || action == a) ? "active" : "";
+    var practice = controller == "Learn" || (controller == "Vocab" && action is "Practice" or "Game"); // 3 tab của Luyện tập
 }
 <!DOCTYPE html>
 <html lang="vi" data-type="@ViewData["PageKind"]">
@@ -137,7 +138,7 @@
                             <li class="nav-heading" aria-hidden="true">Học tập</li>
                             <li class="nav-item"><a class="nav-link @Current("Home", "Index")" aria-current="@(Current("Home", "Index") != "" ? "page" : null)" asp-controller="Home" asp-action="Index" title="Trang chủ"><icon name="house" /><span class="nav-label">Trang chủ</span><span class="nav-short" aria-hidden="true">Hôm nay</span></a></li>
                             <li class="nav-item"><a class="nav-link @(action == "Trash" ? "" : Current("StudySets"))" aria-current="@(action != "Trash" && Current("StudySets") != "" ? "page" : null)" asp-controller="StudySets" asp-action="Index" title="Thư viện"><icon name="layers" /><span class="nav-label">Thư viện</span><span class="nav-short" aria-hidden="true">Thư viện</span></a></li>
-                            <li class="nav-item"><a class="nav-link @Current("Learn")" aria-current="@(Current("Learn") != "" ? "page" : null)" asp-controller="Learn" asp-action="Index" title="Luyện tập"><icon name="square-pen" /><span class="nav-label">Luyện tập</span><span class="nav-short" aria-hidden="true">Luyện tập</span></a></li>
+                            <li class="nav-item"><a class="nav-link @(practice ? "active" : "")" aria-current="@(practice ? "page" : null)" asp-controller="Learn" asp-action="Index" title="Luyện tập"><icon name="square-pen" /><span class="nav-label">Luyện tập</span><span class="nav-short" aria-hidden="true">Luyện tập</span></a></li>
                             <li class="nav-item"><a class="nav-link @Current("Notebooks")" aria-current="@(Current("Notebooks") != "" ? "page" : null)" asp-controller="Notebooks" asp-action="Index" title="Sổ tay AI"><icon name="notebook-pen" /><span class="nav-label">Sổ tay AI</span><span class="nav-short" aria-hidden="true">Sổ tay</span></a></li>
                             <li class="nav-item"><a class="nav-link @(controller == "Classrooms" ? "active" : "")" aria-current="@(controller == "Classrooms" ? "page" : null)" asp-controller="Classrooms" asp-action="Index" title="@(lecturer ? "Lớp tôi dạy" : "Lớp của tôi")"><icon name="users" /><span class="nav-label">@(lecturer ? "Lớp tôi dạy" : "Lớp của tôi")</span><span class="nav-short" aria-hidden="true">Lớp</span></a></li>
                             <li class="nav-heading" aria-hidden="true">Tổ chức</li>
@@ -212,7 +213,7 @@
         <nav class="app-tabbar" aria-label="Điều hướng nhanh">
             <a class="@Current("Home", "Index")" asp-controller="Home" asp-action="Index"><icon name="house" /><span>Hôm nay</span></a>
             <a class="@(action == "Trash" ? "" : Current("StudySets"))" asp-controller="StudySets" asp-action="Index"><icon name="layers" /><span>Thư viện</span></a>
-            <a class="@Current("Learn")" asp-controller="Learn" asp-action="Index"><icon name="square-pen" /><span>Luyện tập</span></a>
+            <a class="@(practice ? "active" : "")" asp-controller="Learn" asp-action="Index"><icon name="square-pen" /><span>Luyện tập</span></a>
             <a class="@Current("Kanban")" asp-controller="Kanban" asp-action="Index"><icon name="square-kanban" /><span>Công việc</span></a>
             <button type="button" data-bs-toggle="collapse" data-bs-target="#app-menu" aria-controls="app-menu" aria-expanded="false"><icon name="menu" /><span>Khác</span></button>
         </nav>

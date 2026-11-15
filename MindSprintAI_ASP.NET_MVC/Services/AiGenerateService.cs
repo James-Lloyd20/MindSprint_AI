@@ -10,20 +10,34 @@ namespace MindSprintAI_ASP.NET_MVC.Services;
 // Dùng API key Gemini của chính người dùng (UserApiKeyService, cần đã đồng ý thông báo AI) như trợ lý AI của QuizEdu.
 public sealed class AiGenerateService(ExcelImportService excel, UserApiKeyService keys, GeminiClient gemini)
 {
-    public const int MaxChars = 60_000, MaxCount = 30;
+    public const int MaxChars = 60_000, MaxCount = 100, BatchSize = 25;
     public const long MaxFileBytes = 10 * 1024 * 1024;
     public static readonly string[] FileTypes = [".pdf", ".txt", ".md", ".csv", ".json"];
 
-    public async Task<ImportPreview> GenerateAsync(int quizId, string? text, int count, bool cards, string userId)
+    // Người dùng chốt 15/11: tối đa 100 như nhóm. Gemini chỉ trả ~30 mục/lần (giới hạn độ dài) → chia đợt 25, mỗi đợt gửi kèm
+    // các câu đã có để AI không lặp lại; đợt nào không ra thêm gì thì dừng. newSetTitle: bản nháp cho bộ học mới (quizId = 0).
+    public async Task<ImportPreview> GenerateAsync(int quizId, string? text, int count, bool cards, string userId, string? newSetTitle = null)
     {
         await excel.EnsureCanImportAsync(quizId, userId);
         var source = Clean(text);
         if (source.Length < 50) throw new BusinessException("Hãy dán hoặc tải lên tài liệu dài ít nhất 50 ký tự.");
         if (source.Length > MaxChars) source = source[..MaxChars];
         count = Math.Clamp(count, 1, MaxCount);
-        var items = await gemini.GenerateAsync(await keys.UseAsync(userId), source, count, cards);
-        return ExcelImportService.ToPreview(quizId, cards ? "Thẻ ghi nhớ tạo bằng AI" : "Câu hỏi tạo bằng AI", ExcelTemplate.ValidateRows(ToRows(items, cards, count)));
+        var key = await keys.UseAsync(userId);
+        var items = new List<JsonElement>();
+        while (items.Count < count)
+        {
+            var batch = await gemini.GenerateAsync(key, source, Math.Min(BatchSize, count - items.Count), cards, items.Select(i => Prompt(i, cards)).ToList());
+            var fresh = batch.EnumerateArray().Where(i => !items.Any(x => string.Equals(Prompt(x, cards), Prompt(i, cards), StringComparison.OrdinalIgnoreCase))).ToList();
+            if (fresh.Count == 0) break;
+            items.AddRange(fresh);
+        }
+        return ExcelImportService.ToPreview(quizId, cards ? "Thẻ ghi nhớ tạo bằng AI" : "Câu hỏi tạo bằng AI",
+            ExcelTemplate.ValidateRows(ToRows(JsonSerializer.SerializeToElement(items), cards, count)), newSetTitle);
     }
+
+    private static string Prompt(JsonElement item, bool cards) =>
+        item.TryGetProperty(cards ? "front" : "question", out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()!.Trim() : "";
 
     // Mỗi mục AI → một dòng đúng cột file mẫu (sheet CauHoi / Flashcard); dữ liệu sai do AI sẽ hiện lỗi ở dòng đó trong trang xem trước.
     public static List<ImportEditRow> ToRows(JsonElement items, bool cards, int max)

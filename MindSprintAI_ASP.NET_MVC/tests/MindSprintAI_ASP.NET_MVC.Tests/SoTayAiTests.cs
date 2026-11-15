@@ -37,6 +37,27 @@ public class SoTayAiTests
     }
 
     [Fact]
+    public async Task BoHocTuSoTayChiTaoKhiBamLuu()
+    {
+        // Người dùng chọn 15/11: bản nháp AI (QuizId = 0) chưa tạo gì; Lưu thì tạo bộ + quiz + câu cùng một giao dịch.
+        using var h = new Harness();
+        var u = await h.UserAsync("Minh");
+        var import = new ExcelImportService(h.Db, h.Library, h.Clock);
+        var card = new ImportEditRow { Sheet = "Flashcard", Row = ExcelTemplate.FirstDataRow, Values = ["Điện Biên Phủ", "7/5/1954"] };
+        var draft = ExcelImportService.ToPreview(0, "Thẻ ghi nhớ tạo bằng AI", ExcelTemplate.ValidateRows([card]), "Lịch sử Việt Nam");
+        Assert.Equal(0, await h.Db.StudySets.CountAsync(s => s.OwnerId == u));
+        // Lưu bị từ chối (không chọn dòng nào) → giao dịch hoàn tác, không còn bộ học rỗng, QuizId vẫn là 0.
+        var none = ExcelImportService.ToPreview(0, draft.FileName, ExcelTemplate.ValidateRows([new() { Sheet = card.Sheet, Row = card.Row, Values = card.Values, Include = false }]), draft.NewSetTitle);
+        await Assert.ThrowsAsync<BusinessException>(() => import.SaveAsync(none, u));
+        h.Db.ChangeTracker.Clear();
+        Assert.Equal((0, 0), (await h.Db.StudySets.CountAsync(s => s.OwnerId == u), none.QuizId));
+        Assert.Equal(1, await import.SaveAsync(draft, u));
+        var quiz = await h.Db.Quizzes.Include(q => q.StudySet).SingleAsync(q => q.Id == draft.QuizId);
+        Assert.Equal(("Lịch sử Việt Nam", u), (quiz.StudySet.Title, quiz.StudySet.OwnerId));
+        Assert.Equal("Điện Biên Phủ", (await h.Db.Flashcards.SingleAsync(c => c.StudySetId == quiz.StudySetId)).Front);
+    }
+
+    [Fact]
     public async Task NguoiKhacKhongXemSuaXoaDuocVaXoaSoXoaHet()
     {
         using var h = new Harness();

@@ -519,3 +519,11 @@ main .practice-word { margin: 6px 0; font-size: 1.6rem; font-weight: 800; overfl
 /* Lớp của học viên dùng chung thẻ .class-card (giảng viên): hàng nút cuối thẻ, form không chiếm dòng riêng. */
 .my-classes .my-class-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
 .my-classes .my-class-actions form { margin: 0; }
+
+/* Ba tab Luyện tập — .practice-modes-toggle/.mode-toggle-btn của nhóm: nhóm nút viên thuốc, tab đang chọn nền xanh chanh. */
+.practice-tabs { display: inline-flex; flex-wrap: wrap; gap: 6px; margin: 0 0 20px; padding: 5px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.practice-tabs a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 12px; color: var(--text-muted); font-size: .9rem; font-weight: 600; text-decoration: none; }
+.practice-tabs a:hover { background: var(--muted); color: var(--text); }
+.practice-tabs a.is-active { background: var(--acid); color: var(--on-acid); font-weight: 700; }
+.practice-tabs .icon { width: 16px; height: 16px; margin: 0; }
+@media (max-width: 575.98px) { .practice-tabs { display: flex; } .practice-tabs a { flex: 1 1 auto; justify-content: center; } }

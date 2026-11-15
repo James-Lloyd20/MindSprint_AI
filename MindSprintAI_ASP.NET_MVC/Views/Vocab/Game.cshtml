@@ -7,7 +7,6 @@
     // Game ghép cặp của nhóm (script.js startGame/handleGameCardClick): 3–6 cặp ngẫu nhiên, cột từ / cột nghĩa, đồng hồ 0,1 giây, kỷ lục theo chủ đề.
     var cards = Model?.Cards.Select(c => new { q = c.Question, a = c.Answer }).ToList();
 }
-<a class="btn btn-sm b-back" asp-action="Index"><icon name="chevron-right" class="b-back-icon" />Quay lại Thư viện từ vựng</a>
 <header class="page-head">
     <div>
         <h1>Game ghép thẻ</h1>
@@ -15,6 +14,7 @@
     </div>
 </header>
 
+<partial name="_PracticeTabs" model="@("game")" />
 <form class="game-setup" method="get" asp-action="Game">
     <label class="form-label" for="game-topic">Chủ đề</label>
     <div class="game-setup-row">

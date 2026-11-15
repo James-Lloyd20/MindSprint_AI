@@ -45,11 +45,10 @@
         }
     </div>
     <div class="page-head-actions">
-        <a class="btn btn-secondary" asp-controller="Vocab" asp-action="Practice"><icon name="list-checks" />Trắc nghiệm từ vựng</a>
-        <a class="btn btn-secondary" asp-controller="Vocab" asp-action="Game"><icon name="play" />Game ghép thẻ</a>
         <a class="btn btn-primary" asp-controller="Classrooms" asp-action="Join"><icon name="ticket" />Tham gia bằng mã</a>
     </div>
 </div>
+<partial name="_PracticeTabs" model="@("assigned")" />
 
 @if (Model.Count == 0 && classes.Count == 0)
 {

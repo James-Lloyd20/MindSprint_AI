@@ -129,3 +129,11 @@ Mình đã `git add` toàn bộ (gồm cả đợt menu + trang chủ hôm qua c
 git commit -m 'Ban nhom: menu va trang chu, khung trang 1360px, Thu vien, Lich hoc + chuoi ngay hoc, chuong bao, tu vung + game + trac nghiem, Diem yeu, Tong quan, AI tao cau hoi, So tay AI + OCR, Cai dat + PWA, dang nhap demo'
 git push
 ```
+
+## 7. Sau khi bạn trả lời (sáng 15/11)
+1. Ngày học tính cả ngày làm quiz — giữ nguyên (đã đúng).
+2. Chuỗi ngày học: **chỉ đứt khi bỏ trọn một ngày** (sáng nay chưa học vẫn giữ chuỗi từ hôm qua). Test cập nhật.
+3. Luyện tập: **3 tab** Bài được giao · Trắc nghiệm & Tự luận · Game ghép thẻ; còn bài cần làm thì mở tab 1, hết bài thì mở thẳng tab Trắc nghiệm.
+4. Bản quyền từ vựng: giữ nguyên.
+5. AI tạo tối đa **100** câu/thẻ: chia đợt 25 câu mỗi lần gọi Gemini, mỗi đợt gửi kèm câu đã có để không trùng.
+6. Sổ tay AI: **chưa tạo bộ học nào cho tới khi bấm Lưu** ở trang xem trước (tạo bộ + quiz + câu cùng một giao dịch → AI lỗi hay bấm Hủy thì không để lại gì). Nhân tiện sửa lỗi nút Lưu của trang xem trước khi mở từ Sổ tay trỏ sai địa chỉ, và lỗi trang chủ với bài chỉ có thẻ ghi nhớ.
