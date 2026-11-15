@@ -309,7 +309,9 @@ public class Tang5ePureTests
         Assert.DoesNotContain(key, JsonSerializer.Serialize(result));
         Assert.DoesNotContain(log.Lines, line => line.Contains(key, StringComparison.Ordinal));
         var factory = provider.GetRequiredService<IHttpClientFactory>();
-        Assert.Equal(TimeSpan.FromSeconds(30), factory.CreateClient(nameof(GeminiClient)).Timeout);
+        // Hỏi đáp/kiểm tra key tự đặt hạn 30 giây; kết nối chung 120 giây cho việc tạo nội dung dài (nhóm cho 150).
+        Assert.Equal(GeminiClient.LongTimeout, factory.CreateClient(nameof(GeminiClient)).Timeout);
+        Assert.Equal((TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(120)), (GeminiClient.AskTimeout, GeminiClient.LongTimeout));
     }
 
     [Fact]

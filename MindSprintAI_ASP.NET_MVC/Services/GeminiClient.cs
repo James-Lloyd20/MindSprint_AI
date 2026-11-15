@@ -8,7 +8,7 @@ namespace MindSprintAI_ASP.NET_MVC.Services;
 public static class GeminiServices
 {
     public static IHttpClientBuilder AddGeminiClient(this IServiceCollection services) => services
-        .AddHttpClient<GeminiClient>(http => http.Timeout = TimeSpan.FromSeconds(30))
+        .AddHttpClient<GeminiClient>(http => http.Timeout = GeminiClient.LongTimeout)
         .RemoveAllLoggers().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 }
 
@@ -24,10 +24,22 @@ public sealed class GeminiClient(HttpClient http, IConfiguration configuration)
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     // gemini-2.5-flash đã ngừng cho người dùng mới (404) theo trang Models của Google, tra 2026-11-06; đổi qua Gemini:Model.
     public const string DefaultModel = "gemini-3.6-flash";
+    // Thời gian chờ: hỏi đáp có trích dẫn (QuizEdu) và kiểm tra key giữ 30 giây; việc tạo nội dung dài chuyển từ nhóm (Studio, Gia sư,
+    // gợi ý, tạo thẻ/câu hỏi, đọc ảnh) chờ tới 120 giây — nhóm cho 150 (Gemini:TotalTimeoutSeconds). Đo 15/11/2026 với
+    // gemini-3.6-flash: Studio 14–18 giây lúc bình thường, có lúc vượt 30 giây nên trước đây báo "quá lâu".
+    public static readonly TimeSpan AskTimeout = TimeSpan.FromSeconds(30), LongTimeout = TimeSpan.FromSeconds(120);
+    private static CancellationTokenSource AskBudget(CancellationToken outer)
+    {
+        var budget = CancellationTokenSource.CreateLinkedTokenSource(outer);
+        budget.CancelAfter(AskTimeout);
+        return budget;
+    }
 
     public async Task<GeminiAnswer> AskAsync(string key, IReadOnlyList<SourceChunk> chunks, string question,
         object? context, CancellationToken cancellationToken = default)
     {
+        using var budget = AskBudget(cancellationToken);
+        cancellationToken = budget.Token;
         var model = configuration["Gemini:Model"] ?? DefaultModel;
         if (!Regex.IsMatch(model, @"\A[a-zA-Z0-9.-]{1,100}\z")) throw new BusinessException("Cấu hình model Gemini không hợp lệ.");
         using var request = new HttpRequestMessage(HttpMethod.Post,
@@ -81,6 +93,8 @@ public sealed class GeminiClient(HttpClient http, IConfiguration configuration)
     // như khi hỏi (GET thông tin model vẫn trả 200 với model đã ngừng cho người dùng mới).
     public async Task CheckKeyAsync(string key, CancellationToken cancellationToken = default)
     {
+        using var budget = AskBudget(cancellationToken);
+        cancellationToken = budget.Token;
         var model = configuration["Gemini:Model"] ?? DefaultModel;
         if (!Regex.IsMatch(model, @"\A[a-zA-Z0-9.-]{1,100}\z")) throw new BusinessException("Cấu hình model Gemini không hợp lệ.");
         using var request = new HttpRequestMessage(HttpMethod.Post, $"https://generativelanguage.googleapis.com/v1beta/models/{model}:countTokens");
@@ -151,7 +165,9 @@ public sealed class GeminiClient(HttpClient http, IConfiguration configuration)
 
     // Sổ tay AI (Studio, Gia sư, gợi ý câu hỏi của nhóm — NotebookAi/TutorService): một lời nhắc → JSON đúng schema.
     // Lời nhắc nằm ở Prompts/ (chuyển từ nhóm); nội dung người dùng/tài liệu luôn đi trong lời nhắc như DỮ LIỆU.
-    public async Task<JsonElement> PromptJsonAsync(string key, string prompt, object schema, int maxTokens = 8192, CancellationToken cancellationToken = default)
+    // quick: việc đơn giản (gợi ý câu hỏi) → bảo model suy nghĩ ít (thinkingLevel "low") để nhanh hơn; Studio/Gia sư giữ mặc định
+    // vì cần suy luận (giải bài). Đã thử với gemini-3.6-flash 15/11/2026: Google nhận tham số, trả đúng khuôn.
+    public async Task<JsonElement> PromptJsonAsync(string key, string prompt, object schema, int maxTokens = 8192, CancellationToken cancellationToken = default, bool quick = false)
     {
         var model = configuration["Gemini:Model"] ?? DefaultModel;
         if (!Regex.IsMatch(model, @"\A[a-zA-Z0-9.-]{1,100}\z")) throw new BusinessException("Cấu hình model Gemini không hợp lệ.");
@@ -160,7 +176,10 @@ public sealed class GeminiClient(HttpClient http, IConfiguration configuration)
         request.Content = JsonContent.Create(new
         {
             contents = new[] { new { role = "user", parts = new[] { new { text = prompt } } } },
-            generationConfig = new { responseMimeType = "application/json", maxOutputTokens = maxTokens, responseSchema = schema }
+            // Kiểu "object": máy tuần tự hóa theo kiểu thật, nên khi không "quick" thì không có trường thinkingConfig nào gửi đi.
+            generationConfig = quick
+                ? (object)new { responseMimeType = "application/json", maxOutputTokens = maxTokens, responseSchema = schema, thinkingConfig = new { thinkingLevel = "low" } }
+                : new { responseMimeType = "application/json", maxOutputTokens = maxTokens, responseSchema = schema }
         });
         try
         {

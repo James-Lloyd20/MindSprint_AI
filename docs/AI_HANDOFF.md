@@ -170,3 +170,10 @@
 
 - **Đăng nhập demo** gọi thẳng `SignInAsync` → không có claim phiên thiết bị → `DeviceSessionHubFilter` từ chối kênh thông báo ("Bạn đã bị đăng xuất khỏi thiết bị này", người dùng thấy trong Visual Studio). Sửa: `AccountDemo.DemoLogin` đi qua `LoginService.CompleteAsync` như mật khẩu/Google/passkey. **Quy tắc:** mọi cách đăng nhập mới phải đi qua `CompleteAsync`, không gọi `SignInAsync` trực tiếp.
 - **Lỗi thật do cảnh báo CS8604 lộ ra:** `NotebookPrompts.SuggestionSchema` là trường static khai báo trước `Str` → `items` null → khuôn gửi Gemini hỏng (gợi ý câu hỏi sẽ lỗi khi có key). Đổi thành thuộc tính. Test `KhuonGoiYCauHoi_CoKieuPhanTu`. Bỏ tham số `library` thừa của `NotebookService`.
+
+### 2026-11-15 tối — thử AI với key Gemini thật (tài khoản demo) + tài liệu nhóm
+
+- **Đã thử với key thật, đều đạt:** hỏi đáp có trích dẫn (trích đúng nguyên văn nguồn), gợi ý câu hỏi (5 câu), Studio: Tóm tắt, Hướng dẫn ôn, Hỏi đáp thường gặp, Dòng thời gian, Sơ đồ tư duy (hiện cây nhiều cấp). Thời gian 5–12 giây lúc bình thường, có lúc 24–30 giây.
+- **Chưa thử được (key miễn phí hết lượt trong ngày, app báo "Mã Gemini của bạn đang hết lượt dùng…" đúng):** Nghe tổng quan, Flashcard/Trắc nghiệm làm thử trong Studio, Gia sư 4 chế độ, đọc chữ từ ảnh, nguồn từ link, "Tạo thẻ bằng AI" ở Thư viện, trợ lý AI trong bộ học.
+- **Sửa do thử thật:** (1) chuyển nhầm giới hạn 30 giây của QuizEdu cho cả việc tạo nội dung dài của nhóm (nhóm cho 150 giây) → `GeminiClient.AskTimeout` 30 giây cho hỏi đáp + kiểm tra key, `LongTimeout` 120 giây cho phần còn lại (test `Tang5ePureTests` cập nhật). (2) Gợi ý câu hỏi gửi `thinkingConfig.thinkingLevel = "low"` (`PromptJsonAsync(..., quick: true)`); Google nhận tham số này với `gemini-3.6-flash`. Studio/Gia sư giữ mặc định vì cần suy luận.
+- Tài liệu: `docs/cnpm/TAI_LIEU_KIEN_TRUC_MOI.md` (cho nhóm CNPM hiểu kiến trúc mới, không thay tài liệu nộp của họ; 7 sơ đồ Mermaid, đã soát cú pháp bằng tay, chưa dựng thử), `docs/BAN_GIAO_NHOM.md`, `docs/HUONG_DAN_DANG_NHAP_GOOGLE.md`.

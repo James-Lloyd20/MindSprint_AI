@@ -43,7 +43,7 @@ public sealed class NotebookAiService(NotebookService notebooks, UserApiKeyServi
     {
         var notebook = await notebooks.GetAsync(id, userId);
         if (notebook.Sources.Count == 0) return [];
-        var result = await gemini.PromptJsonAsync(await keys.UseAsync(userId), NotebookPrompts.Suggestions(Context(notebook)), NotebookPrompts.SuggestionSchema, 2048);
+        var result = await gemini.PromptJsonAsync(await keys.UseAsync(userId), NotebookPrompts.Suggestions(Context(notebook)), NotebookPrompts.SuggestionSchema, 2048, quick: true);
         return result.TryGetProperty("questions", out var q) && q.ValueKind == JsonValueKind.Array
             ? q.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString()!.Trim()).Where(x => x.Length is > 0 and <= 300).Take(5).ToList()
             : [];

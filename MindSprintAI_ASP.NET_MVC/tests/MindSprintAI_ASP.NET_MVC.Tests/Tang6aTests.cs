@@ -408,6 +408,9 @@ public class Tang6aTests
     [Fact]
     public async Task MaAppChiDungMotLanVaKhongNhanMaCuHon()
     {
+        // Mã app đổi theo khung 30 giây của đồng hồ thật: khung đổi giữa các dòng dưới thì "mã thiết lập" thành mã mới và test
+        // hỏng ngẫu nhiên (gặp 15/11/2026). Đang ở 5 giây cuối khung thì chờ sang khung mới rồi mới chạy.
+        while (DateTimeOffset.UtcNow.ToUnixTimeSeconds() % 30 >= 25) await Task.Delay(250);
         using var h = new Harness(); using var i = new TwoFactorIdentity(h); var user = await i.PrepareAsync(h);
         await i.EnableAppAsync(user); // đã dùng mã của bước hiện tại để xác nhận
         var key = (await i.Users.GetAuthenticatorKeyAsync(user))!;
