@@ -28,7 +28,7 @@
             <p style="white-space:pre-wrap">@q.Explanation</p>
         </article>
     }
-    @foreach (var c in Model.Content.Cards) { <article class="border-top mt-2 pt-2"><p style="white-space:pre-wrap">@c.Front</p><p style="white-space:pre-wrap">@c.Back</p></article> }
+    @foreach (var c in Model.Content.Cards) { <article class="border-top mt-2 pt-2"><p style="white-space:pre-wrap">@c.Front</p><p style="white-space:pre-wrap">@c.Back</p>@if (c.Example != null) { <p style="white-space:pre-wrap">Ví dụ: @c.Example</p> }</article> }
 </div>
 @if (r.Status == ReportStatus.Pending)
 {

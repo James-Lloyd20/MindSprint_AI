@@ -78,16 +78,16 @@ public class StudySetsController(StudyLibraryService library, StudySetCloneServi
     });
 
     [HttpPost]
-    public async Task<IActionResult> Create(string title)
+    public async Task<IActionResult> Create(string title, string? category)
     {
-        await library.CreateStudySetAsync(title, UserId);
+        await library.CreateStudySetAsync(title, UserId, category);
         return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
-    public async Task<IActionResult> Rename(int id, string title)
+    public async Task<IActionResult> Rename(int id, string title, string? category)
     {
-        await library.RenameStudySetAsync(id, title, UserId);
+        await library.RenameStudySetAsync(id, title, UserId, category);
         return RedirectToAction(nameof(Index));
     }
 

@@ -50,7 +50,7 @@
             <p class="nb-label">Nguồn tài liệu <span>@nb.Sources.Count/@NotebookService.MaxSources</span></p>
             @if (nb.Sources.Count == 0)
             {
-                <div class="nb-empty"><icon name="file-text" /><b>Chưa có tài liệu</b><span>Thêm tệp PDF, tệp chữ hoặc dán văn bản để AI đọc và trả lời.</span></div>
+                <div class="nb-empty"><icon name="file-text" /><b>Chưa có tài liệu</b><span>Thêm tệp PDF, Word, PowerPoint, Excel, tệp chữ hoặc dán văn bản để AI đọc và trả lời.</span></div>
             }
             <ul class="nb-sources">
                 @foreach (var s in nb.Sources)
@@ -218,7 +218,7 @@
                 <div class="modal-header"><h2 class="modal-title fs-5" id="source-modal-title">Thêm nguồn</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
                 <div class="modal-body">
                     <div class="mb-3"><label class="form-label" for="source-title">Tên nguồn (không bắt buộc)</label><input class="form-control" id="source-title" name="title" maxlength="200" /></div>
-                    <div class="mb-3"><label class="form-label" for="source-file">Tệp PDF, tệp chữ hoặc ảnh đề bài (tối đa 10 MB)</label><input class="form-control" id="source-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes.Concat(NotebookService.ImageTypes))" data-max-bytes="@AiGenerateService.MaxFileBytes" /><small class="text-muted">Ảnh: AI đọc và chép lại chữ trong ảnh (dùng API key Gemini của bạn), ảnh không được lưu.</small></div>
+                    <div class="mb-3"><label class="form-label" for="source-file">Tệp PDF, Word, PowerPoint, Excel, tệp chữ hoặc ảnh đề bài (tối đa 10 MB)</label><input class="form-control" id="source-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes.Concat(NotebookService.ImageTypes))" data-max-bytes="@AiGenerateService.MaxFileBytes" /><small class="text-muted">Ảnh: AI đọc và chép lại chữ trong ảnh (dùng API key Gemini của bạn), ảnh không được lưu.</small></div>
                     <div><label class="form-label" for="source-text">Hoặc dán văn bản</label><textarea class="form-control" id="source-text" name="text" rows="6" maxlength="@NotebookService.MaxCharsPerSource"></textarea></div>
                 </div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary">Thêm nguồn</button></div>

@@ -34,13 +34,14 @@ else
                 <h2>@a.Topic</h2>
                 <div class="weak-bar" role="img" aria-label="Chính xác @a.Accuracy%"><span style="--p: @a.Accuracy%"></span></div>
                 <p>@a.Reason</p>
+                <p class="weak-suggestion">@a.Suggestion</p>
                 @if (a.AssignmentId is { } assignmentId)
                 {
                     <a class="btn btn-primary btn-sm" asp-controller="Learn" asp-action="Assignment" asp-route-id="@assignmentId"><icon name="repeat-2" />@(a.Kind == WeakKind.Cards ? "Ôn lại thẻ" : "Xem lại và tự ôn")</a>
                 }
                 else if (a.StudySetId is { } setId)
                 {
-                    <a class="btn btn-primary btn-sm" asp-controller="Flashcards" asp-action="Editor" asp-route-id="@setId"><icon name="repeat-2" />Ôn lại thẻ</a>
+                    <a class="btn btn-primary btn-sm" asp-controller="Flashcards" asp-action="Study" asp-route-id="@setId"><icon name="repeat-2" />Ôn lại thẻ</a>
                 }
             </li>
         }

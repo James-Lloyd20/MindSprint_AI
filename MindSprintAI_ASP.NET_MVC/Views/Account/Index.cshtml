@@ -79,23 +79,27 @@
         <section class="acc-card" id="sec-avatar" aria-labelledby="avatar-title">
             <h2 class="section-head" id="avatar-title"><span class="section-icon" style="--tint:var(--blue)"><icon name="user" /></span>Ảnh đại diện</h2>
             <partial name="_Avatar" model="Model" />
-            <p class="acc-desc">Ảnh lấy từ tài khoản Google mỗi lần bạn đăng nhập bằng Google. Ảnh được tải trực tiếp từ Google khi hiển thị.</p>
-            @if (string.IsNullOrEmpty(Model.AvatarUrl))
-            {
-                <p>Đăng nhập bằng Google để dùng ảnh tài khoản Google.</p>
-            }
+            <p class="acc-desc">@(Model.AvatarSource == AvatarSource.Upload
+                ? "Đang dùng ảnh bạn tự tải lên. Ảnh chỉ hiện cho chính bạn."
+                : "Tải ảnh của bạn lên, hoặc dùng ảnh tài khoản Google (lấy mỗi lần bạn đăng nhập bằng Google, tải trực tiếp từ Google khi hiển thị).")</p>
+            <form method="post" asp-action="UploadAvatar" enctype="multipart/form-data" id="avatar-upload-form" class="mb-3">
+                <label class="btn btn-secondary" for="avatar-file"><icon name="upload" />Đổi ảnh đại diện</label>
+                <input class="visually-hidden" type="file" id="avatar-file" name="image" accept=".jpg,.jpeg,.png,.webp" data-max-bytes="5242880" required />
+                <span class="small text-muted ms-2">JPG, PNG hoặc WebP, tối đa 5 MB</span>
+                <noscript><button class="btn btn-primary ms-2">Tải lên</button></noscript>
+            </form>
             <form method="post" asp-action="GoogleAvatarVisibility" data-action="GoogleAvatarVisibility" data-autosave="reload">
                 <div class="form-check form-switch mb-2">
                     <input class="form-check-input" id="google-avatar-visible" name="enabled" type="checkbox" value="true" checked="@(!Model.AvatarHidden)" />
-                    <label class="form-check-label" for="google-avatar-visible">Hiện ảnh Google</label>
+                    <label class="form-check-label" for="google-avatar-visible">Hiện ảnh đại diện</label>
                 </div>
                 <input type="hidden" name="enabled" value="false" />
                 <button class="btn btn-primary"><icon name="check" />Lưu tùy chọn</button>
             </form>
-            @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+            @if (!string.IsNullOrEmpty(Model.AvatarUrl) || Model.AvatarSource == AvatarSource.Upload)
             {
-                <form method="post" asp-action="RemoveAvatar" data-action="RemoveAvatar" data-confirm="Gỡ ảnh đại diện? Lần đăng nhập Google tiếp theo sẽ lấy lại ảnh." class="mt-3">
-                    <button class="btn btn-outline-danger"><icon name="trash-2" />Gỡ ảnh</button>
+                <form method="post" asp-action="RemoveAvatar" data-action="RemoveAvatar" data-confirm="Dùng ảnh mặc định (chữ cái đầu tên)? Nếu đăng nhập bằng Google, lần sau sẽ lấy lại ảnh Google." class="mt-3">
+                    <button class="btn btn-outline-danger"><icon name="trash-2" />Dùng ảnh mặc định</button>
                 </form>
             }
         </section>
@@ -325,4 +329,4 @@
         </section>
     </div>
 </div>
-@section Scripts { <script src="~/js/passkey.js" asp-append-version="true"></script> }
+@section Scripts { <script src="~/js/passkey.js" asp-append-version="true"></script><script src="~/js/avatar-upload.js" asp-append-version="true"></script> }

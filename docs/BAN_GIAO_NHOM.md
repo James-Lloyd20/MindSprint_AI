@@ -59,7 +59,7 @@ Cần biết: lỗi nghiệp vụ ném `BusinessException`; `BusinessExceptionFi
 ### Sơn · QA, tài liệu
 | Bản cũ | Bản mới |
 |---|---|
-| Test case, báo cáo, UML | `tests/MindSprintAI_ASP.NET_MVC.Tests/` (80 tệp, 1802 test), `docs/KICH_BAN_DEMO.md`, `docs/cnpm/TAI_LIEU_KIEN_TRUC_MOI.md` (sơ đồ cho kiến trúc mới) |
+| Test case, báo cáo, UML | `tests/MindSprintAI_ASP.NET_MVC.Tests/` (81 tệp, 1811 test), `docs/KICH_BAN_DEMO.md`, `docs/cnpm/TAI_LIEU_KIEN_TRUC_MOI.md` (sơ đồ cho kiến trúc mới) |
 
 Cần biết: test dùng database riêng `MindSprintAI_Tests`, tự tạo; chạy `tools/run-tests.ps1` (PowerShell) hoặc `bash tools/run-tests.sh`.
 

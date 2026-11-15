@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace MindSprintAI_ASP.NET_MVC.Data.Entities;
 
-public enum AvatarSource { None = 0, Google = 1 }
+public enum AvatarSource { None = 0, Google = 1, Upload = 2 }
 
 public class ApplicationUser : IdentityUser
 {

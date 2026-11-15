@@ -65,7 +65,8 @@ public static class NotebookUrlReader
                     throw new BusinessException(status is 401 or 403 ? "Trang nguồn yêu cầu đăng nhập hoặc chặn tải tự động. Hãy dán văn bản hoặc tải tệp."
                         : status == 404 ? "Không tìm thấy trang nguồn. Kiểm tra lại đường link." : "Trang nguồn đang lỗi. Hãy thử lại sau hoặc dán văn bản/tải tệp.");
                 var media = response.Content.Headers.ContentType?.MediaType?.ToLowerInvariant() ?? "";
-                var pdf = media == "application/pdf" || uri.AbsolutePath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+                // "pdf" ở đây = tài liệu nhị phân (PDF, Word, PowerPoint, Excel): giới hạn 10 MB thay vì 2 MB.
+                var pdf = media == "application/pdf" || uri.AbsolutePath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) || OfficeType(uri, media) != null;
                 var limit = pdf ? MaxDocumentBytes : MaxTextBytes;
                 if (response.Content.Headers.ContentLength > limit) throw TooLarge(pdf);
                 using var stream = await response.Content.ReadAsStreamAsync(token);
@@ -91,8 +92,24 @@ public static class NotebookUrlReader
 
     private static BusinessException TooLarge(bool pdf) => new($"Nguồn vượt giới hạn tải ({(pdf ? "10" : "2")} MB). Hãy chọn tài liệu nhỏ hơn hoặc dán phần cần học.");
 
+    // DOCX/PPTX/XLSX qua đường link như NotebookDocumentExtractor của nhóm: nhận theo đuôi tệp hoặc kiểu nội dung máy chủ báo.
+    public static string? OfficeType(Uri url, string media)
+    {
+        var ext = Path.GetExtension(url.AbsolutePath).ToLowerInvariant();
+        if (OfficeText.Types.Contains(ext)) return ext;
+        return media switch
+        {
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => ".docx",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation" => ".pptx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" => ".xlsx",
+            _ => null
+        };
+    }
+
     public static NotebookUrlSource Extract(Uri url, byte[] bytes, string media, bool pdf, string? charset)
     {
+        if (OfficeType(url, media) is { } office)
+            return Checked(new(Path.GetFileNameWithoutExtension(url.AbsolutePath) is { Length: > 0 } name ? name : url.Host, OfficeText.Extract(bytes, office), url.ToString()));
         if (pdf)
         {
             try
@@ -106,6 +123,12 @@ public static class NotebookUrlReader
         Encoding encoding;
         try { encoding = charset is { Length: > 0 } ? Encoding.GetEncoding(charset) : Encoding.UTF8; } catch (ArgumentException) { encoding = Encoding.UTF8; }
         var raw = encoding.GetString(bytes);
+        // XML/RSS/Atom (nhóm đọc được): bỏ thẻ, giữ chữ; mô tả RSS thường chứa HTML đã mã hóa nên bỏ thẻ hai lượt.
+        if (media.Contains("xml") && !media.Contains("html") || Regex.IsMatch(raw, @"\A\s*(<\?xml[^>]*>\s*)?<(rss|feed)\b", RegexOptions.IgnoreCase))
+        {
+            static string Strip(string s) => System.Net.WebUtility.HtmlDecode(Regex.Replace(Regex.Replace(s, @"<!\[CDATA\[|\]\]>", ""), "<[^>]+>", "\n"));
+            return Checked(new(url.Host, Regex.Replace(Strip(Strip(raw)), @"\s*\n\s*", "\n").Trim(), url.ToString()));
+        }
         if (!media.Contains("html") && !Regex.IsMatch(raw, @"<html\b|<body\b", RegexOptions.IgnoreCase))
             return Checked(new(url.Host, raw, url.ToString()));
         return Checked(Html(url, raw));

@@ -5,6 +5,7 @@
     var srsDueCounts = ViewData["SrsDueCounts"] as Dictionary<int, int> ?? new();
     var dueTotal = ViewData["SrsDueTotal"] is int total ? total : 0;
     var counts = ViewData["Counts"] as Dictionary<int, StudySetCounts> ?? new();
+    var categories = Model.Select(s => s.Category).OfType<string>().Distinct().Order().ToList();
     // Bố cục trang Thư viện của nhóm (docs/giao-dien-nhom/04): tiêu đề trang · hàng công cụ · lưới thẻ pastel 4 cột, mỗi thẻ hai nút chính.
 }
 <div class="c-library">
@@ -31,7 +32,13 @@
         <input class="form-control" type="search" id="library-search" placeholder="Tìm bộ học..." />
         <label class="visually-hidden" for="library-sort">Sắp xếp</label>
         <select class="form-select" id="library-sort"><option value="new">Mới tạo</option><option value="name">Tên A–Z</option></select>
+        @if (categories.Count > 0)
+        {
+            <label class="visually-hidden" for="library-category">Lọc theo danh mục</label>
+            <select class="form-select" id="library-category"><option value="">Mọi danh mục</option>@foreach (var c in categories) { <option value="@c">@c</option> }<option value="-">Chưa xếp danh mục</option></select>
+        }
     </div>
+    <datalist id="set-categories">@foreach (var c in StudyLibraryService.SuggestedCategories.Union(categories)) { <option value="@c"></option> }</datalist>
 </nav>
 
 <details class="c-library-create" id="tao-bo-hoc"><summary><icon name="plus" />Tạo bộ học mới</summary>
@@ -39,6 +46,8 @@
     <label for="new-set-title" class="form-label">Tên bộ học mới</label>
     <div class="set-create-row">
         <input id="new-set-title" name="title" maxlength="200" class="form-control" placeholder="Ví dụ: C# — Chương 1" required />
+        <label class="visually-hidden" for="new-set-category">Danh mục (không bắt buộc)</label>
+        <input id="new-set-category" name="category" maxlength="@StudyLibraryService.MaxCategory" list="set-categories" class="form-control set-category-input" placeholder="Danh mục (không bắt buộc)" />
         <button class="btn btn-primary"><icon name="plus" />Tạo bộ học</button>
     </div>
 </form>
@@ -63,7 +72,7 @@ else
         var readyCount = quizzes.Count(q => q.Status == QuizStatus.Ready);
         var dueCount = srsDueCounts.GetValueOrDefault(set.Id);
         counts.TryGetValue(set.Id, out var tally);
-        <article class="set-card c-library-row" data-library-name="@set.Title" data-library-created="@set.CreatedAt.Ticks">
+        <article class="set-card c-library-row" data-library-name="@set.Title" data-library-created="@set.CreatedAt.Ticks" data-library-category="@(set.Category ?? "-")">
             <div class="set-card-top">
                 <span class="section-icon" aria-hidden="true"><icon name="layers" /></span>
                 <span class="set-card-tag">@quizzes.Count quiz · @readyCount sẵn sàng</span>
@@ -77,8 +86,10 @@ else
                             <label for="set-title-@set.Id" class="form-label small mb-1">Tên bộ học</label>
                             <div class="d-flex gap-2">
                                 <input id="set-title-@set.Id" name="title" maxlength="200" value="@set.Title" class="form-control form-control-sm fw-bold set-rename-input" aria-label="Tên bộ học" required />
-                                <button class="btn btn-sm btn-outline-secondary text-nowrap"><icon name="pencil" />Đổi tên</button>
+                                <button class="btn btn-sm btn-outline-secondary text-nowrap"><icon name="pencil" />Lưu</button>
                             </div>
+                            <label for="set-category-@set.Id" class="form-label small mb-1 mt-2">Danh mục</label>
+                            <input id="set-category-@set.Id" name="category" maxlength="@StudyLibraryService.MaxCategory" value="@set.Category" list="set-categories" class="form-control form-control-sm" placeholder="Chưa xếp danh mục" />
                         </form>
                         @if (set.HiddenByAdminAt == null)
                         {
@@ -90,6 +101,7 @@ else
                     </div>
                 </div>
             </div>
+            @if (set.Category != null) { <span class="set-card-category">@set.Category</span> }
             <h2 class="set-card-title">@set.Title</h2>
             <div class="set-card-meta">
                 <span>@(tally == null ? $"{quizzes.Count} quiz" : $"{tally.Questions} câu hỏi · {tally.Cards} thẻ")</span>
@@ -161,7 +173,7 @@ else
                     <div class="col-md-6"><label class="form-label" for="ai-set-title">Tên bộ học mới</label><input class="form-control" id="ai-set-title" name="newSetTitle" maxlength="200" required placeholder="Ví dụ: Sinh học — Chương 3" /></div>
                     <div class="col-md-3"><label class="form-label" for="ai-lib-kind">Tạo</label><select class="form-select" id="ai-lib-kind" name="kind"><option value="cards">Thẻ ghi nhớ</option><option value="quiz">Câu trắc nghiệm</option></select></div>
                     <div class="col-md-3"><label class="form-label" for="ai-lib-count">Số lượng (1–@AiGenerateService.MaxCount)</label><input class="form-control" id="ai-lib-count" name="count" data-estimate-from="ai-lib-text" type="number" min="1" max="@AiGenerateService.MaxCount" value="10" /></div>
-                    <div class="col-12"><label class="form-label" for="ai-lib-file">Tệp tài liệu (PDF hoặc tệp chữ, tối đa 10 MB)</label><input class="form-control" id="ai-lib-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes)" data-max-bytes="@AiGenerateService.MaxFileBytes" /></div>
+                    <div class="col-12"><label class="form-label" for="ai-lib-file">Tệp tài liệu (PDF, Word, PowerPoint, Excel hoặc tệp chữ, tối đa 10 MB)</label><input class="form-control" id="ai-lib-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes)" data-max-bytes="@AiGenerateService.MaxFileBytes" /></div>
                     <div class="col-12"><label class="form-label" for="ai-lib-text">Hoặc dán nội dung</label><textarea class="form-control" id="ai-lib-text" name="text" rows="6" maxlength="@AiGenerateService.MaxChars"></textarea></div>
                 </div>
             </div>

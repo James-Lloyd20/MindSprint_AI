@@ -122,7 +122,7 @@
 ### 2026-11-15 sáng (tiếp) — Claude: chuông, từ vựng, điểm yếu, tổng quan, AI tạo câu hỏi, sổ tay AI
 
 - **Chuông báo giờ học** `js/alarm.js` (mọi trang khi đăng nhập) + `/Schedule/Slots`; cài đặt ở `localStorage` (`mindsprint-alarm-enabled/style`), "đã báo hôm nay" `mindsprint-alarm-done-YYYY-MM-DD` (MVC tải lại trang nên phải nhớ, khác SPA của nhóm).
-- **Thư viện từ vựng** `Data/Vocab/vocab.json` (1832 thẻ trích từ `vocab_data.js` + `defaultFlashcards` của nhóm bằng Node, script `tools/vocab/extract-vocab.cjs`), `VocabCatalog` (singleton) + `VocabLibraryService.CopyTopicAsync` (chủ đề → bộ học SRS), `VocabController` Index/Topic/Game/Copy, `js/vocab-game.js`. Test `TuVungTests`.
+- **Thư viện từ vựng** `Data/Vocab/vocab.json` (2572 thẻ trích từ `vocab_data.js` + `defaultFlashcards` + `backend/MindSprint.Api/Data/vocab_seed.json` của nhóm bằng Node, script `tools/vocab/extract-vocab.cjs`), `VocabCatalog` (singleton) + `VocabLibraryService.CopyTopicAsync` (chủ đề → bộ học SRS), `VocabController` Index/Topic/Game/Copy, `js/vocab-game.js`. Test `TuVungTests`.
 - **Điểm yếu** `WeakAreaService` (≥ 3 lần thử, < 70%, tính trực tiếp từ FlashcardReview + AnswerSubmission), `WeakAreasController`. **Tổng quan** `OverviewService` (thành thạo = LastRating Remembered / thẻ đã học). Test `DiemYeuTests`.
 - **AI tạo câu hỏi/thẻ** `GeminiClient.GenerateAsync` + `AiGenerateService` → `ExcelImportService.ToPreview` (cùng trang xem trước nhập Excel); tệp PDF bằng gói **PdfPig 0.1.9** (bản nhóm dùng, lấy từ cache NuGet). `ImportController.AiPreview`. Số dòng AI đánh từ `ExcelTemplate.FirstDataRow`. Test `AiTaoCauHoiTests`.
 - **Sổ tay AI** `Notebook/NotebookSource/NotebookNote` (migration `SoTayAi`), `NotebookService` (20 nguồn, 200.000 ký tự/nguồn; hỏi đáp qua `GeminiClient.AskAsync` + `SourceGrounding`), `NotebooksController`, `js/notebook.js` (nói/nghe). **Bẫy:** quy ước cuối `AppDbContext` đặt mọi FK của entity học tập = Restrict → xóa con trước. Test `SoTayAiTests`. Chưa làm: nguồn từ URL, Gia sư OCR.
@@ -177,3 +177,13 @@
 - **Chưa thử được (key miễn phí hết lượt trong ngày, app báo "Mã Gemini của bạn đang hết lượt dùng…" đúng):** Nghe tổng quan, Flashcard/Trắc nghiệm làm thử trong Studio, Gia sư 4 chế độ, đọc chữ từ ảnh, nguồn từ link, "Tạo thẻ bằng AI" ở Thư viện, trợ lý AI trong bộ học.
 - **Sửa do thử thật:** (1) chuyển nhầm giới hạn 30 giây của QuizEdu cho cả việc tạo nội dung dài của nhóm (nhóm cho 150 giây) → `GeminiClient.AskTimeout` 30 giây cho hỏi đáp + kiểm tra key, `LongTimeout` 120 giây cho phần còn lại (test `Tang5ePureTests` cập nhật). (2) Gợi ý câu hỏi gửi `thinkingConfig.thinkingLevel = "low"` (`PromptJsonAsync(..., quick: true)`); Google nhận tham số này với `gemini-3.6-flash`. Studio/Gia sư giữ mặc định vì cần suy luận.
 - Tài liệu: `docs/cnpm/TAI_LIEU_KIEN_TRUC_MOI.md` (cho nhóm CNPM hiểu kiến trúc mới, không thay tài liệu nộp của họ; 7 sơ đồ Mermaid, đã soát cú pháp bằng tay, chưa dựng thử), `docs/BAN_GIAO_NHOM.md`, `docs/HUONG_DAN_DANG_NHAP_GOOGLE.md`.
+
+### 2026-11-15 tối (2) — rà sâu lần 4 (từng cột DB, từng service nhóm, NFR, CI/CD, giao diện) + bù chỗ thiếu
+- Chi tiết + mục cố ý không chuyển: `docs/DOI_CHIEU_CHUC_NANG.md` mục "Rà lần 4"; trang bằng chứng `docs/bang-chung-chuyen-doi.html` đã thêm dòng.
+- Migration `DanhMucVaViDu` (chỉ thêm cột, cho phép trống): `StudySets.Category` (≤ 60), `Flashcards.Example` (≤ 2000).
+- `GeminiClient`: mọi lệnh sinh nội dung đi qua `GenerateContentAsync` → model chính rồi `Gemini:FallbackModels` (mặc định `gemini-flash-latest`, `gemini-flash-lite-latest`) khi 429/404/500/503. Kiểm key (countTokens) chỉ dùng model chính.
+- `NotebookAiService.CheckOutput` (NFR-14), `OfficeText` (DOCX/PPTX/XLSX, dùng cho tải tệp + đường link), RSS/XML trong `NotebookUrlReader`.
+- Ảnh đại diện tự tải lên: `AvatarSource.Upload` (giá trị enum mới, không cần migration), tệp `App_Data/avatars/{id}.img`, chỉ chủ tài khoản đọc qua `Account/AvatarImage`; xóa tài khoản / "Dùng ảnh mặc định" xóa tệp; đăng nhập Google không đè.
+- `/healthz`, `/readyz`, header `nosniff` + `Referrer-Policy` trong `Program.cs`; `.github/workflows/ci.yml` (chưa chạy trên GitHub lần nào).
+- Từ vựng: 2572 thẻ (thêm `vocab_seed.json` backend nhóm). Chuông báo thêm kiểu `voice` (đọc to bằng `speechSynthesis`). Điểm yếu thêm `Suggestion`.
+- Test mới: `RaSoatLan4Tests.cs`.

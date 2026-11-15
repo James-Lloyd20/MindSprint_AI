@@ -9,6 +9,10 @@ public record WeakArea(WeakKind Kind, string Topic, int Wrong, int Total, int? S
 {
     public int Accuracy => Total == 0 ? 0 : (Total - Wrong) * 100 / Total;
     public string Reason => $"{Wrong}/{Total} lần sai · {Accuracy}% chính xác";
+    // "Gợi ý" theo loại chủ đề như BuildSuggestedAction của nhóm (nhóm chia theo danh mục; ở đây chủ đề là bộ thẻ hoặc bài quiz).
+    public string Suggestion => Kind == WeakKind.Cards
+        ? "Gợi ý: ôn lại các thẻ đang \"Chưa nhớ\" của bộ này mỗi ngày, rồi tự kiểm tra lại bằng quiz."
+        : "Gợi ý: xem lại các câu sai kèm giải thích, hỏi Sổ tay AI phần còn chưa rõ rồi làm lại bài.";
 }
 public record WeakAreaPage(IReadOnlyList<WeakArea> Areas, int CheckedTopics);
 
@@ -41,16 +45,16 @@ public sealed class WeakAreaService(AppDbContext db)
     {
         var cards = await db.FlashcardProgresses.AsNoTracking()
             .Where(p => (p.UserId == userId || p.Participant!.UserId == userId) && p.LastRating == FlashcardRating.NotRemembered && p.Flashcard.DeletedAt == null)
-            .OrderByDescending(p => p.LastReviewedAt).Select(p => new { p.Flashcard.Front, p.Flashcard.Back }).Take(MaxReviewCards).ToListAsync();
+            .OrderByDescending(p => p.LastReviewedAt).Select(p => new { p.Flashcard.Front, p.Flashcard.Back, p.Flashcard.Example }).Take(MaxReviewCards).ToListAsync();
         var wrong = await RevealedFirstAnswers(userId).AsNoTracking().Where(a => a.IsCorrect == false)
             .OrderByDescending(a => a.SubmittedAt).Select(a => a.AttemptQuestion.SnapshotJson).Take(MaxReviewCards).ToListAsync();
-        var items = cards.Select(c => (Front: c.Front, Back: c.Back)).ToList();
+        var items = cards.Select(c => (Front: c.Front, Back: c.Back, Example: c.Example)).ToList();
         foreach (var json in wrong)
         {
             var q = QuestionSnapshot.FromJson(json);
             var answer = string.Join("; ", q.Options.Where(o => o.IsCorrect).Select(o => o.Text).Concat(q.Blanks.Select(b => string.Join(" / ", b.Answers))));
             if (string.IsNullOrWhiteSpace(answer)) continue;
-            items.Add((q.Prompt, string.IsNullOrWhiteSpace(q.Explanation) ? answer : $"{answer}\n{q.Explanation}"));
+            items.Add((q.Prompt, answer, string.IsNullOrWhiteSpace(q.Explanation) ? null : q.Explanation)); // giải thích → ô Ví dụ của thẻ
         }
         items = items.Where(i => !string.IsNullOrWhiteSpace(i.Front)).DistinctBy(i => i.Front.Trim()).Take(MaxReviewCards).ToList();
         if (items.Count == 0) throw new BusinessException("Chưa có thẻ nào đang \"Chưa nhớ\" hay câu nào trả lời sai để tạo bộ ôn tập.");
@@ -58,7 +62,7 @@ public sealed class WeakAreaService(AppDbContext db)
         var now = clock.GetUtcNow().UtcDateTime;
         var set = await library.CreateStudySetAsync($"Ôn điểm yếu {VnTime.Date(now):dd/MM/yyyy}", userId);
         set.FlashcardMode = FlashcardMode.SpacedRepetition;
-        db.Flashcards.AddRange(items.Select((i, n) => new Flashcard { StudySetId = set.Id, OrderIndex = n, CreatedAt = now, Front = i.Front.Trim(), Back = i.Back.Trim() }));
+        db.Flashcards.AddRange(items.Select((i, n) => new Flashcard { StudySetId = set.Id, OrderIndex = n, CreatedAt = now, Front = i.Front.Trim(), Back = i.Back.Trim(), Example = i.Example?.Trim() is { Length: > FlashcardService.MaxExample } e ? e[..FlashcardService.MaxExample] : i.Example?.Trim() }));
         await db.SaveChangesAsync();
         await tx.CommitAsync();
         return set;

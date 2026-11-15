@@ -12,7 +12,7 @@ public sealed class AiGenerateService(ExcelImportService excel, UserApiKeyServic
 {
     public const int MaxChars = 60_000, MaxCount = 100, BatchSize = 25;
     public const long MaxFileBytes = 10 * 1024 * 1024;
-    public static readonly string[] FileTypes = [".pdf", ".txt", ".md", ".csv", ".json"];
+    public static readonly string[] FileTypes = [".pdf", ".txt", ".md", ".csv", ".json", .. OfficeText.Types];
 
     // Người dùng chốt 15/11: tối đa 100 như nhóm. Gemini chỉ trả ~30 mục/lần (giới hạn độ dài) → chia đợt 25, mỗi đợt gửi kèm
     // các câu đã có để AI không lặp lại; đợt nào không ra thêm gì thì dừng. newSetTitle: bản nháp cho bộ học mới (quizId = 0).
@@ -88,11 +88,17 @@ public sealed class AiGenerateService(ExcelImportService excel, UserApiKeyServic
         if (file.Length == 0) throw new BusinessException("Tệp trống.");
         if (file.Length > MaxFileBytes) throw new BusinessException("Tệp tối đa 10 MB.");
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!FileTypes.Contains(ext)) throw new BusinessException("Chỉ nhận tệp PDF hoặc tệp chữ (TXT, MD, CSV).");
+        if (!FileTypes.Contains(ext)) throw new BusinessException("Chỉ nhận tệp PDF, Word, PowerPoint, Excel hoặc tệp chữ (TXT, MD, CSV).");
         string text;
         try
         {
-            if (ext == ".pdf")
+            if (OfficeText.Types.Contains(ext))
+            {
+                using var buffer = new MemoryStream();
+                await file.CopyToAsync(buffer);
+                text = OfficeText.Extract(buffer.ToArray(), ext);
+            }
+            else if (ext == ".pdf")
             {
                 using var buffer = new MemoryStream();
                 await file.CopyToAsync(buffer);

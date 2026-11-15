@@ -5,7 +5,7 @@ using MindSprintAI_ASP.NET_MVC.Data.Entities;
 namespace MindSprintAI_ASP.NET_MVC.Services;
 
 public record CardItem(int Id, string Front, string Back, bool IsNew, bool Edited, FlashcardRating? Rating,
-    int Box = 1, DateOnly? DueDate = null, bool Due = true);
+    int Box = 1, DateOnly? DueDate = null, bool Due = true, string? Example = null);
 public record CardSession(int StudySetId, int? AssignmentId, string Title, List<CardItem> Cards,
     int StartIndex, int Studied, int Required, CompletionStatus? Status, bool CanStudy, bool ReviewForgotten, bool AfterDue = false,
     FlashcardMode Mode = FlashcardMode.Traditional, bool CanChooseMode = false, int DueCount = 0, DateOnly? NextDueDate = null, bool DueOnly = false,
@@ -74,10 +74,13 @@ public partial class FlashcardService(AppDbContext db, StudyLibraryService libra
         return (set, await db.Flashcards.Where(c => c.StudySetId == set.Id && c.DeletedAt == null).OrderBy(c => c.OrderIndex).ToListAsync());
     }
 
-    public async Task<int> SaveAsync(int studySetId, int? cardId, string? front, string? back, string userId)
+    public const int MaxExample = 2000;
+    public async Task<int> SaveAsync(int studySetId, int? cardId, string? front, string? back, string userId, string? example = null)
     {
         await library.GetOwnedStudySetAsync(studySetId, userId);
         if (string.IsNullOrWhiteSpace(front) || string.IsNullOrWhiteSpace(back)) throw new BusinessException("Nhập đủ mặt trước và mặt sau.");
+        example = string.IsNullOrWhiteSpace(example) ? null : example.Trim();
+        if (example?.Length > MaxExample) throw new BusinessException($"Ví dụ minh họa tối đa {MaxExample} ký tự.");
         var card = cardId == null ? new Flashcard { StudySetId = studySetId, CreatedAt = Now,
             OrderIndex = (await db.Flashcards.Where(c => c.StudySetId == studySetId).MaxAsync(c => (int?)c.OrderIndex) ?? -1) + 1 }
             : await db.Flashcards.SingleOrDefaultAsync(c => c.Id == cardId && c.StudySetId == studySetId && c.DeletedAt == null)
@@ -86,6 +89,7 @@ public partial class FlashcardService(AppDbContext db, StudyLibraryService libra
         else card.EditedAt = Now; // (B5d) giữ nguyên mọi đánh giá khi sửa thẻ.
         card.Front = front.Trim();
         card.Back = back.Trim();
+        card.Example = example;
         db.Audit?.Add(cardId == null ? AuditAction.FlashcardCreated : AuditAction.FlashcardEdited, "Flashcard", card.Id, userId, resolveTarget: () => card.Id.ToString()); // (NK3)
         await db.SaveChangesAsync();
         return card.Id;
@@ -208,7 +212,7 @@ public partial class FlashcardService(AppDbContext db, StudyLibraryService libra
             var state = progress.SingleOrDefault(x => x.FlashcardId == c.Id);
             return new CardItem(c.Id, c.Front, c.Back, a != null && c.CreatedAt > a.CreatedAt,
                 c.EditedAt != null, TraditionalRating(state), state?.SrsBox ?? 1, state?.SrsDueDate,
-                Leitner.IsDue(state?.SrsBox, state?.SrsDueDate, today));
+                Leitner.IsDue(state?.SrsBox, state?.SrsDueDate, today), c.Example);
         }).ToList() : [];
         var dueCount = items.Count(c => c.Due);
         var nextDue = items.Where(c => !c.Due).Select(c => c.DueDate).Min();

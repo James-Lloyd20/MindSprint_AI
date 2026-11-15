@@ -1,6 +1,6 @@
 // Chuông báo giờ học — chuyển từ MindSprint-AI-D-n (script.js checkScheduleReminders/playSyntheticAlarm).
 // Giữ cách của nhóm: chỉ báo khi người dùng đã bật; 30 giây kiểm một lần; giờ học đang diễn ra (bắt đầu ≤ bây giờ < kết thúc)
-// mà chưa báo thì báo; kiểu báo: chữ (thông báo trình duyệt) / chuông / cả hai; nút "Tắt chuông & Vào học ngay".
+// mà chưa báo thì báo; kiểu báo: chữ (thông báo trình duyệt) / chuông / cả hai / chuông + đọc to; nút "Tắt chuông & Vào học ngay".
 // Khác nhóm: MVC tải lại trang khi chuyển trang, nên giờ học "đã báo hôm nay" lưu theo ngày trong localStorage để không kêu lại.
 (() => {
     const read = (key, fallback) => { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } };
@@ -8,7 +8,7 @@
     const settings = {
         get enabled() { return read('mindsprint-alarm-enabled', 'false') === 'true'; },
         set enabled(v) { write('mindsprint-alarm-enabled', String(v)); },
-        get style() { const s = read('mindsprint-alarm-style', 'both'); return ['text', 'sound', 'both'].includes(s) ? s : 'both'; },
+        get style() { const s = read('mindsprint-alarm-style', 'both'); return ['text', 'sound', 'both', 'voice'].includes(s) ? s : 'both'; },
         set style(v) { write('mindsprint-alarm-style', v); }
     };
     const pad = n => String(n).padStart(2, '0');
@@ -32,7 +32,15 @@
         try { audio ??= new (window.AudioContext || window.webkitAudioContext)(); audio.resume?.(); } catch { return; }
         ringing = setInterval(() => { beep(); setTimeout(beep, 150); }, 1000);
     };
-    const stop = () => { clearInterval(ringing); ringing = null; };
+    const stop = () => { clearInterval(ringing); ringing = null; try { speechSynthesis.cancel(); } catch { } };
+    // "Giọng nói AI" của nhóm (bên nhóm chọn vào thì không báo gì vì chưa nối code): đọc to giờ học bằng giọng đọc có sẵn của trình duyệt.
+    const speak = slot => {
+        try {
+            const u = new SpeechSynthesisUtterance(`Đến giờ học rồi. ${slot.topic}, từ ${slot.start} đến ${slot.end}.${slot.note ? ' ' + slot.note : ''}`);
+            u.lang = 'vi-VN';
+            speechSynthesis.cancel(); speechSynthesis.speak(u);
+        } catch { }
+    };
 
     const overlay = () => {
         let dialog = document.getElementById('alarm-dialog');
@@ -60,13 +68,14 @@
                 note.onclick = () => { window.focus(); location.href = '/Learn'; };
             } catch { }
         }
-        if (style === 'sound' || style === 'both') {
+        if (style === 'sound' || style === 'both' || style === 'voice') {
             const dialog = overlay();
             dialog.querySelector('.alarm-time').textContent = `${slot.start} – ${slot.end}`;
             dialog.querySelector('.alarm-topic').textContent = slot.topic;
             dialog.querySelector('.alarm-note').textContent = slot.note || 'Không có ghi chú';
             if (!dialog.open) dialog.showModal();
             ring();
+            if (style === 'voice') speak(slot);
         }
     };
 
@@ -146,8 +155,9 @@
     toggle?.addEventListener('click', async () => {
         if (settings.enabled) { settings.enabled = false; render(); return; }
         try { audio ??= new (window.AudioContext || window.webkitAudioContext)(); } catch { } // mở khóa âm thanh bằng chính cú bấm này
-        if (settings.style !== 'sound' && 'Notification' in window && Notification.permission === 'default') await Notification.requestPermission();
-        if (settings.style !== 'sound' && 'Notification' in window && Notification.permission === 'denied' && status)
+        const wantsText = settings.style === 'text' || settings.style === 'both';
+        if (wantsText && 'Notification' in window && Notification.permission === 'default') await Notification.requestPermission();
+        if (wantsText && 'Notification' in window && Notification.permission === 'denied' && status)
             status.textContent = 'Trình duyệt đang chặn thông báo của trang này; chuông vẫn kêu khi bạn mở MindSprint AI. Muốn nhận thông báo chữ: bấm biểu tượng ổ khóa cạnh thanh địa chỉ → cho phép Thông báo.';
         settings.enabled = true;
         render();

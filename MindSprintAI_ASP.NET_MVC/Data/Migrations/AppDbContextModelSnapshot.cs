@@ -1364,6 +1364,10 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                     b.Property<DateTime?>("EditedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Example")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
                     b.Property<string>("Front")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -2504,6 +2508,10 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
 
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
 
                     b.Property<int?>("ClonedFromId")
                         .HasColumnType("int");

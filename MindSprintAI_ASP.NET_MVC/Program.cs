@@ -225,6 +225,13 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseForwardedHeaders();
+// Như ApplicationBuilderExtensions của nhóm: trình duyệt không đoán kiểu tệp, không gửi đường dẫn đầy đủ sang trang khác.
+app.Use((ctx, next) =>
+{
+    ctx.Response.Headers.XContentTypeOptions = "nosniff";
+    ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    return next();
+});
 // (NK1) Ngoài ExceptionHandler: thấy mã trả về cuối và user sau Authentication.
 app.UseSerilogRequestLogging(o =>
 {
@@ -256,6 +263,13 @@ app.UseRateLimiter();
 
 app.MapStaticAssets();
 app.MapHub<LearnHub>("/hubs/learn");
+// NFR-08 của nhóm: /healthz = app còn sống; /readyz = nối được database (503 nếu không, không lộ cấu hình).
+app.MapGet("/healthz", () => Results.Text("ok"));
+app.MapGet("/readyz", async (AppDbContext db, CancellationToken ct) =>
+{
+    try { if (await db.Database.CanConnectAsync(ct)) return Results.Text("ready"); } catch { }
+    return Results.Text("not ready", statusCode: StatusCodes.Status503ServiceUnavailable);
+});
 
 app.MapControllerRoute(
     name: "default",

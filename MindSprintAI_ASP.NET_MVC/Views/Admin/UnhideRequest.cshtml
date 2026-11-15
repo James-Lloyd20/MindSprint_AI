@@ -38,7 +38,7 @@
     @if (Model.Cards.Count > 0) { <h3 class="h5 mt-3">Thẻ ghi nhớ</h3> }
     @foreach (var card in Model.Cards)
     {
-        <article class="border-top pt-2"><p style="white-space:pre-wrap">@card.Front</p><p style="white-space:pre-wrap">@card.Back</p></article>
+        <article class="border-top pt-2"><p style="white-space:pre-wrap">@card.Front</p><p style="white-space:pre-wrap">@card.Back</p>@if (card.Example != null) { <p style="white-space:pre-wrap">Ví dụ: @card.Example</p> }</article>
     }
 </section>
 @if (r.Status == UnhideRequestStatus.Pending)

@@ -5,9 +5,13 @@
     const sort = document.getElementById('library-sort');
     if (list && search && sort) {
         document.querySelector('.c-library-tools').hidden = false;
-        search.addEventListener('input', () => {
-            [...list.children].forEach(row => { row.hidden = !normalize(row.dataset.libraryName).includes(normalize(search.value)); });
+        const category = document.getElementById('library-category');
+        const filter = () => [...list.children].forEach(row => {
+            row.hidden = !normalize(row.dataset.libraryName).includes(normalize(search.value))
+                || (category?.value ? row.dataset.libraryCategory !== category.value : false);
         });
+        search.addEventListener('input', filter);
+        category?.addEventListener('change', filter);
         sort.addEventListener('change', () => {
             [...list.children].sort((a, b) => sort.value === 'name'
                 ? a.dataset.libraryName.localeCompare(b.dataset.libraryName, 'vi')

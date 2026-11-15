@@ -46,8 +46,7 @@ public sealed class VocabLibraryService(AppDbContext db, VocabCatalog catalog, S
         var now = clock.GetUtcNow().UtcDateTime;
         db.Flashcards.AddRange(cards.Select((c, i) => new Flashcard
         {
-            StudySetId = set.Id, OrderIndex = i, CreatedAt = now, Front = c.Question,
-            Back = c.Example == null ? c.Answer : $"{c.Answer}\n{c.Example}"
+            StudySetId = set.Id, OrderIndex = i, CreatedAt = now, Front = c.Question, Back = c.Answer, Example = c.Example
         }));
         await db.SaveChangesAsync();
         await tx.CommitAsync();

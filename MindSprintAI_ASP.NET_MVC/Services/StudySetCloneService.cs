@@ -74,7 +74,7 @@ public class StudySetCloneService(AppDbContext db, TimeProvider clock)
         if (selection == null || selection.Flashcards)
             foreach (var c in await db.Flashcards.AsNoTracking().Where(c => c.StudySetId == id && c.DeletedAt == null).ToListAsync())
             {
-                var card = new Flashcard { StudySet = set, Front = c.Front, Back = c.Back, OrderIndex = c.OrderIndex,
+                var card = new Flashcard { StudySet = set, Front = c.Front, Back = c.Back, Example = c.Example, OrderIndex = c.OrderIndex,
                     // (49B, B5d) giữ mốc thẻ để bài đã giao không mất phần bắt buộc/tiến độ.
                     CreatedAt = transfer ? c.CreatedAt : set.CreatedAt, EditedAt = transfer ? c.EditedAt : null };
                 db.Flashcards.Add(card); cardMap.Add(c.Id, card);

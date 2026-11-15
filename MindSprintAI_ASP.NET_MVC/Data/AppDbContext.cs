@@ -312,6 +312,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         });
 
         b.Entity<StudySet>().Property(s => s.Title).HasMaxLength(200);
+        b.Entity<StudySet>().Property(s => s.Category).HasMaxLength(Services.StudyLibraryService.MaxCategory);
+        b.Entity<Flashcard>().Property(c => c.Example).HasMaxLength(Services.FlashcardService.MaxExample);
         b.Entity<Quiz>().Property(q => q.Title).HasMaxLength(200);
 
         b.Entity<Question>(e =>

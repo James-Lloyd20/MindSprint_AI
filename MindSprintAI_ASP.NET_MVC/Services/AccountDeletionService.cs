@@ -9,7 +9,7 @@ namespace MindSprintAI_ASP.NET_MVC.Services;
 // Pháp lý C9 (docs/PHAP_LY_VAN_BAN.md): xóa tài khoản = ẩn danh hóa. Hàng người dùng giữ lại (tên "Người dùng đã xóa",
 // không email) để lượt làm và điểm trong bảng điểm của giảng viên không bị thủng; mọi dữ liệu riêng khác bị xóa.
 public sealed class AccountDeletionService(AppDbContext db, UserManager<ApplicationUser> users, IEmailSender email,
-    AccountEmailService accountEmail, TimeProvider clock)
+    AccountEmailService accountEmail, TimeProvider clock, IWebHostEnvironment? env = null)
 {
     public const string DeletedName = "Người dùng đã xóa";
     public const string InvalidLink = "Link này đã hết hạn hoặc đã được dùng. Hãy vào trang Tài khoản để yêu cầu lại.";
@@ -192,6 +192,7 @@ public sealed class AccountDeletionService(AppDbContext db, UserManager<Applicat
         db.Audit?.Add(AuditAction.AccountDeleted, "User", userId, actorId);
         await db.SaveChangesAsync();
         await tx.CommitAsync();
+        AvatarService.DeleteFile(env, userId); // ảnh tự tải lên (sau khi đã xóa chắc chắn)
     }
 
     private static void Check(IdentityResult result)

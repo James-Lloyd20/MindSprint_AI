@@ -11,6 +11,7 @@
     <input type="hidden" name="studySetId" value="@Model.Id" />
     <label class="form-label" for="new-front">Mặt trước</label><textarea class="form-control mb-2" name="front" id="new-front" required></textarea>
     <label class="form-label" for="new-back">Mặt sau</label><textarea class="form-control mb-2" name="back" id="new-back" required></textarea>
+    <label class="form-label" for="new-example">Ví dụ minh họa (không bắt buộc)</label><textarea class="form-control mb-2" name="example" id="new-example" rows="2" maxlength="@FlashcardService.MaxExample"></textarea>
     <button class="btn btn-primary align-self-start">Thêm thẻ</button>
 </form>
 @* "Nhập hàng loạt flashcards" của nhóm: dán nhiều dòng một lúc; có dòng sai thì không thêm gì và trang giữ nguyên đoạn đã dán. *@
@@ -34,6 +35,7 @@
             <input type="hidden" name="studySetId" value="@Model.Id" /><input type="hidden" name="cardId" value="@card.Id" />
             <label class="form-label" for="front-@card.Id">Mặt trước</label><textarea class="form-control mb-2" name="front" id="front-@card.Id" required>@card.Front</textarea>
             <label class="form-label" for="back-@card.Id">Mặt sau</label><textarea class="form-control mb-2" name="back" id="back-@card.Id" required>@card.Back</textarea>
+            <label class="form-label" for="example-@card.Id">Ví dụ minh họa (không bắt buộc)</label><textarea class="form-control mb-2" name="example" id="example-@card.Id" rows="2" maxlength="@FlashcardService.MaxExample">@card.Example</textarea>
             <button class="btn btn-outline-primary">Lưu thẻ @(i + 1)</button>
         </form>
         <form method="post" asp-action="Delete" class="mt-2" data-confirm="Xóa thẻ @(i + 1)? Thẻ vào Thùng rác, khôi phục được trong 30 ngày. Bài giao dùng bộ này sẽ bớt một thẻ học viên phải học.">

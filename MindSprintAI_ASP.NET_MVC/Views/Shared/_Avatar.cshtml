@@ -1,6 +1,7 @@
 @model ApplicationUser
 @{
-    var url = Model.AvatarHidden ? null : AvatarService.GoogleUrl(Model.AvatarUrl);
+    var url = Model.AvatarHidden ? null : Model.AvatarSource == AvatarSource.Upload
+        ? Url.Action("AvatarImage", "Account", new { v = Model.AvatarUpdatedAt?.Ticks }) : AvatarService.GoogleUrl(Model.AvatarUrl);
 }
 <span class="account-avatar" style="--tint:@AvatarText.Tint(Model.DisplayName)" aria-hidden="true">
     @if (url != null)

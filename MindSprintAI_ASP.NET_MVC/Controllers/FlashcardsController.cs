@@ -17,9 +17,9 @@ public class FlashcardsController(FlashcardService cards) : AppController
     }
 
     [HttpPost]
-    public async Task<IActionResult> Save(int studySetId, int? cardId, string? front, string? back)
+    public async Task<IActionResult> Save(int studySetId, int? cardId, string? front, string? back, string? example)
     {
-        var savedId = await cards.SaveAsync(studySetId, cardId, front, back, UserId);
+        var savedId = await cards.SaveAsync(studySetId, cardId, front, back, UserId, example);
         Success(cardId == null ? "Đã thêm thẻ (ở cuối danh sách)." : "Đã lưu thẻ.");
         return RedirectToAction(nameof(Editor), null, new { id = studySetId }, $"card-{savedId}");
     }

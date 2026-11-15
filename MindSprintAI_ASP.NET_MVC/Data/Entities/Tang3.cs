@@ -26,6 +26,8 @@ public class Flashcard
     public int OrderIndex { get; set; }
     public string Front { get; set; } = "";
     public string Back { get; set; } = "";
+    // "Ví dụ minh họa" của thẻ nhóm (không bắt buộc), hiện dưới mặt sau.
+    public string? Example { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? EditedAt { get; set; }
     public DateTime? DeletedAt { get; set; }

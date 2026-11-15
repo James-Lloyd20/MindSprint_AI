@@ -675,3 +675,9 @@ main a.fc-edit { display: inline-flex; align-items: center; gap: 4px; margin-lef
 .fc-offline { margin: 0 0 8px; padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 30%, var(--surface)); color: var(--text); font-size: .85rem; text-align: center; }
 .offline-toast { position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 1080; max-width: min(520px, calc(100vw - 32px)); margin: 0; padding: 10px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--text); box-shadow: var(--elev-2); transform: translateX(-50%); font-size: .9rem; }
 @media (min-width: 992px) { .offline-toast { bottom: 24px; } }
+
+/* Danh mục bộ học (bộ lọc danh mục FR-04 của nhóm) + "Ví dụ minh họa" dưới mặt sau thẻ */
+.c-library .set-create-row .set-category-input { flex: 0 1 220px; }
+.c-library .set-card-category { align-self: flex-start; padding: 2px 10px; border-radius: 999px; background: var(--bs-secondary-bg); color: var(--text-muted); font-size: .75rem; font-weight: 700; overflow-wrap: anywhere; }
+.fc-example { margin: -8px 0 20px; color: var(--text-muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+label:has(+ #avatar-file:focus-visible) { outline: 3px solid var(--bs-primary); outline-offset: 2px; }

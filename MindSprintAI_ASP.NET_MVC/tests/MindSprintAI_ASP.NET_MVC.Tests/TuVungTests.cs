@@ -13,7 +13,7 @@ public class TuVungTests
     [Fact]
     public void DuDuLieuNhomVaChuDe()
     {
-        Assert.Equal(1832, Catalog.Cards.Count);
+        Assert.Equal(2572, Catalog.Cards.Count);
         Assert.Equal(["english", "programming", "general"], Catalog.Categories.Keys);
         Assert.Contains(Catalog.Topics, t => t.Topic == "Đồ dùng học tập" && t.CategoryName == "Tiếng Anh" && t.Count > 0);
         Assert.All(Catalog.Cards, c => { Assert.False(string.IsNullOrWhiteSpace(c.Question)); Assert.False(string.IsNullOrWhiteSpace(c.Answer)); });

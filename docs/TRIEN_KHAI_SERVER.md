@@ -53,11 +53,12 @@ Lần đầu lệnh thứ hai tạo database `MindSprintAI` và mọi bảng; c�
 
 ```bash
 docker compose up -d
-curl -I http://127.0.0.1:8080          # thấy HTTP/1.1 200 hoặc 302 là app đã chạy
+curl -s -H "Host: <tên-miền>" http://127.0.0.1:8080/healthz   # "ok" = app đang chạy
+curl -s -H "Host: <tên-miền>" http://127.0.0.1:8080/readyz    # "ready" = app nối được database ("not ready" = lỗi kết nối SQL)
 docker logs mindsprint --tail 50       # xem lỗi nếu có
 ```
 
-App tự khởi động lại khi server khởi động lại (`restart: unless-stopped`).
+App tự khởi động lại khi server khởi động lại (`restart: unless-stopped`). Phải có `-H "Host: …"` vì app chỉ nhận đúng tên miền trong `AllowedHosts` (gọi thẳng `127.0.0.1` sẽ bị 400).
 
 ## 6. Nối tên miền qua Cloudflare Tunnel
 
@@ -83,10 +84,29 @@ docker compose run --rm --entrypoint sh mindsprint -c './efbundle --connection "
 docker compose up -d
 ```
 
-## 9. Sao lưu
+## 9. Sao lưu và khôi phục
 
-- **Database:** sao lưu database `MindSprintAI` trong container SQL Server như các database khác.
-- **Ổ dữ liệu `mindsprint-data`** (khóa mã hóa key Gemini và phiên đăng nhập, nhật ký): `docker run --rm -v deploy_mindsprint-data:/d -v "$PWD":/b alpine tar czf /b/mindsprint-data.tgz -C /d .` (tên ổ xem bằng `docker volume ls`). Mất ổ này thì mọi người phải đăng nhập lại và dán lại key Gemini.
+**Database** (lệnh `sqlcmd` hỏi mật khẩu `sa`: tự gõ, không ghi vào lệnh):
+
+```bash
+SQL=<tên-container-sql>
+docker exec $SQL mkdir -p /var/opt/mssql/backup
+docker exec -it $SQL /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -Q "BACKUP DATABASE [MindSprintAI] TO DISK = N'/var/opt/mssql/backup/MindSprintAI.bak' WITH INIT"
+docker cp $SQL:/var/opt/mssql/backup/MindSprintAI.bak ./MindSprintAI-$(date +%F).bak   # chép ra ngoài container
+```
+
+Khôi phục (ghi đè database hiện tại, nên dừng app trước):
+
+```bash
+docker cp ./MindSprintAI-2026-11-15.bak $SQL:/var/opt/mssql/backup/restore.bak
+cd deploy && docker compose stop mindsprint
+docker exec -it $SQL /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -Q "RESTORE DATABASE [MindSprintAI] FROM DISK = N'/var/opt/mssql/backup/restore.bak' WITH REPLACE"
+docker compose start mindsprint
+```
+
+Bản `.bak` nên chép sang máy khác (một bản sao lưu chỉ nằm trên chính server thì hỏng server là mất cả hai). Thử khôi phục một lần trên máy dev để chắc bản sao lưu dùng được.
+
+**Ổ dữ liệu `mindsprint-data`** (khóa mã hóa key Gemini và phiên đăng nhập, ảnh đại diện người dùng tải lên, nhật ký): `docker run --rm -v deploy_mindsprint-data:/d -v "$PWD":/b alpine tar czf /b/mindsprint-data.tgz -C /d .` (tên ổ xem bằng `docker volume ls`). Mất ổ này thì mọi người phải đăng nhập lại, dán lại key Gemini và tải lại ảnh đại diện.
 
 ## 10. Lỗi thường gặp
 

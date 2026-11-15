@@ -70,19 +70,29 @@ public partial class StudyLibraryService(AppDbContext db, TimeProvider? clock = 
         return (counts, counts.Values.Sum());
     }
 
-    public async Task<StudySet> CreateStudySetAsync(string title, string userId)
+    public const int MaxCategory = 60;
+    // Gợi ý sẵn = ba danh mục của nhóm; người dùng gõ tên khác thì thành danh mục mới (như "Tạo danh mục mới" của nhóm).
+    public static readonly string[] SuggestedCategories = ["Tiếng Anh", "Lập trình", "Kiến thức chung"];
+    public static string? CleanCategory(string? category)
     {
-        var set = new StudySet { Title = RequireText(title, "Tên bộ học"), OwnerId = userId };
+        category = string.IsNullOrWhiteSpace(category) ? null : string.Join(' ', category.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        return category?.Length > MaxCategory ? throw new BusinessException($"Danh mục tối đa {MaxCategory} ký tự.") : category;
+    }
+
+    public async Task<StudySet> CreateStudySetAsync(string title, string userId, string? category = null)
+    {
+        var set = new StudySet { Title = RequireText(title, "Tên bộ học"), OwnerId = userId, Category = CleanCategory(category) };
         db.StudySets.Add(set);
         db.Audit?.Add(AuditAction.StudySetCreated, "StudySet", set.Id, userId, resolveTarget: () => set.Id.ToString()); // (NK3)
         await db.SaveChangesAsync();
         return set;
     }
 
-    public async Task RenameStudySetAsync(int studySetId, string title, string userId)
+    public async Task RenameStudySetAsync(int studySetId, string title, string userId, string? category = null)
     {
         var set = await GetOwnedStudySetAsync(studySetId, userId);
         set.Title = RequireText(title, "Tên bộ học");
+        set.Category = CleanCategory(category);
         db.Audit?.Add(AuditAction.StudySetEdited, "StudySet", studySetId, userId); // (NK3)
         await db.SaveChangesAsync();
     }

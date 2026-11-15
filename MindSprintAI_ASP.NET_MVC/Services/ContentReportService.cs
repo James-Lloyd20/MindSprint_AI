@@ -6,7 +6,7 @@ using MindSprintAI_ASP.NET_MVC.Data.Entities;
 namespace MindSprintAI_ASP.NET_MVC.Services;
 
 public record ReportContext(ReportTarget TargetType, string TargetId, int? AssignmentId = null, long? AttemptId = null, int? ClassroomId = null);
-public record ReportCard(string Front, string Back);
+public record ReportCard(string Front, string Back, string? Example = null);
 public record ReportedAiMessage(string Role, string Content, List<string> Citations);
 public record ReportedContent(string Title, List<QuestionSnapshot> Questions, List<ReportCard> Cards,
     List<ReportedAiMessage>? Messages = null);
@@ -70,7 +70,7 @@ public class ContentReportService(AppDbContext db, TimeProvider clock, Assignmen
         var questions = a.QuizId == null ? [] : await db.Questions.AsNoTracking().Include(q => q.Options)
             .Include(q => q.Blanks).ThenInclude(b => b.Answers).Where(q => q.QuizId == a.QuizId).OrderBy(q => q.OrderIndex).ToListAsync();
         var cards = context.TargetType == ReportTarget.StudySet && CardCompletion.HasCards(a)
-            ? await db.Flashcards.AsNoTracking().Where(c => c.StudySetId == set.Id && c.DeletedAt == null).OrderBy(c => c.OrderIndex).Select(c => new ReportCard(c.Front, c.Back)).ToListAsync() : [];
+            ? await db.Flashcards.AsNoTracking().Where(c => c.StudySetId == set.Id && c.DeletedAt == null).OrderBy(c => c.OrderIndex).Select(c => new ReportCard(c.Front, c.Back, c.Example)).ToListAsync() : [];
         return (set.OwnerId, set.Id, new(context.TargetType == ReportTarget.StudySet ? set.Title : a.Quiz!.Title, questions.Select(QuestionSnapshot.From).ToList(), cards));
     }
 

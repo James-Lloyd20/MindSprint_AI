@@ -13,6 +13,8 @@ public class StudySet
     public string OwnerId { get; set; } = "";
     public ApplicationUser Owner { get; set; } = null!;
     public string Title { get; set; } = "";
+    // Danh mục tự đặt (Tiếng Anh, Lập trình… như bộ lọc danh mục FR-04 của nhóm); null = chưa xếp.
+    public string? Category { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ArchivedAt { get; set; }
     public DateTime? EverAssignedAt { get; set; }

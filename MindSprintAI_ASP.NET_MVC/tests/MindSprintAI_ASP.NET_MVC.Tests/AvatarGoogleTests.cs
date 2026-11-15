@@ -106,7 +106,13 @@ public class AvatarGooglePureTests
         }
         var toggle = Assert.Single(forms, f => f.Contains("data-action=\"GoogleAvatarVisibility\""));
         Assert.DoesNotContain("checked=", toggle);
-        if (!hasUrl) Assert.Contains("Đăng nhập bằng Google để dùng ảnh tài khoản Google.", WebUtility.HtmlDecode(html));
+        if (!hasUrl) Assert.Contains("Tải ảnh của bạn lên, hoặc dùng ảnh tài khoản Google", WebUtility.HtmlDecode(html));
+        // Đổi ảnh đại diện (tải ảnh lên, 15/11): form gửi tệp, có mã chống giả mạo; action chỉ cho người đã đăng nhập.
+        var upload = Assert.Single(forms, f => f.Contains("id=\"avatar-upload-form\""));
+        Assert.Contains("enctype=\"multipart/form-data\"", upload);
+        Assert.Contains("__RequestVerificationToken", upload);
+        Assert.Contains("name=\"image\"", upload);
+        Assert.NotNull(typeof(AccountController).GetMethod("UploadAvatar")!.GetCustomAttribute<ValidateAntiForgeryTokenAttribute>());
         Assert.False(PlainLanguageAudit.HasJargon(WebUtility.HtmlDecode(html)));
     }
 

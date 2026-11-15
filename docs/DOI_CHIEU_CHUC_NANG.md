@@ -61,3 +61,28 @@ Nguồn đã đối chiếu: 201 action + 107 view + toàn bộ service/JS của
 
 Có ở nhóm nhưng **cố ý không chuyển**: số "phút học" (nhóm cộng 1 phút mỗi thẻ — số giả); bật/tắt lịch (API có, giao diện nhóm không gọi; GAP-04 của nhóm); `.doc/.docx` (máy chủ nhóm từ chối); job tự tạo task ôn từ câu sai (nhóm chưa làm); AI lập kế hoạch FR-23 (nhóm chưa làm, GAP-01).
 **Học khi mất mạng FR-21/22:** đã làm theo quyết định của người dùng 15/11 — tự học luôn được; bài giao mặc định giữ "lưu xong mới chuyển thẻ", GV tự bật "Cho học viên ôn thẻ tiếp khi mất mạng".
+
+## Rà lần 4 (15/11, tối) — từng cột database, từng service backend, NFR-01→14, CI/CD, giao diện
+Nguồn: bảng/cột cả hai project (QuizEdu 516/516 cột có đủ), mọi service + endpoint backend nhóm (53 endpoint, đều có chỗ tương ứng trừ các mục cố ý không chuyển dưới đây), `docs` NFR của nhóm, `.github/workflows`, `vocab_seed.json`, toàn bộ tab Cài đặt / hộp thoại thẻ / menu tài khoản.
+
+| Phát hiện | Nguồn nhóm | Đã làm |
+|---|---|---|
+| Thiếu 740 thẻ từ vựng (bộ phía backend, nhiều chủ đề Lập trình / Kiến thức chung) | `backend/MindSprint.Api/Data/vocab_seed.json` (DataSeeder) | `tools/vocab/extract-vocab.cjs` đọc thêm tệp này, bỏ thẻ trùng (cùng danh mục + câu hỏi): 1832 → **2572 thẻ** |
+| Thẻ không có "Ví dụ minh họa" | hộp Thêm/Sửa thẻ | Cột `Flashcards.Example` (≤ 2000 ký tự), ô ở Soạn thẻ, hiện dưới mặt sau khi ôn; thẻ từ vựng và thẻ ôn điểm yếu dùng ô này |
+| Bộ học không có danh mục, không lọc theo danh mục | FR-04, hộp tạo thẻ AI (danh mục / danh mục mới) | Cột `StudySets.Category` (≤ 60), gõ tự do có gợi ý Tiếng Anh / Lập trình / Kiến thức chung, bộ lọc ở Thư viện |
+| Không có model Gemini dự phòng | `GeminiOptions.FallbackModels` | Model chính hết lượt (429), ngừng (404), quá tải (500/503) → thử `gemini-flash-latest`, rồi `gemini-flash-lite-latest` (đổi được bằng `Gemini:FallbackModels`) |
+| Không kiểm kết quả Studio / Gia sư | NFR-14 `NotebookOutputValidation` | Quá 200.000 ký tự, sơ đồ tư duy quá 3 cấp / 100 nút / 12 con / tiêu đề 100 ký tự → báo lỗi thay vì hiện |
+| Không nhận tệp Word (tạo thẻ AI), không đọc DOCX/PPTX/XLSX/RSS qua đường link | hộp tạo thẻ AI (.docx), `NotebookDocumentExtractor` | `OfficeText` (không thêm thư viện): tải tệp và đường link đều đọc được Word, PowerPoint, Excel; RSS/XML bỏ thẻ lấy chữ |
+| Thiếu header bảo mật | `ApplicationBuilderExtensions` | `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` |
+| Không có địa chỉ kiểm tra sức khỏe | NFR-08 `/healthz`, `/readyz` | `/healthz` = "ok"; `/readyz` = "ready" hoặc 503 "not ready" khi mất database (không lộ cấu hình) |
+| Điểm yếu thiếu dòng "nên làm gì" | `BuildSuggestedAction` | Gợi ý theo loại (bộ thẻ / bài quiz); nút "Ôn lại thẻ" bộ tự học nay mở trang Ôn thẻ (trước mở Soạn thẻ) |
+| Không đổi được ảnh đại diện | menu tài khoản "Đổi ảnh đại diện / Dùng ảnh mặc định" | JPG/PNG/WebP ≤ 5 MB, trình duyệt cắt về 256×256; **khác nhóm**: lưu trên server (`App_Data/avatars`) thay vì localStorage nên đổi máy không mất; chỉ chủ tài khoản xem; đăng nhập Google không đè |
+| "Giọng nói AI" khi báo giờ học | tab Cài đặt (bên nhóm chọn vào thì **không báo gì**: mã chỉ xử lý text/sound/both) | Kiểu "Chuông + đọc to giờ học" (giọng đọc có sẵn của trình duyệt, không tốn key) |
+| Không có kiểm tra tự động trên GitHub | `.github/workflows/ci-cd.yml`, `nfr14-ai-output.yml` | `.github/workflows/ci.yml`: build + toàn bộ test với SQL Server tạm + đóng gói Docker. Không tự triển khai (server cá nhân) |
+| Hướng dẫn sao lưu chưa có lệnh cụ thể | NFR-09 | `docs/TRIEN_KHAI_SERVER.md` mục 9: lệnh BACKUP/RESTORE + sao lưu ổ dữ liệu; sửa lệnh kiểm tra app (cần `-H "Host: …"`) |
+
+Cố ý **không** chuyển (giữ cách hiện tại, có lý do):
+- **Ôn ngắt quãng SM-2 của nhóm** → giữ hộp Leitner của QuizEdu (đã dùng cho bài giao, báo cáo GV, thẻ đến hạn); đổi thuật toán là đổi quy tắc nghiệp vụ.
+- **Đọc trang web cần chạy JavaScript (Playwright)**: phải cài trình duyệt Chromium trong ảnh Docker (nặng ~300 MB) và chạy trình duyệt ẩn trên server; chưa làm, chờ quyết định. Trang thường, PDF, Word, PowerPoint, Excel, RSS vẫn đọc được.
+- JWT/refresh token, bộ nhớ đệm kết quả Studio, `tutor/file` (giao diện nhóm không gọi), tệp `.doc` (máy chủ nhóm cũng từ chối), nút giả lập chuỗi ngày, "phút học" giả.
+- Hiệu năng NFR-01 chưa đo trên server thật (có sẵn `tools/loadtest`).

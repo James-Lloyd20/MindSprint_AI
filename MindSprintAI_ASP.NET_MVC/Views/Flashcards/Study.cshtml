@@ -55,6 +55,7 @@ else
                 <button type="button" class="btn btn-outline-primary flip fc-flip"><icon name="repeat-2" />Lật thẻ</button>
                 <div class="card-back d-none fc-back">
                     <p class="fc-back-text">@card.Back</p>
+                    @if (card.Example != null) { <p class="fc-example"><b>Ví dụ:</b> @card.Example</p> }
                     <div class="fc-rate"><button type="button" class="btn btn-outline-danger rate" data-rating="2">← Chưa nhớ</button><button type="button" class="btn btn-success rate" data-rating="1">Đã nhớ →</button></div>
                 </div>
             </section>

@@ -55,7 +55,28 @@ public sealed class NotebookAiService(NotebookService notebooks, UserApiKeyServi
         if (focus?.Length > 500) throw new BusinessException("Trọng tâm tối đa 500 ký tự.");
         var notebook = await notebooks.GetAsync(id, userId);
         NotebookService.Combined(notebook); // báo "Hãy thêm ít nhất một nguồn trước." khi sổ trống
-        return await gemini.PromptJsonAsync(await keys.UseAsync(userId), NotebookPrompts.Studio(type, focus, Context(notebook)), NotebookPrompts.StudioSchema(type));
+        return CheckOutput(await gemini.PromptJsonAsync(await keys.UseAsync(userId), NotebookPrompts.Studio(type, focus, Context(notebook)), NotebookPrompts.StudioSchema(type)), type);
+    }
+
+    // NFR-14 của nhóm (NotebookOutputValidation): kết quả AI quá dài hoặc sơ đồ tư duy vượt khuôn (quá 3 cấp, quá 100 nút, nút quá 12 con,
+    // tiêu đề quá 100 ký tự) thì báo lỗi thay vì hiện. Bỏ luật "tiêu đề dưới 8 từ" của nhóm: một tiêu đề dài không đáng bỏ cả kết quả
+    // (người dùng mất thêm một lượt Gemini); lời nhắc vẫn yêu cầu dưới 8 từ.
+    public static JsonElement CheckOutput(JsonElement value, string type)
+    {
+        var total = 0;
+        if (value.GetRawText().Length > 200_000 || (type == "mindmap" && !Node(value, 0, ref total)))
+            throw new BusinessException("Gemini trả về dữ liệu không hợp lệ. Vui lòng thử lại.");
+        return value;
+    }
+    private static bool Node(JsonElement node, int depth, ref int total)
+    {
+        if (node.ValueKind != JsonValueKind.Object || depth > 3 || ++total > 100) return false;
+        if (!node.TryGetProperty("title", out var title) || title.ValueKind != JsonValueKind.String
+            || string.IsNullOrWhiteSpace(title.GetString()) || title.GetString()!.Length > 100) return false;
+        if (!node.TryGetProperty("children", out var children)) return true;
+        if (children.ValueKind != JsonValueKind.Array || children.GetArrayLength() > 12) return false;
+        foreach (var child in children.EnumerateArray()) if (!Node(child, depth + 1, ref total)) return false;
+        return true;
     }
 
     public async Task<JsonElement> TutorAsync(int id, TutorInput input, string userId)
@@ -67,7 +88,7 @@ public sealed class NotebookAiService(NotebookService notebooks, UserApiKeyServi
             question = input.Question?.Trim() ?? "", submission = input.Submission, language = input.Language, code = input.Code, error = input.Error,
             history = input.History ?? [], sources = notebook.Sources.Count > 0 ? Context(notebook) : ""
         }, Json);
-        return await gemini.PromptJsonAsync(await keys.UseAsync(userId), NotebookPrompts.Tutor(input.Action, input.Style, input.HintLevel, data), NotebookPrompts.TutorSchema(input.Action));
+        return CheckOutput(await gemini.PromptJsonAsync(await keys.UseAsync(userId), NotebookPrompts.Tutor(input.Action, input.Style, input.HintLevel, data), NotebookPrompts.TutorSchema(input.Action)), "tutor");
     }
 
     // Kiểm tra đầu vào như TutorService.Validate của nhóm (câu báo lỗi giữ nguyên).
