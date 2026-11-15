@@ -8,7 +8,7 @@ namespace MindSprintAI_ASP.NET_MVC.Tests;
 [Collection("db")]
 public class SoTayAiTests
 {
-    private static NotebookService Service(Harness h) => new(h.Db, null!, null!, h.Library, null!, h.Clock);
+    private static NotebookService Service(Harness h) => new(h.Db, null!, null!, null!, h.Clock);
 
     [Fact]
     public async Task NguonGhiChuVaGioiHanNhom()

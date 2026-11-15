@@ -26,7 +26,7 @@ public record PracticeSettings(
     FlashcardMode FlashcardMode = FlashcardMode.Traditional,
     CriticalSettings? CriticalSettings = null,
     bool DeviceLock = false, bool MonitorScreen = false, int? AutoSubmitLeaves = null,
-    bool AllowQuizSelfReview = false, bool AllowCardSelfReview = false);
+    bool AllowQuizSelfReview = false, bool AllowCardSelfReview = false, bool AllowOfflineCards = false);
 
 public record MasterySettings(int? MasteryThreshold, int? AnswersPerQuestion = null, bool ScoreRetries = false);
 
@@ -110,6 +110,7 @@ public partial class AssignmentService(AppDbContext db, ClassroomService classro
                 : s.Form == AssignmentForm.FlashcardOnly ? RequiredParts.Flashcards : s.RequiredParts,
             AllowFlashcardsAfterDue = s.AllowFlashcardsAfterDue,
             AllowQuizSelfReview = s.AllowQuizSelfReview, AllowCardSelfReview = s.AllowCardSelfReview,
+            AllowOfflineCards = s.AllowOfflineCards && s.Form != AssignmentForm.QuizOnly,
             OpensAt = s.OpensAt, DueAt = s.DueAt, MaxAttempts = s.MaxAttempts,
             ScoreSelection = s.ScoreSelection, ScoreScale = s.ScoreScale, Rounding = s.Rounding,
             AudiencePolicy = s.AudiencePolicy, StrangerPolicy = s.StrangerPolicy, ShuffleQuestions = s.ShuffleQuestions,

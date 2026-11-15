@@ -162,6 +162,7 @@ public class AssignmentInput
     public bool AllowFlashcardsAfterDue { get; set; } = true;
     public bool AllowQuizSelfReview { get; set; }
     public bool AllowCardSelfReview { get; set; }
+    public bool AllowOfflineCards { get; set; }
     public AssignmentMode Mode { get; set; } = AssignmentMode.Practice;
     public int? DurationMinutes { get; set; }
     public bool ShuffleQuestions { get; set; }

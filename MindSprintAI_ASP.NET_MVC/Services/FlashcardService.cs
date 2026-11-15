@@ -8,7 +8,8 @@ public record CardItem(int Id, string Front, string Back, bool IsNew, bool Edite
     int Box = 1, DateOnly? DueDate = null, bool Due = true);
 public record CardSession(int StudySetId, int? AssignmentId, string Title, List<CardItem> Cards,
     int StartIndex, int Studied, int Required, CompletionStatus? Status, bool CanStudy, bool ReviewForgotten, bool AfterDue = false,
-    FlashcardMode Mode = FlashcardMode.Traditional, bool CanChooseMode = false, int DueCount = 0, DateOnly? NextDueDate = null, bool DueOnly = false);
+    FlashcardMode Mode = FlashcardMode.Traditional, bool CanChooseMode = false, int DueCount = 0, DateOnly? NextDueDate = null, bool DueOnly = false,
+    bool OfflineAllowed = false); // ôn tiếp khi mất mạng: tự học luôn được; bài giao chỉ khi GV bật AllowOfflineCards
 public record ForgottenCard(string Front, int Count);
 public record CardCounts(int Studied, int Total, int? DueCount = null, DateOnly? NextDueDate = null)
 {
@@ -100,7 +101,7 @@ public partial class FlashcardService(AppDbContext db, StudyLibraryService libra
         if (bad.Count > 0)
             throw new BusinessException($"Có {bad.Count} dòng chưa đúng, chưa thêm thẻ nào. " +
                 // Lỗi của ValidateRows đánh số theo dòng Excel ("Dòng 3: …") → đổi sang số dòng đã dán (bắt đầu từ 1).
-                string.Join("; ", bad.Take(3).Select(r => $"Dòng {r.Row - ExcelTemplate.FirstDataRow + 1}: {r.Error![(r.Error.IndexOf(": ", StringComparison.Ordinal) + 2)..]}"))
+                string.Join("; ", bad.Take(3).Select(r => $"Dòng {r.Row - ExcelTemplate.FirstDataRow + 1}: {r.Error![(r.Error!.IndexOf(": ", StringComparison.Ordinal) + 2)..]}"))
                 + (bad.Count > 3 ? "; …" : ""));
         await using var tx = await db.Database.BeginTransactionAsync();
         var order = (await db.Flashcards.Where(c => c.StudySetId == studySetId).MaxAsync(c => (int?)c.OrderIndex) ?? -1) + 1;
@@ -220,7 +221,7 @@ public partial class FlashcardService(AppDbContext db, StudyLibraryService libra
         if (a != null) await notifier.LecturersAsync(a.Id);
         return new CardSession(set.Id, a?.Id, set.Title, items, activeMode == FlashcardMode.Traditional ? Math.Max(0, items.FindIndex(c => c.Rating == null)) : 0,
             counts.Studied, counts.Total, p?.CompletionStatus, canStudy, forgotten, a != null && CardCompletion.Ended(a, Now),
-            activeMode, a == null || a.FlashcardMode == FlashcardMode.LearnerChoice, dueCount, nextDue, dueOnly);
+            activeMode, a == null || a.FlashcardMode == FlashcardMode.LearnerChoice, dueCount, nextDue, dueOnly, a == null || a.AllowOfflineCards);
     }
 
     // Trả về bộ đếm mới để trang học cập nhật ngay, không phải tải lại.

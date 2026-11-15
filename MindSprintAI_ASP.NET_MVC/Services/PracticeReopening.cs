@@ -25,6 +25,25 @@ public partial class AssignmentService
         await notifier.LecturersAsync(id);
     }
 
+    // GV bật/tắt "ôn thẻ khi mất mạng" sau khi đã giao (cùng cách ghi lịch sử như ChangeSelfReviewSettingsAsync).
+    public async Task ChangeOfflineCardsAsync(int id, bool allow, string userId)
+    {
+        await using var tx = await db.Database.BeginTransactionAsync();
+        var a = await AttemptLock.AssignmentAsync(db, id);
+        await GetForLecturerAsync(id, userId);
+        if (a.Mode != AssignmentMode.Practice || a.Form == AssignmentForm.QuizOnly)
+            throw new BusinessException("Chỉ bài Ôn tập có thẻ ghi nhớ mới cho ôn thẻ khi mất mạng.");
+        if (a.AllowOfflineCards != allow)
+            db.AssignmentChanges.Add(new() { AssignmentId = id, ChangedById = userId, ChangedAt = Now,
+                Field = nameof(a.AllowOfflineCards), OldValue = a.AllowOfflineCards.ToString(), NewValue = allow.ToString() });
+        a.AllowOfflineCards = allow;
+        await new UserSettingPresetService(db, clock).SaveAssignmentAsync(a, userId);
+        db.Audit?.Add(AuditAction.AssignmentSettingsChanged, "Assignment", id, userId);
+        await db.SaveChangesAsync();
+        await tx.CommitAsync();
+        await notifier.LecturersAsync(id);
+    }
+
     public bool CanReopenPractice(Assignment a) => CanReopenPractice(a, Now);
     public static bool CanReopenPractice(Assignment a, DateTime now) => a.Mode == AssignmentMode.Practice
         && (a.ClosedAt <= now || a.DueAt <= now);

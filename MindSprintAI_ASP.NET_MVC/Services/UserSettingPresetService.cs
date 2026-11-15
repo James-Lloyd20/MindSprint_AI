@@ -21,6 +21,7 @@ public record AssignmentPreset
     public bool AllowFlashcardsAfterDue { get; init; } = true;
     public bool AllowQuizSelfReview { get; init; }
     public bool AllowCardSelfReview { get; init; }
+    public bool AllowOfflineCards { get; init; }
     public int? DurationMinutes { get; init; }
     public int? MaxAttempts { get; init; }
     public ScoreSelection ScoreSelection { get; init; } = ScoreSelection.Highest;
@@ -45,6 +46,7 @@ public record AssignmentPreset
         AllowFlashcardsAfterDue = AllowFlashcardsAfterDue, DurationMinutes = DurationMinutes,
         AllowQuizSelfReview = mode == AssignmentMode.Practice && AllowQuizSelfReview,
         AllowCardSelfReview = mode == AssignmentMode.Practice && AllowCardSelfReview,
+        AllowOfflineCards = mode == AssignmentMode.Practice && AllowOfflineCards,
         MaxAttempts = MaxAttempts, ScoreSelection = ScoreSelection, ScoreScale = ScoreScale, Rounding = Rounding,
         ShuffleQuestions = ShuffleQuestions, ShuffleOptions = ShuffleOptions, MasteryThreshold = MasteryThreshold,
         AnswersPerQuestion = AnswersPerQuestion, ScoreRetries = ScoreRetries, IgnoreQuestionTimers = IgnoreQuestionTimers
@@ -53,7 +55,7 @@ public record AssignmentPreset
     public static AssignmentPreset From(Assignment a) => new()
     {
         Form = a.Form, RequiredParts = a.RequiredParts, AllowFlashcardsAfterDue = a.AllowFlashcardsAfterDue,
-        AllowQuizSelfReview = a.AllowQuizSelfReview, AllowCardSelfReview = a.AllowCardSelfReview,
+        AllowQuizSelfReview = a.AllowQuizSelfReview, AllowCardSelfReview = a.AllowCardSelfReview, AllowOfflineCards = a.AllowOfflineCards,
         DeviceLock = a.DeviceLock, MonitorScreen = a.MonitorScreen, AutoSubmitLeaves = a.AutoSubmitLeaves,
         FlashcardMode = a.FlashcardMode, ThresholdEnabled = a.CriticalThreshold != null, CriticalThreshold = a.CriticalThreshold,
         CriticalQuestionsEnabled = a.CriticalQuestionsEnabled,
@@ -108,6 +110,7 @@ public static class SettingPresetRules
             Form = test ? AssignmentForm.QuizOnly : p.Form,
             AllowQuizSelfReview = !test && p.AllowQuizSelfReview,
             AllowCardSelfReview = !test && p.AllowCardSelfReview,
+            AllowOfflineCards = !test && p.AllowOfflineCards,
             AutoSubmitLeaves = p.MonitorScreen && p.AutoSubmitLeaves is >= 1 and <= 20 ? p.AutoSubmitLeaves : null,
             RequiredParts = test ? RequiredParts.Quiz : p.RequiredParts,
             MasteryThreshold = test ? null : p.MasteryThreshold,

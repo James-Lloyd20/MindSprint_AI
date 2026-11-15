@@ -60,4 +60,4 @@ Nguồn đã đối chiếu: 201 action + 107 view + toàn bộ service/JS của
 | Chế độ tối: nút "Bắt đầu ngay" 1,7:1; chữ đỏ giao diện sáng 4,3:1 | đo WCAG 25 trang | đều ≥ 4,5:1 |
 
 Có ở nhóm nhưng **cố ý không chuyển**: số "phút học" (nhóm cộng 1 phút mỗi thẻ — số giả); bật/tắt lịch (API có, giao diện nhóm không gọi; GAP-04 của nhóm); `.doc/.docx` (máy chủ nhóm từ chối); job tự tạo task ôn từ câu sai (nhóm chưa làm); AI lập kế hoạch FR-23 (nhóm chưa làm, GAP-01).
-**Cần người dùng quyết:** học khi mất mạng FR-21/22 (xem báo cáo mục 9).
+**Học khi mất mạng FR-21/22:** đã làm theo quyết định của người dùng 15/11 — tự học luôn được; bài giao mặc định giữ "lưu xong mới chuyển thẻ", GV tự bật "Cho học viên ôn thẻ tiếp khi mất mạng".

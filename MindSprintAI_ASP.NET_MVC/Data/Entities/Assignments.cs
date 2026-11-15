@@ -52,6 +52,9 @@ public class Assignment : IVersioned
     public bool AllowFlashcardsAfterDue { get; set; } = true;
     public bool AllowQuizSelfReview { get; set; }
     public bool AllowCardSelfReview { get; set; }
+    // Người dùng chốt 15/11: bài giao mặc định giữ quy tắc QuizEdu "lưu xong mới chuyển thẻ"; GV bật thì học viên ôn thẻ tiếp khi mất mạng,
+    // đánh giá lưu tạm ở trình duyệt và gửi bù khi có mạng (máy chủ vẫn kiểm hạn nộp… lúc nhận). Chỉ bài Ôn tập có thẻ.
+    public bool AllowOfflineCards { get; set; }
 
     public DateTime? ScoresPublishedAt { get; set; }
     public DateTime? AnswersPublishedAt { get; set; }

@@ -9,7 +9,7 @@ public record NotebookRow(int Id, string Title, int Sources, int Notes, DateTime
 // Sổ tay AI (MindSprint-AI-D-n NotebooksController) — giữ giới hạn nhóm: 20 nguồn/sổ, 200.000 ký tự/nguồn; chỉ chủ sổ xem/sửa.
 // Hỏi đáp dùng cơ chế trả lời có trích dẫn của QuizEdu (GeminiClient.AskAsync + SourceGrounding): chỉ dựa trên nguồn,
 // trích dẫn được kiểm nguyên văn; dùng API key Gemini của chính người dùng. "Tạo bộ học" đi qua trang xem trước nhập Excel.
-public sealed class NotebookService(AppDbContext db, UserApiKeyService keys, GeminiClient gemini, StudyLibraryService library,
+public sealed class NotebookService(AppDbContext db, UserApiKeyService keys, GeminiClient gemini,
     AiGenerateService generator, TimeProvider clock)
 {
     public const int MaxSources = 20, MaxCharsPerSource = 200_000, MaxNotebooks = 100, MaxNotes = 200;

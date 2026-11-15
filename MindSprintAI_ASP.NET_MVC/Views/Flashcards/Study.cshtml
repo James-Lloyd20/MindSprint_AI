@@ -40,8 +40,9 @@ else
         <a id="due-cards-link" class="btn btn-outline-primary mb-3" asp-action="Study" asp-route-id="@Model.StudySetId" asp-route-assignmentId="@Model.AssignmentId" asp-route-dueOnly="true">Ôn thẻ đến hạn hôm nay (@Model.DueCount thẻ)</a>
         <p id="next-due-date" role="status">@if (Model.DueCount == 0 && Model.NextDueDate is { } date) { <text>Lần đến hạn gần nhất: @date.ToString("dd/MM/yyyy") (giờ Việt Nam).</text> }</p>
     }
-    <div id="cards" class="fc-stage" data-start="@Model.StartIndex" data-mode="@((int)Model.Mode)" data-rate-url="@Url.Action("Rate")" data-study-set="@Model.StudySetId" data-assignment="@Model.AssignmentId">
+    <div id="cards" class="fc-stage" data-start="@Model.StartIndex" data-mode="@((int)Model.Mode)" data-rate-url="@Url.Action("Rate")" data-study-set="@Model.StudySetId" data-assignment="@Model.AssignmentId" data-offline="@(Model.OfflineAllowed ? "true" : "false")">
         <p id="card-position" class="fc-position" aria-live="polite"></p>
+        <p id="offline-status" class="fc-offline" role="status" hidden></p>
         @foreach (var card in Model.Cards)
         {
             var reviewDays = 1 << (card.Box - 1);

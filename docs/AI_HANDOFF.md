@@ -159,3 +159,14 @@
 - `alarm.js`: học bù (khoảng cách lần kiểm trước > 2 phút, cùng ngày). `site.js`: `MindSprintFlip` (lật 3D), kiểm tệp `data-max-bytes`, ô tìm lấy `StudySets/SearchItems`. `ai-count.js`: gợi ý số thẻ.
 - Không chuyển (lý do trong DOI_CHIEU): phút học giả, bật/tắt lịch, .doc/.docx, job task ôn, FR-23. **Chờ người dùng:** học khi mất mạng (báo cáo mục 9).
 - Tài khoản demo cũ không có dữ liệu mẫu → `DemoSeedService.SeedIfEmptyAsync` (chưa có bộ học nào thì thêm).
+
+### 2026-11-15 chiều (3) — ôn thẻ khi mất mạng (người dùng chốt)
+
+- Quy tắc: tự học bộ của mình luôn cho ôn tiếp khi mất mạng; bài giao giữ QuizEdu D2c/73A trừ khi GV bật `Assignment.AllowOfflineCards` (chỉ bài Ôn tập có thẻ; migration `OnTheKhiMatMang`). Nối đủ: `PracticeSettings`, `AssignmentInput`, `AssignmentsController.Create` (bài Kiểm tra bật → báo lỗi), `AssignmentService.ChangeOfflineCardsAsync` + action `ChangeOfflineCards` (lịch sử `AssignmentChanges`, audit, preset), `AssignmentPreset`, `CardSession.OfflineAllowed`.
+- `js/offline-cards.js` (layout, mọi người dùng có `me`, kể cả khách vào bằng mã) — `window.MindSprintOfflineCards {pending, enqueue, flush}`; `flashcards.js` xếp hàng khi `fetch` lỗi mạng hoặc còn hàng đợi (giữ thứ tự). Máy chủ không đổi: hạn nộp tính lúc nhận. Giới hạn ghi trong mã (`shortcut:`): mất mạng đúng lúc máy chủ vừa lưu xong thì có thể gửi trùng một lần. Mở trang khi đang mất mạng vẫn ra trang báo mất mạng (không lưu sẵn trang đã đăng nhập).
+- Test `OnTheKhiMatMangTests`.
+
+### 2026-11-15 chiều (4) — sửa đăng nhập demo + lỗi khuôn gợi ý câu hỏi
+
+- **Đăng nhập demo** gọi thẳng `SignInAsync` → không có claim phiên thiết bị → `DeviceSessionHubFilter` từ chối kênh thông báo ("Bạn đã bị đăng xuất khỏi thiết bị này", người dùng thấy trong Visual Studio). Sửa: `AccountDemo.DemoLogin` đi qua `LoginService.CompleteAsync` như mật khẩu/Google/passkey. **Quy tắc:** mọi cách đăng nhập mới phải đi qua `CompleteAsync`, không gọi `SignInAsync` trực tiếp.
+- **Lỗi thật do cảnh báo CS8604 lộ ra:** `NotebookPrompts.SuggestionSchema` là trường static khai báo trước `Str` → `items` null → khuôn gửi Gemini hỏng (gợi ý câu hỏi sẽ lỗi khi có key). Đổi thành thuộc tính. Test `KhuonGoiYCauHoi_CoKieuPhanTu`. Bỏ tham số `library` thừa của `NotebookService`.

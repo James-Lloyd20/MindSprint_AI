@@ -130,7 +130,14 @@ else
             </div>
             <div class="col-12"><partial name="_MasterySettings" model="@(new MasterySettings(f.MasteryThreshold, f.AnswersPerQuestion, f.ScoreRetries))" /></div>
             <div class="col-12"><partial name="_StrangerPolicy" model="f.StrangerPolicy" /></div>
-            <div class="col-12" id="flashcard-mode-field"><partial name="_FlashcardMode" model="f.FlashcardMode" /></div>
+            <div class="col-12" id="flashcard-mode-field"><partial name="_FlashcardMode" model="f.FlashcardMode" />
+                @* Người dùng chốt 15/11: mặc định giữ "lưu xong mới chuyển thẻ"; GV tự quyết cho ôn tiếp khi mất mạng. *@
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" id="AllowOfflineCards" name="AllowOfflineCards" value="true" checked="@f.AllowOfflineCards" />
+                    <input type="hidden" name="AllowOfflineCards" value="false" />
+                    <label class="form-check-label" for="AllowOfflineCards">Cho học viên ôn thẻ tiếp khi mất mạng (đánh giá lưu tạm trên máy, tự gửi khi có mạng lại)</label>
+                </div>
+            </div>
             <div class="col-12"><partial name="_CriticalSettings" model="@(new CriticalSettingsView(f.CriticalSettings(), Model.CriticalQuestions))" /></div>
             <div class="col-12"><partial name="_DeviceSettings" model="f" /></div>
             </div>

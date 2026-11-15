@@ -101,6 +101,13 @@ public class SoTayStudioGiaSuTests
     }
 
     [Fact]
+    public void KhuonGoiYCauHoi_CoKieuPhanTu()
+    {
+        // Lỗi gặp 15/11: SuggestionSchema là trường static khai báo trước Str nên "items" bị null → Gemini nhận khuôn hỏng.
+        Assert.Contains("\"questions\":{\"type\":\"ARRAY\",\"items\":{\"type\":\"STRING\"}}", JsonSerializer.Serialize(NotebookPrompts.SuggestionSchema));
+    }
+
+    [Fact]
     public void PdfKyHieuToan_SuaNhuNhom_KhongPhaChuThuong()
     {
         // Khoảng trắng thừa được AiGenerateService.Clean gộp ở bước sau.

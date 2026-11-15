@@ -84,6 +84,8 @@ public class AssignmentsController(
         if (!Enum.IsDefined(input.Mode)) throw new BusinessException("Chế độ giao bài không hợp lệ.");
         if (input.Mode == AssignmentMode.Test && (input.AllowQuizSelfReview || input.AllowCardSelfReview))
             throw new BusinessException("Chỉ cho phép tự ôn lại ở bài Ôn tập.");
+        if (input.Mode == AssignmentMode.Test && input.AllowOfflineCards)
+            throw new BusinessException("Chỉ bài Ôn tập có thẻ ghi nhớ mới cho ôn thẻ khi mất mạng.");
         if (!ModelState.IsValid) throw new BusinessException("Dữ liệu giao bài không hợp lệ.");
         if (input.Mode == AssignmentMode.Test && input.Form != AssignmentForm.QuizOnly) throw new BusinessException("Bài Kiểm tra chỉ có quiz, không có thẻ ghi nhớ.");
         if (input.Mode == AssignmentMode.Test && (input.MasteryThreshold != null || input.AnswersPerQuestion != null || input.ScoreRetries))
@@ -98,7 +100,7 @@ public class AssignmentsController(
             input.Form, input.StudySetId, input.RequiredParts, input.AllowFlashcardsAfterDue,
             input.MasteryThreshold, input.AnswersPerQuestion, input.ScoreRetries, input.IgnoreQuestionTimers, input.StrangerPolicy,
             input.FlashcardMode, input.CriticalSettings(), input.DeviceLock, input.MonitorScreen, input.AutoSubmitLeaves,
-            input.AllowQuizSelfReview, input.AllowCardSelfReview), UserId);
+            input.AllowQuizSelfReview, input.AllowCardSelfReview, input.AllowOfflineCards), UserId);
         Success(a.MasteryThreshold != null && a.AnswersPerQuestion != null ? "Đã giao bài. " + AssignmentService.MasteryWarning : "Đã giao bài.");
         return RedirectToAction(nameof(Details), new { id = a.Id });
     }
@@ -237,6 +239,14 @@ public class AssignmentsController(
         if (!ModelState.IsValid) throw new BusinessException("Cài đặt làm chủ không hợp lệ.");
         await assignments.ChangeMasteryAsync(id, settings, UserId);
         Success(settings.MasteryThreshold != null && settings.AnswersPerQuestion != null ? AssignmentService.MasteryWarning : "Đã đổi cài đặt làm chủ.");
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ChangeOfflineCards(int id, bool allowOfflineCards)
+    {
+        if (!ModelState.IsValid) throw new BusinessException("Lựa chọn ôn thẻ khi mất mạng không hợp lệ.");
+        await assignments.ChangeOfflineCardsAsync(id, allowOfflineCards, UserId);
         return RedirectToAction(nameof(Details), new { id });
     }
 

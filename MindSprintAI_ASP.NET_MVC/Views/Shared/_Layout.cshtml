@@ -330,6 +330,7 @@
         <script src="~/js/notifications.js" asp-append-version="true"></script>
         <script src="~/js/alarm.js" asp-append-version="true"></script>
     }
+    @if (me != null) { <script src="~/js/offline-cards.js" asp-append-version="true" data-user="@me.Id"></script> } @* gồm cả khách vào bằng mã (bài giao GV cho ôn khi mất mạng) *@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

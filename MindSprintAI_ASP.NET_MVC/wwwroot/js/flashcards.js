@@ -5,6 +5,34 @@
     const cards = [...root.querySelectorAll('.study-card')];
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let index = Number(root.dataset.start), busy = false;
+    const offline = root.dataset.offline === 'true';
+    // Bộ đếm mới do service trả về sau khi lưu đánh giá (D5b) — dùng cả khi gửi bù đánh giá lưu tạm lúc mất mạng.
+    const applyResult = result => {
+        document.getElementById('cards-studied').textContent = `${result.studied}/${result.required}`;
+        const status = document.getElementById('cards-status');
+        if (status && result.status) status.textContent = result.status;
+        if (result.dueCount != null) {
+            document.getElementById('srs-due-summary').textContent = `Hôm nay có ${result.dueCount} thẻ đến hạn ôn`;
+            document.getElementById('due-cards-link').textContent = `Ôn thẻ đến hạn hôm nay (${result.dueCount} thẻ)`;
+            document.getElementById('next-due-date').textContent = result.dueCount === 0 && result.nextDueDate
+                ? `Lần đến hạn gần nhất: ${result.nextDueDate} (giờ Việt Nam).` : '';
+        }
+    };
+    const offlineStatus = document.getElementById('offline-status');
+    const renderOffline = () => {
+        const n = window.MindSprintOfflineCards?.pending() ?? 0;
+        if (!offlineStatus) return;
+        offlineStatus.hidden = n === 0;
+        offlineStatus.textContent = n ? `${navigator.onLine ? 'Đang gửi bù' : 'Đang mất mạng'} · ${n} đánh giá lưu tạm trên máy, sẽ tự gửi khi có mạng.` : '';
+    };
+    window.addEventListener('mindsprint-offline-cards', e => {
+        const last = e.detail?.last;
+        if (last && last.fields.studySetId === root.dataset.studySet && (last.fields.assignmentId ?? '') === (root.dataset.assignment ?? '')) applyResult(last.result);
+        renderOffline();
+    });
+    window.addEventListener('offline', renderOffline);
+    window.addEventListener('online', renderOffline);
+    renderOffline();
     function show(focus = false) {
         cards.forEach((card, i) => card.classList.toggle('d-none', i !== index));
         document.getElementById('cards-ended').classList.toggle('d-none', index < cards.length);
@@ -20,28 +48,33 @@
         busy = true;
         card.setAttribute('aria-busy', 'true');
         card.querySelectorAll('button').forEach(b => b.disabled = true);
-        const form = new FormData();
-        form.set('studySetId', root.dataset.studySet);
-        form.set('assignmentId', root.dataset.assignment);
-        form.set('cardId', card.dataset.id);
-        form.set('rating', rating);
-        form.set('mode', root.dataset.mode);
-        form.set('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+        const fields = { studySetId: root.dataset.studySet, assignmentId: root.dataset.assignment, cardId: card.dataset.id, rating, mode: root.dataset.mode };
+        // Ôn khi mất mạng (người dùng chốt 15/11): tự học luôn được; bài giao chỉ khi GV bật (data-offline). Còn đánh giá chờ gửi thì
+        // xếp tiếp vào hàng đợi để giữ đúng thứ tự.
+        const queue = window.MindSprintOfflineCards;
+        const keepOffline = () => {
+            queue.enqueue(root.dataset.rateUrl, fields);
+            document.getElementById('card-error').textContent = '';
+            index++;
+            show(true);
+            queue.flush();
+        };
         try {
-            const response = await fetch(root.dataset.rateUrl, { method: 'POST', body: form, headers: { Accept: 'application/json' } });
+            if (offline && queue && (!navigator.onLine || queue.pending() > 0)) { keepOffline(); return; }
+            const form = new FormData();
+            for (const [k, v] of Object.entries(fields)) form.set(k, v ?? '');
+            form.set('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+            let response;
+            try { response = await fetch(root.dataset.rateUrl, { method: 'POST', body: form, headers: { Accept: 'application/json' } }); }
+            catch {
+                if (offline && queue) { keepOffline(); return; }
+                // (D2c, 73A) bài giao chưa cho ôn khi mất mạng: giữ quy tắc "lưu xong mới chuyển thẻ".
+                throw new Error('Mất kết nối mạng nên đánh giá chưa được lưu. Kiểm tra mạng rồi bấm lại.');
+            }
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || 'Không lưu được đánh giá.');
             document.getElementById('card-error').textContent = '';
-            document.getElementById('cards-studied').textContent = `${result.studied}/${result.required}`;
-            const status = document.getElementById('cards-status');
-            if (status && result.status) status.textContent = result.status;
-            if (result.dueCount != null) {
-                // (D5b) số mới do service trả về sau khi lưu đánh giá.
-                document.getElementById('srs-due-summary').textContent = `Hôm nay có ${result.dueCount} thẻ đến hạn ôn`;
-                document.getElementById('due-cards-link').textContent = `Ôn thẻ đến hạn hôm nay (${result.dueCount} thẻ)`;
-                document.getElementById('next-due-date').textContent = result.dueCount === 0 && result.nextDueDate
-                    ? `Lần đến hạn gần nhất: ${result.nextDueDate} (giờ Việt Nam).` : '';
-            }
+            applyResult(result);
             index++;
             show(true);
         } catch (error) { document.getElementById('card-error').textContent = error.message; }

@@ -590,6 +590,9 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                     b.Property<bool>("AllowFlashcardsAfterDue")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("AllowOfflineCards")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("AllowQuizSelfReview")
                         .HasColumnType("bit");
 

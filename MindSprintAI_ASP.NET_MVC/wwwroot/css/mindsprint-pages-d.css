@@ -671,3 +671,7 @@ main .home-review a { display: flex; align-items: center; gap: 12px; padding: 14
 .nb-notice { margin: 8px 0 0; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 30%, var(--surface)); color: var(--text); font-size: .88rem; }
 .fc-card .fc-badges { right: 16px; flex-wrap: wrap; align-items: center; } /* kéo hết chiều ngang để "Sửa thẻ" nằm góc phải */
 main a.fc-edit { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; color: var(--text-muted); font-size: .8rem; }
+/* Ôn thẻ khi mất mạng: dòng trạng thái trên thẻ + thông báo gửi bù góc dưới (trên thanh tab điện thoại). */
+.fc-offline { margin: 0 0 8px; padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 30%, var(--surface)); color: var(--text); font-size: .85rem; text-align: center; }
+.offline-toast { position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 1080; max-width: min(520px, calc(100vw - 32px)); margin: 0; padding: 10px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--text); box-shadow: var(--elev-2); transform: translateX(-50%); font-size: .9rem; }
+@media (min-width: 992px) { .offline-toast { bottom: 24px; } }

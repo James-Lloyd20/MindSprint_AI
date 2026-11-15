@@ -15,7 +15,7 @@ public partial class AccountController
     public static bool CanUseDemo(bool isDevelopment, System.Net.IPAddress? remoteAddress) => CanShowDevLink(isDevelopment, remoteAddress);
 
     [AllowAnonymous, HttpPost, ValidateAntiForgeryToken, EnableRateLimiting("account-post"), ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-    public async Task<IActionResult> DemoLogin([FromServices] TimeProvider clock, [FromServices] DemoSeedService seed)
+    public async Task<IActionResult> DemoLogin([FromServices] TimeProvider clock, [FromServices] DemoSeedService seed, [FromServices] LoginService login)
     {
         if (!CanUseDemo(env.IsDevelopment(), HttpContext.Connection.RemoteIpAddress)) return NotFound();
         var user = await users.FindByEmailAsync(DemoEmail);
@@ -27,7 +27,11 @@ public partial class AccountController
             if (!created.Succeeded) throw new BusinessException("Chưa tạo được tài khoản demo. Hãy thử lại.");
         }
         await seed.SeedIfEmptyAsync(user.Id); // chưa có bộ học nào (mới tạo, hoặc tạo trước khi có dữ liệu mẫu) → thêm dữ liệu mẫu
-        await signIn.SignInAsync(user, isPersistent: false);
+        // Đi qua bước cuối chung của mọi cách đăng nhập (mật khẩu, Google, passkey): kiểm khóa tài khoản, đăng ký phiên thiết bị
+        // (claim DeviceSession), ghi thời điểm đăng nhập và nhật ký. Trước đây gọi thẳng SignInAsync → thiếu phiên thiết bị →
+        // kênh thông báo trực tiếp (DeviceSessionHubFilter) coi như đã bị đăng xuất và từ chối (lỗi gặp 15/11).
+        var outcome = await login.CompleteAsync(user, remember: false);
+        if (!outcome.Succeeded) throw new BusinessException(outcome.Error ?? "Chưa đăng nhập được tài khoản demo. Hãy thử lại.");
         return RedirectToAction("Index", "Home");
     }
 }

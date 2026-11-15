@@ -50,7 +50,8 @@ public static class NotebookPrompts
         _ => throw new ArgumentOutOfRangeException(nameof(type))
     };
 
-    public static readonly object SuggestionSchema = Obj(new { questions = Arr(Str) }, "questions");
+    // Thuộc tính (tính lúc dùng), không phải trường static: trường static khởi tạo theo thứ tự trong tệp, lúc đó Str (dòng dưới) còn null.
+    public static object SuggestionSchema => Obj(new { questions = Arr(Str) }, "questions");
 
     // ---------- Gia sư (TutorService) ----------
     public static string Tutor(string action, string style, int? hintLevel, string inputJson)
