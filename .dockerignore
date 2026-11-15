@@ -1,0 +1,13 @@
+# Không đưa vào ảnh: kết quả build cũ, test, dữ liệu riêng trên máy dev (App_Data có mật khẩu thử, khóa mã hóa), cấu hình dev.
+**/bin/
+**/obj/
+**/App_Data/
+**/tests/
+**/TestResults/
+**/node_modules/
+**/appsettings.Development.json
+**/*.user
+graphify-out/
+.git/
+.vs/
+deploy/.env

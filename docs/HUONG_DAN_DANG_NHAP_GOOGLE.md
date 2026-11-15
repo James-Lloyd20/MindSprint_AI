@@ -22,12 +22,14 @@ Mã đã có sẵn (`Services/ExternalProviderConfig.cs`). Nút "Đăng nhập b
 
 ## 2. Đặt mã vào máy để chạy thử
 
-Mở terminal **của chính bạn** (không gõ trong cửa sổ chat với AI) tại thư mục `MindSprintAI_ASP.NET_MVC/MindSprintAI_ASP.NET_MVC`:
+Mở terminal **của chính bạn** (không gõ trong cửa sổ chat với AI) tại thư mục gốc của repo (thư mục có tệp `MindSprintAI_ASP.NET_MVC.slnx`):
 
 ```bash
-dotnet user-secrets set "Authentication:Google:ClientId" "<Client ID>"
-dotnet user-secrets set "Authentication:Google:ClientSecret" "<Client Secret>"
+dotnet user-secrets set "Authentication:Google:ClientId" "<Client ID>" --project MindSprintAI_ASP.NET_MVC
+dotnet user-secrets set "Authentication:Google:ClientSecret" "<Client Secret>" --project MindSprintAI_ASP.NET_MVC
 ```
+
+Báo lỗi "Could not find a MSBuild project file" nghĩa là đang đứng sai thư mục hoặc thiếu `--project`.
 
 User Secrets lưu ngoài thư mục project (trong hồ sơ người dùng Windows) nên không bị đưa lên GitHub. Chạy lại app → trang Đăng nhập có nút Google.
 
