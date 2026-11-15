@@ -10,9 +10,10 @@ public class DuLieuDemoTests
     public async Task TaoDuBoHocSoTayCongViecLichHoc()
     {
         using var h = new Harness(); var s = await h.ScenarioAsync(1);
-        var seed = new DemoSeedService(new ExcelImportService(h.Db, h.Library, h.Clock), new NotebookService(h.Db, null!, null!, h.Library, null!, h.Clock),
+        var seed = new DemoSeedService(h.Db, new ExcelImportService(h.Db, h.Library, h.Clock), new NotebookService(h.Db, null!, null!, h.Library, null!, h.Clock),
             new KanbanService(h.Db), new StudyScheduleService(h.Db));
-        await seed.SeedAsync(s.Student);
+        await seed.SeedIfEmptyAsync(s.Student);
+        await seed.SeedIfEmptyAsync(s.Student); // lần hai: đã có bộ học → không thêm trùng
 
         var set = h.Db.StudySets.Single(x => x.OwnerId == s.Student && x.Title == DemoSeedService.SetTitle);
         Assert.Equal(6, h.Db.Flashcards.Count(f => f.StudySetId == set.Id));

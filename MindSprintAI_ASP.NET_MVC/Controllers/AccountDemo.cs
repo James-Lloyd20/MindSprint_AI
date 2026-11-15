@@ -25,8 +25,8 @@ public partial class AccountController
                 CreatedAt = clock.GetUtcNow().UtcDateTime };
             var created = await users.CreateAsync(user);
             if (!created.Succeeded) throw new BusinessException("Chưa tạo được tài khoản demo. Hãy thử lại.");
-            await seed.SeedAsync(user.Id); // lần đầu: có sẵn bộ học, sổ tay, công việc, lịch học để trình diễn
         }
+        await seed.SeedIfEmptyAsync(user.Id); // chưa có bộ học nào (mới tạo, hoặc tạo trước khi có dữ liệu mẫu) → thêm dữ liệu mẫu
         await signIn.SignInAsync(user, isPersistent: false);
         return RedirectToAction("Index", "Home");
     }

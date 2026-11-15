@@ -137,3 +137,8 @@ git push
 4. Bản quyền từ vựng: giữ nguyên.
 5. AI tạo tối đa **100** câu/thẻ: chia đợt 25 câu mỗi lần gọi Gemini, mỗi đợt gửi kèm câu đã có để không trùng.
 6. Sổ tay AI: **chưa tạo bộ học nào cho tới khi bấm Lưu** ở trang xem trước (tạo bộ + quiz + câu cùng một giao dịch → AI lỗi hay bấm Hủy thì không để lại gì). Nhân tiện sửa lỗi nút Lưu của trang xem trước khi mở từ Sổ tay trỏ sai địa chỉ, và lỗi trang chủ với bài chỉ có thẻ ghi nhớ.
+
+## 8. Chiều 15/11: kiểm chứng phần còn lại
+- **Điện thoại 390px:** cửa sổ Chrome phóng to nên mình mở từng trang trong một khung rộng đúng 390px. 18 trang: không trang nào bị kéo ngang. Đã sửa: bỏ hàng logo riêng ở đầu trang (như ảnh nhóm 18 — menu đầy đủ vẫn mở bằng nút "Khác"), lời chào nhỏ lại, nút thẻ "Hôm nay học gì?" kéo hết chiều ngang; ô tìm/sắp xếp Thư viện kéo hết chiều ngang; Studio 2 cột; lưới Lịch học rộng hơn (cuộn ngang trong khung) để giờ không vỡ chữ. Lỗi chung tìm ra: luật "link trên điện thoại cao ≥ 44px" (`main a:not(.btn)`) đè cách xếp của nút "Bắt đầu ngay", thẻ trang chủ, link "Xem tất cả", 3 tab Luyện tập → đã sửa từng chỗ.
+- **Nút demo trên trình duyệt thật:** tìm ra lỗi — tài khoản demo tạo từ đêm qua (trước khi có dữ liệu mẫu) nên bấm demo ra tài khoản trống. Sửa: tài khoản demo chưa có bộ học nào thì tạo dữ liệu mẫu (`SeedIfEmptyAsync`). Đã bấm thử: có đủ 1 bộ học, 6 thẻ, 5 câu, 1 sổ tay, 3 việc, 2 buổi học. Bước "đồng ý điều khoản" của tài khoản demo mình không bấm thay (cần chính bạn đồng ý).
+- Mục 4 ở trên: đã xong "xem 390px", "nguồn từ link", "giải bài của Gia sư", "lưu lịch sử hỏi đáp". Còn lại: thử AI với API key thật.

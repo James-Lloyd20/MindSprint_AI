@@ -620,3 +620,21 @@ main .nb-out-head h3 { margin: 0; font-size: 1rem; font-weight: 800; }
 .study-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 12px; font-size: .8rem; color: var(--text-muted); }
 #study-modal .modal-dialog { max-width: 500px; }
 #study-modal .set-card-tag { text-transform: uppercase; font-size: .62rem; letter-spacing: .06em; }
+/* Nút "Bắt đầu ngay"/"Mở…" trong khung trang chủ: thắng luật chung `main a:not(.btn)` (inline-block) để biểu tượng mũi tên nằm sát phải. */
+main a.home-go { display: flex; }
+main .practice-tabs a, main .home-section-head a { display: inline-flex; } /* cùng lý do: biểu tượng cách chữ */
+main a.home-card { display: flex; }
+/* Điện thoại 390px theo ảnh nhóm (docs/giao-dien-nhom/18): không có hàng logo riêng (menu đầy đủ chỉ hiện khi bấm "Khác"),
+   lời chào nhỏ hơn, nút thẻ "Hôm nay học gì?" và ô tìm/sắp xếp Thư viện kéo hết chiều ngang. */
+@media (max-width: 991.98px) {
+  .has-sidebar .mindsprint-header:not(:has(.navbar-collapse.show, .navbar-collapse.collapsing)) { display: none; }
+}
+@media (max-width: 575.98px) {
+  .home-greet h1 { font-size: 1.6rem; }
+  .home-hero-actions > * { flex: 1 1 100%; justify-content: flex-start; }
+  .library-toolbar .c-library-tools { flex-basis: 100%; }
+  .library-toolbar .c-library-tools :is(.form-control, .form-select) { flex: 1 1 140px; }
+  .nb-studio-grid { grid-template-columns: 1fr 1fr; } /* 8 ô Studio thành 2 cột thay vì 8 hàng dài */
+  .schedule-grid { min-width: 820px; } /* lưới tuần cuộn ngang trong khung; cột đủ rộng để giờ "08:00 – 08:30" không vỡ chữ */
+  .schedule-slot .slot-time { white-space: nowrap; }
+}

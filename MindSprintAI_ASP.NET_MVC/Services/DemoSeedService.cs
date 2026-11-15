@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using MindSprintAI_ASP.NET_MVC.Data;
 using MindSprintAI_ASP.NET_MVC.Data.Entities;
 
 namespace MindSprintAI_ASP.NET_MVC.Services;
@@ -6,7 +8,7 @@ namespace MindSprintAI_ASP.NET_MVC.Services;
 // Dữ liệu mẫu cho tài khoản demo (chỉ Development + chính máy, xem AccountDemo.cs): bấm "Dùng thử tài khoản demo" lần đầu là có sẵn
 // một bộ học (thẻ + quiz), một sổ tay có nguồn và ghi chú, công việc và lịch học để trình diễn. Đi qua đúng các service thật
 // nên dữ liệu qua cùng kiểm tra như người dùng tự nhập. Nội dung tự viết, không lấy từ nguồn có bản quyền.
-public sealed class DemoSeedService(ExcelImportService excel, NotebookService notebooks, KanbanService kanban, StudyScheduleService schedule)
+public sealed class DemoSeedService(AppDbContext db, ExcelImportService excel, NotebookService notebooks, KanbanService kanban, StudyScheduleService schedule)
 {
     public const string SetTitle = "Demo — Sinh học tế bào";
 
@@ -28,6 +30,11 @@ public sealed class DemoSeedService(ExcelImportService excel, NotebookService no
         new { question = "Những bào quan nào có ở tế bào thực vật?", options = new[] { "Lục lạp", "Thành tế bào", "Ti thể", "Trung thể" }, correct = new[] { 1, 2, 3 }, explanation = "Trung thể chủ yếu có ở tế bào động vật." },
         new { question = "Vật chất di truyền ADN nằm chủ yếu ở đâu?", options = new[] { "Màng sinh chất", "Nhân tế bào", "Ribôxôm", "Tế bào chất" }, correct = new[] { 2 }, explanation = "" },
     ];
+
+    public async Task SeedIfEmptyAsync(string userId)
+    {
+        if (!await db.StudySets.AnyAsync(x => x.OwnerId == userId)) await SeedAsync(userId);
+    }
 
     public async Task SeedAsync(string userId)
     {
