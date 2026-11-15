@@ -1,6 +1,6 @@
 @model SourceEditModel
 @{ ViewData["Title"] = "Văn bản nguồn"; }
-<a class="btn btn-sm b-back" asp-controller="StudySets" asp-action="Index"><icon name="chevron-right" class="b-back-icon" />Quay lại Bộ học</a>
+<a class="btn btn-sm b-back" asp-controller="StudySets" asp-action="Index"><icon name="chevron-right" class="b-back-icon" />Quay lại Thư viện</a>
 <h1 class="h3 mt-2">Văn bản nguồn · @Model.Title</h1>
 <p>Mỗi bộ học có một văn bản nguồn dùng chung. Trợ lý trả lời theo phiên bản mới nhất; trích dẫn trong lịch sử giữ nguyên.</p>
 <form method="post" asp-action="Save">

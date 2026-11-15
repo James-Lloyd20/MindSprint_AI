@@ -1,58 +1,53 @@
 @model List<StudySet>
 @{
-    ViewData["Title"] = "Bộ học";
+    ViewData["Title"] = "Thư viện";
     var pendingUnhideSetIds = ViewData["PendingUnhideSetIds"] as List<int> ?? new();
     var srsDueCounts = ViewData["SrsDueCounts"] as Dictionary<int, int> ?? new();
     var dueTotal = ViewData["SrsDueTotal"] is int total ? total : 0;
     var counts = ViewData["Counts"] as Dictionary<int, StudySetCounts> ?? new();
-    var tints = new[] { "var(--acid)", "var(--pink)", "var(--ok)", "var(--warn)", "var(--blue)" };
+    // Bố cục trang Thư viện của nhóm (docs/giao-dien-nhom/04): tiêu đề trang · hàng công cụ · lưới thẻ pastel 4 cột, mỗi thẻ hai nút chính.
 }
 <div class="c-library">
-<div class="learn-head">
+<header class="page-head">
     <div>
-        <p class="eyebrow mb-2">THƯ VIỆN GIẢNG DẠY</p>
-        <h1 class="mindsprint-title mb-2">Bộ học <span class="acid-highlight">của tôi</span></h1>
-        <p class="learn-summary mb-0">@(Model.Count == 0 ? "Tạo bộ học đầu tiên để soạn thẻ ghi nhớ, văn bản nguồn và quiz." : $"Bạn đang có {Model.Count} bộ học sẵn sàng biên soạn và giao cho lớp.")</p>
+        <h1>Thư viện</h1>
+        <p>@(Model.Count == 0 ? "Tạo bộ học đầu tiên để soạn thẻ ghi nhớ, văn bản nguồn và quiz." : $"Bạn có {Model.Count} bộ học. Mở để soạn, ôn thẻ hoặc giao cho lớp.")</p>
     </div>
-    <div class="set-head-actions">
+    <div class="page-head-actions">
+        <p class="set-due-pill @(dueTotal > 0 ? "has-due" : "")" role="status"><icon name="clock" />Hôm nay có @dueTotal thẻ đến hạn ôn</p>
         <a class="btn btn-primary" href="#new-set-title"><icon name="plus" />Tạo bộ học</a>
-        <p class="set-due-pill @(dueTotal > 0 ? "has-due" : "")" role="status"><icon name="clock" />Hôm nay có @(ViewData["SrsDueTotal"] ?? 0) thẻ đến hạn ôn</p>
     </div>
-</div>
+</header>
 
-<div class="c-section-shell">
-<nav class="c-section-nav" aria-label="Thư viện bộ học">
-    <h2 class="h6">Bộ học</h2>
-    <a class="btn" aria-current="page" asp-action="Index"><icon name="book-open-text" />Tất cả bộ học (@Model.Count)</a>
-    <a class="btn" href="@Url.Content("~/StudySets/Trash")"><icon name="trash-2" />Thùng rác
+<nav class="library-toolbar" aria-label="Thư viện bộ học">
+    <a class="btn btn-primary btn-sm" aria-current="page" asp-action="Index"><icon name="layers" />Tất cả bộ học (@Model.Count)</a>
+    <a class="btn btn-secondary btn-sm" href="@Url.Content("~/StudySets/Trash")"><icon name="trash-2" />Thùng rác
         @if (ViewData["TrashCount"] is int trashCount) { <text> (@trashCount)</text> }
     </a>
+    <a class="btn btn-secondary btn-sm" asp-controller="Vocab" asp-action="Index"><icon name="book-open-text" />Thư viện từ vựng</a>
     <div class="c-library-tools" hidden>
-        <label for="library-search">Tìm bộ học<input class="form-control" type="search" id="library-search" /></label>
-        <label for="library-sort">Sắp xếp<select class="form-select" id="library-sort"><option value="new">Mới tạo</option><option value="name">Tên A–Z</option></select></label>
+        <label class="visually-hidden" for="library-search">Tìm bộ học</label>
+        <input class="form-control" type="search" id="library-search" placeholder="Tìm bộ học..." />
+        <label class="visually-hidden" for="library-sort">Sắp xếp</label>
+        <select class="form-select" id="library-sort"><option value="new">Mới tạo</option><option value="name">Tên A–Z</option></select>
     </div>
 </nav>
-<div class="c-section-content">
-<details class="c-library-create" id="tao-bo-hoc"><summary>Tạo bộ học mới</summary>
-<form method="post" asp-action="Create" class="set-create row g-3 align-items-end">
-    <div class="col-12">
-        <h2 class="section-head mb-0"><span class="section-icon" style="--tint:var(--acid)"><icon name="notebook-pen" /></span>Tạo bộ học mới</h2>
-    </div>
-    <div class="col-sm-8">
-        <label for="new-set-title" class="form-label">Tên bộ học mới</label>
+
+<details class="c-library-create" id="tao-bo-hoc"><summary><icon name="plus" />Tạo bộ học mới</summary>
+<form method="post" asp-action="Create" class="set-create">
+    <label for="new-set-title" class="form-label">Tên bộ học mới</label>
+    <div class="set-create-row">
         <input id="new-set-title" name="title" maxlength="200" class="form-control" placeholder="Ví dụ: C# — Chương 1" required />
-    </div>
-    <div class="col-sm-4">
-        <button class="btn btn-primary w-100"><icon name="plus" />Tạo bộ học</button>
+        <button class="btn btn-primary"><icon name="plus" />Tạo bộ học</button>
     </div>
 </form>
 </details>
 
 @if (Model.Count == 0)
 {
-    <div class="empty-state dot-grid">
-        <span class="section-icon" style="--tint:var(--pink)"><icon name="notebook-pen" /></span>
-        <h3>Chưa có bộ học nào</h3>
+    <div class="empty-state">
+        <span class="section-icon"><icon name="notebook-pen" /></span>
+        <h2 class="h5">Chưa có bộ học nào</h2>
         <p>Đặt tên bộ học ở khung phía trên để bắt đầu soạn thẻ ghi nhớ, lưu tài liệu nguồn và tạo quiz cho lớp.</p>
         <a class="btn btn-primary" href="#new-set-title"><icon name="plus" />Đặt tên bộ học đầu tiên</a>
     </div>
@@ -66,33 +61,17 @@ else
         var quizzes = set.Quizzes.OrderBy(q => q.CreatedAt).ToList();
         var readyCount = quizzes.Count(q => q.Status == QuizStatus.Ready);
         var dueCount = srsDueCounts.GetValueOrDefault(set.Id);
-        var initial = set.Title?.Trim().FirstOrDefault() is var ch && ch != default ? ch.ToString() : "B";
+        counts.TryGetValue(set.Id, out var tally);
         <article class="set-card c-library-row" data-library-name="@set.Title" data-library-created="@set.CreatedAt.Ticks">
             <div class="set-card-top">
-                <span class="set-initial" style="--tint:@tints[i % tints.Length]" aria-hidden="true">@initial</span>
-                <div>
-                    <h2 class="set-card-title">@set.Title</h2>
-                    @if (counts.TryGetValue(set.Id, out var tally)) { <p class="small mb-1">@tally.Questions câu hỏi · @tally.Cards thẻ · tạo @VnTime.Format(set.CreatedAt)</p> }
-                    <div class="set-stats">
-                        <span class="set-stat"><icon name="book-open-text" />@quizzes.Count quiz</span>
-                        @if (quizzes.Count > 0)
-                        {
-                            <span class="set-stat"><icon name="check" />@readyCount sẵn sàng giao</span>
-                        }
-                        @if (set.FlashcardMode == FlashcardMode.SpacedRepetition && set.HiddenByAdminAt == null)
-                        {
-                            <span class="set-stat @(dueCount > 0 ? "is-due" : "")"><icon name="clock" />Hôm nay có @dueCount thẻ đến hạn ôn</span>
-                        }
-                    </div>
-                </div>
-                <div class="c-library-actions">
-                    @if (set.HiddenByAdminAt == null) { <a class="btn btn-outline-primary" asp-controller="Assignments" asp-action="ChooseClass" asp-route-studySetId="@set.Id"><icon name="send" />Giao bài</a> }
-                    <a class="btn" asp-action="Details" asp-route-id="@set.Id">Mở</a>
+                <span class="section-icon" aria-hidden="true"><icon name="layers" /></span>
+                <span class="set-card-tag">@quizzes.Count quiz · @readyCount sẵn sàng</span>
                 <div class="dropdown">
-                    <button class="btn btn-outline-secondary set-more-btn" type="button" id="set-menu-@set.Id" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Thao tác khác cho @set.Title">
-                        <icon name="ellipsis" /><span class="set-more-label">Khác</span>
+                    <button class="btn set-more-btn" type="button" id="set-menu-@set.Id" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Thao tác khác cho @set.Title" title="Thao tác khác">
+                        <icon name="ellipsis" />
                     </button>
                     <div class="dropdown-menu dropdown-menu-end set-dropdown" aria-labelledby="set-menu-@set.Id">
+                        @if (set.HiddenByAdminAt == null) { <a class="dropdown-item" asp-controller="Assignments" asp-action="ChooseClass" asp-route-studySetId="@set.Id"><icon name="send" />Giao bài</a> }
                         <form method="post" asp-action="Rename" asp-route-id="@set.Id" class="set-rename-form">
                             <label for="set-title-@set.Id" class="form-label small mb-1">Tên bộ học</label>
                             <div class="d-flex gap-2">
@@ -109,7 +88,14 @@ else
                         </form>
                     </div>
                 </div>
-                </div>
+            </div>
+            <h2 class="set-card-title">@set.Title</h2>
+            <div class="set-card-meta">
+                <span>@(tally == null ? $"{quizzes.Count} quiz" : $"{tally.Questions} câu hỏi · {tally.Cards} thẻ")</span>
+                @if (set.FlashcardMode == FlashcardMode.SpacedRepetition && set.HiddenByAdminAt == null)
+                {
+                    <b class="@(dueCount > 0 ? "is-due" : "")">@(dueCount > 0 ? $"{dueCount} thẻ cần ôn" : "Đã ôn hết")</b>
+                }
             </div>
 
             @if (set.HiddenByAdminAt != null)
@@ -121,12 +107,15 @@ else
                 </div>
             }
 
-            <details class="c-library-extra"><summary>Quiz và tài liệu</summary>
-            <div class="set-primary-links">
-                <a class="btn btn-outline-primary" asp-controller="Flashcards" asp-action="Editor" asp-route-id="@set.Id"><icon name="layers" />Soạn và tự ôn thẻ ghi nhớ</a>
-                <a class="btn btn-outline-secondary" asp-controller="SourceTexts" asp-action="Edit" asp-route-id="@set.Id"><icon name="file-text" />Văn bản nguồn</a>
+            <div class="set-card-actions">
+                <a class="btn btn-secondary" asp-action="Details" asp-route-id="@set.Id">Mở</a>
+                <a class="btn btn-primary" asp-controller="Flashcards" asp-action="Editor" asp-route-id="@set.Id">Ôn thẻ</a>
             </div>
 
+            <details class="c-library-extra"><summary>Quiz và tài liệu</summary>
+            <div class="set-primary-links">
+                <a class="btn btn-sm btn-outline-secondary" asp-controller="SourceTexts" asp-action="Edit" asp-route-id="@set.Id"><icon name="file-text" />Văn bản nguồn</a>
+            </div>
             <div class="set-quizzes">
                 <p class="set-quizzes-label">Quiz trong bộ (@quizzes.Count)</p>
                 @if (quizzes.Count > 0)
@@ -158,8 +147,5 @@ else
     }
     </div>
 }
-
-</div>
-</div>
 </div>
 @section Scripts { <script src="~/js/library-tools.js" asp-append-version="true"></script> }

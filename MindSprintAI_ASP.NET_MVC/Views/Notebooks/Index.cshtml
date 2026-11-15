@@ -1,0 +1,156 @@
+@using MindSprintAI_ASP.NET_MVC.Controllers
+@model NotebookPage
+@{
+    ViewData["Title"] = "Sổ tay AI";
+    // Bố cục trang "Sổ tay AI" của nhóm (docs/giao-dien-nhom/06): cột "Sổ tay & Nguồn" bên trái · khung hỏi đáp · nút nhanh · ô hỏi có giọng nói.
+    var nb = Model.Current;
+}
+<header class="page-head">
+    <div>
+        <h1>Sổ tay AI</h1>
+        <p>Gom tài liệu vào một sổ tay, hỏi đáp có trích dẫn từ chính tài liệu, ghi chú và tạo bộ học để ôn.</p>
+    </div>
+</header>
+
+<div class="nb-layout">
+    <aside class="nb-panel" aria-label="Sổ tay và nguồn">
+        <h2>Sổ tay &amp; nguồn</h2>
+        @if (Model.Notebooks.Count > 0)
+        {
+            <form method="get" asp-action="Index" class="nb-pick">
+                <label class="form-label small" for="nb-select">Sổ tay đang mở</label>
+                <div class="nb-pick-row">
+                    <select class="form-select form-select-sm" id="nb-select" name="id" data-autosubmit>
+                        @foreach (var row in Model.Notebooks) { <option value="@row.Id" selected="@(row.Id == nb?.Id)">@row.Title (@row.Sources)</option> }
+                    </select>
+                    <noscript><button class="btn btn-sm btn-secondary">Mở</button></noscript>
+                </div>
+            </form>
+        }
+        <details class="nb-new" open="@(Model.Notebooks.Count == 0)">
+            <summary><icon name="plus" />Sổ tay mới</summary>
+            <form method="post" asp-action="Create" class="nb-inline">
+                <label class="visually-hidden" for="nb-title">Tên sổ tay</label>
+                <input class="form-control form-control-sm" id="nb-title" name="title" maxlength="200" placeholder="Ví dụ: Lịch sử lớp 12" />
+                <button class="btn btn-sm btn-primary">Tạo</button>
+            </form>
+        </details>
+
+        @if (nb != null)
+        {
+            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#source-modal"><icon name="plus" />Thêm nguồn</button>
+            <p class="nb-label">Nguồn tài liệu <span>@nb.Sources.Count/@NotebookService.MaxSources</span></p>
+            @if (nb.Sources.Count == 0)
+            {
+                <div class="nb-empty"><icon name="file-text" /><b>Chưa có tài liệu</b><span>Thêm tệp PDF, tệp chữ hoặc dán văn bản để AI đọc và trả lời.</span></div>
+            }
+            <ul class="nb-sources">
+                @foreach (var s in nb.Sources)
+                {
+                    <li>
+                        <icon name="@(s.Kind switch { NotebookSourceKind.Text => "notebook-pen", NotebookSourceKind.Image => "image", _ => "file-text" })" />
+                        <span><b>@s.Title</b><small>@s.Content.Length.ToString("N0") ký tự@(s.Origin != null ? " · " + s.Origin : "")</small></span>
+                        <form method="post" asp-action="DeleteSource" asp-route-id="@nb.Id" asp-route-sourceId="@s.Id" data-confirm="Xóa nguồn &quot;@s.Title&quot;?">
+                            <button class="nb-icon-btn" aria-label="Xóa nguồn @s.Title" title="Xóa nguồn"><icon name="trash-2" /></button>
+                        </form>
+                    </li>
+                }
+            </ul>
+            <form method="post" asp-action="Delete" asp-route-id="@nb.Id" data-confirm="Xóa sổ tay &quot;@nb.Title&quot; cùng mọi nguồn và ghi chú?">
+                <button class="btn btn-sm btn-outline-danger w-100"><icon name="trash-2" />Xóa sổ tay</button>
+            </form>
+        }
+    </aside>
+
+    <section class="nb-main" aria-label="Hỏi đáp theo nguồn">
+        @if (nb == null)
+        {
+            <div class="nb-hero"><span class="nb-orb" aria-hidden="true"></span><h2>Tạo sổ tay đầu tiên</h2><p>Đặt tên sổ tay ở cột bên trái, rồi thêm tài liệu để bắt đầu.</p></div>
+        }
+        else
+        {
+            <div class="nb-thread" id="nb-thread">
+                @if (Model.Answer == null)
+                {
+                    <div class="nb-hero"><span class="nb-orb" aria-hidden="true"></span><h2>Bạn muốn khám phá điều gì từ tài liệu?</h2><p>AI đọc hiểu nguồn trong sổ tay, trả lời có trích dẫn và giúp bạn tạo bộ ôn tập.</p></div>
+                }
+                else
+                {
+                    <div class="nb-q"><b>Bạn hỏi</b><p>@Model.Question</p></div>
+                    <div class="nb-a" id="nb-answer">
+                        <b>Sổ tay AI</b>
+                        <p>@Model.Answer.Answer</p>
+                        @if (Model.Answer.Citations.Count > 0)
+                        {
+                            <ol class="nb-cites">@foreach (var c in Model.Answer.Citations) { <li>“@c.ExcerptText”</li> }</ol>
+                        }
+                        <div class="nb-a-actions">
+                            <button type="button" class="btn btn-sm btn-secondary" data-speak="#nb-answer > p" hidden><icon name="message-square" />Nghe câu trả lời</button>
+                            <form method="post" asp-action="AddNote" asp-route-id="@nb.Id">
+                                <input type="hidden" name="title" value="@Model.Question" /><input type="hidden" name="content" value="@Model.Answer.Answer" />
+                                <button class="btn btn-sm btn-primary"><icon name="notebook-pen" />Lưu vào ghi chú</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="nb-chips">
+                <form method="post" asp-action="Ask" asp-route-id="@nb.Id"><input type="hidden" name="question" value="Tóm tắt các ý chính trong tài liệu." /><button class="nb-chip"><icon name="file-text" />Tóm tắt</button></form>
+                <form method="post" asp-action="Ask" asp-route-id="@nb.Id"><input type="hidden" name="question" value="Những khái niệm quan trọng nhất trong tài liệu là gì?" /><button class="nb-chip"><icon name="lightbulb" />Khái niệm chính</button></form>
+                <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id"><input type="hidden" name="kind" value="cards" /><button class="nb-chip"><icon name="layers" />Tạo thẻ ghi nhớ</button></form>
+                <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id"><input type="hidden" name="kind" value="quiz" /><button class="nb-chip"><icon name="list-checks" />Tạo trắc nghiệm</button></form>
+            </div>
+
+            <form method="post" asp-action="Ask" asp-route-id="@nb.Id" class="nb-ask">
+                <label class="visually-hidden" for="nb-question">Câu hỏi về tài liệu</label>
+                <textarea class="form-control" id="nb-question" name="question" rows="2" maxlength="1000" placeholder="Bạn muốn hỏi gì về tài liệu của mình?" required>@Model.Question</textarea>
+                <div class="nb-ask-actions">
+                    <button type="button" class="btn btn-secondary" data-voice-input hidden aria-pressed="false"><icon name="message-square" /><span>Nhập bằng giọng nói</span></button>
+                    <button class="btn btn-primary"><icon name="send" />Gửi câu hỏi</button>
+                </div>
+                <p class="nb-hint">Câu hỏi và đoạn nguồn liên quan được gửi tới Google Gemini bằng API key Gemini của bạn (trang Tài khoản). Câu trả lời chỉ dựa trên nguồn trong sổ tay.</p>
+            </form>
+
+            <section class="nb-notes" aria-labelledby="nb-notes-title">
+                <div class="home-section-head"><h2 id="nb-notes-title">Ghi chú (@nb.Notes.Count)</h2></div>
+                <details class="nb-new">
+                    <summary><icon name="plus" />Viết ghi chú</summary>
+                    <form method="post" asp-action="AddNote" asp-route-id="@nb.Id" class="nb-note-form">
+                        <label class="visually-hidden" for="note-title">Tiêu đề ghi chú</label>
+                        <input class="form-control form-control-sm" id="note-title" name="title" maxlength="200" placeholder="Tiêu đề" />
+                        <label class="visually-hidden" for="note-content">Nội dung ghi chú</label>
+                        <textarea class="form-control form-control-sm" id="note-content" name="content" rows="3" maxlength="20000" required></textarea>
+                        <button class="btn btn-sm btn-primary">Lưu ghi chú</button>
+                    </form>
+                </details>
+                <ul class="nb-note-list">
+                    @foreach (var n in nb.Notes)
+                    {
+                        <li><div><b>@n.Title</b><p>@n.Content</p></div>
+                            <form method="post" asp-action="DeleteNote" asp-route-id="@nb.Id" asp-route-noteId="@n.Id" data-confirm="Xóa ghi chú này?"><button class="nb-icon-btn" aria-label="Xóa ghi chú @n.Title" title="Xóa ghi chú"><icon name="trash-2" /></button></form></li>
+                    }
+                </ul>
+            </section>
+        }
+    </section>
+</div>
+
+@if (nb != null)
+{
+    <div class="modal fade" id="source-modal" tabindex="-1" aria-labelledby="source-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+            <form method="post" asp-action="AddSource" asp-route-id="@nb.Id" enctype="multipart/form-data">
+                <div class="modal-header"><h2 class="modal-title fs-5" id="source-modal-title">Thêm nguồn</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label" for="source-title">Tên nguồn (không bắt buộc)</label><input class="form-control" id="source-title" name="title" maxlength="200" /></div>
+                    <div class="mb-3"><label class="form-label" for="source-file">Tệp PDF, tệp chữ hoặc ảnh đề bài (tối đa 10 MB)</label><input class="form-control" id="source-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes.Concat(NotebookService.ImageTypes))" /><small class="text-muted">Ảnh: AI đọc và chép lại chữ trong ảnh (dùng API key Gemini của bạn), ảnh không được lưu.</small></div>
+                    <div><label class="form-label" for="source-text">Hoặc dán văn bản</label><textarea class="form-control" id="source-text" name="text" rows="6" maxlength="@NotebookService.MaxCharsPerSource"></textarea></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary">Thêm nguồn</button></div>
+            </form>
+        </div></div>
+    </div>
+}
+
+@section Scripts { <script src="~/js/notebook.js" asp-append-version="true"></script> }

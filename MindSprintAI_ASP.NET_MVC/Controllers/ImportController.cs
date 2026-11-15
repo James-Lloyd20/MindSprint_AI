@@ -29,6 +29,19 @@ public class ImportController(ExcelImportService excel) : AppController
         return View(await excel.PreviewAsync(id, buffer.ToArray(), file.FileName, UserId));
     }
 
+    // Tạo bằng AI (MindSprint-AI-D-n AiController): tệp hoặc chữ dán → bản nháp trong cùng trang xem trước, chưa lưu gì.
+    [HttpPost, RequestSizeLimit(AiGenerateService.MaxFileBytes + 1024 * 1024), RequestFormLimits(MultipartBodyLengthLimit = AiGenerateService.MaxFileBytes + 1024 * 1024)]
+    public async Task<IActionResult> AiPreview(int id, string? text, IFormFile? file, int count = 10, string kind = "quiz",
+        [FromServices] AiGenerateService? ai = null)
+    {
+        ai ??= HttpContext.RequestServices.GetRequiredService<AiGenerateService>();
+        if (file is { Length: > 0 }) text = await AiGenerateService.ExtractAsync(file) + "\n\n" + text;
+        return View("Preview", await ai.GenerateAsync(id, text, count, kind == "cards", UserId));
+    }
+
+    [HttpGet, ActionName("AiPreview")]
+    public IActionResult AiPreviewAgain(int id) => RedirectToAction(nameof(Index), new { id });
+
     // Trang xem trước chỉ có sau khi gửi tệp; mở lại bằng địa chỉ (tải lại, quay lại) thì về trang chọn tệp thay vì trang lỗi.
     [HttpGet, ActionName("Preview")]
     public IActionResult PreviewAgain(int id) => RedirectToAction(nameof(Index), new { id });

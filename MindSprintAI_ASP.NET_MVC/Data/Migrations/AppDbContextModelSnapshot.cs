@@ -1790,6 +1790,101 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                     b.ToTable("KnownDevices");
                 });
 
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.Notebook", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notebooks");
+                });
+
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.NotebookNote", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NotebookId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NotebookId");
+
+                    b.ToTable("NotebookNotes");
+                });
+
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.NotebookSource", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NotebookId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Origin")
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NotebookId");
+
+                    b.ToTable("NotebookSources");
+                });
+
             modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.Notification", b =>
                 {
                     b.Property<long>("Id")
@@ -2447,6 +2542,45 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                     b.ToTable("StudySets");
                 });
 
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.StudySlot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("Topic")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "DayOfWeek", "StartTime");
+
+                    b.ToTable("StudySlots");
+                });
+
             modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.UnhideRequest", b =>
                 {
                     b.Property<int>("Id")
@@ -3009,6 +3143,37 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.Notebook", b =>
+                {
+                    b.HasOne("MindSprintAI_ASP.NET_MVC.Data.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.NotebookNote", b =>
+                {
+                    b.HasOne("MindSprintAI_ASP.NET_MVC.Data.Entities.Notebook", "Notebook")
+                        .WithMany("Notes")
+                        .HasForeignKey("NotebookId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Notebook");
+                });
+
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.NotebookSource", b =>
+                {
+                    b.HasOne("MindSprintAI_ASP.NET_MVC.Data.Entities.Notebook", "Notebook")
+                        .WithMany("Sources")
+                        .HasForeignKey("NotebookId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Notebook");
+                });
+
             modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.Notification", b =>
                 {
                     b.HasOne("MindSprintAI_ASP.NET_MVC.Data.Entities.ApplicationUser", null)
@@ -3197,6 +3362,15 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.StudySlot", b =>
+                {
+                    b.HasOne("MindSprintAI_ASP.NET_MVC.Data.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.UnhideRequest", b =>
                 {
                     b.HasOne("MindSprintAI_ASP.NET_MVC.Data.Entities.ApplicationUser", null)
@@ -3273,6 +3447,13 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
             modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.Classroom", b =>
                 {
                     b.Navigation("Members");
+                });
+
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.Notebook", b =>
+                {
+                    b.Navigation("Notes");
+
+                    b.Navigation("Sources");
                 });
 
             modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.Participant", b =>

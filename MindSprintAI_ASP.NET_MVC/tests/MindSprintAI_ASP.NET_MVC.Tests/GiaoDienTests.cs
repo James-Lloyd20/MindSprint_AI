@@ -178,7 +178,7 @@ public class GiaoDienTests
         Assert.Single(Regex.Matches(home, @"<h1\b", RegexOptions.IgnoreCase).Cast<Match>());
         Assert.Contains("ViewData[\"Description\"]", home);
         Assert.Contains("ViewData[\"OgImage\"]", home);
-        foreach (var text in new[] { "Hôm nay học gì?", "Tiến độ của bạn", "Việc hôm nay", "Bộ học của bạn", "Góc học tập của bạn" }) Assert.Contains(text, home);
+        foreach (var text in new[] { "Hôm nay học gì?", "Tiến độ hôm nay", "Việc hôm nay", "Bộ học của bạn", "Góc học tập của bạn" }) Assert.Contains(text, home);
         // Khách (model null) chỉ thấy lời chào, thẻ "Hôm nay học gì?" và góc học tập; số liệu cá nhân nằm trong nhánh Model != null.
         Assert.Contains("@if (Model == null)", home);
         Assert.Contains("@if (Model != null)", home);
@@ -192,8 +192,8 @@ public class GiaoDienTests
     [Fact]
     public void AnhCoKichThuocChuThayTheVaNguonCongKhai()
     {
-        // Trang chủ kiểu nhóm không có ảnh chụp; nó vẫn giữ khối "Nguồn ảnh" cho ảnh chia sẻ link và ảnh các trang khác.
-        var sources = new[] { "Views/Home/Index.cshtml", "Views/Account/Login.cshtml", "Views/Account/Register.cshtml" }.Select(Read).ToArray();
+        // MindSprint 15/11 (người dùng chốt): khối "Nguồn ảnh" chuyển từ trang chủ sang trang Chính sách, mục 12.
+        var sources = new[] { "Views/Home/Privacy.cshtml", "Views/Account/Login.cshtml", "Views/Account/Register.cshtml" }.Select(Read).ToArray();
         Assert.Contains("Nguồn ảnh", sources[0]);
         Assert.Contains("https://creativecommons.org/publicdomain/zero/1.0/", sources[0]);
         foreach (var source in sources.Skip(1))
@@ -211,7 +211,7 @@ public class GiaoDienTests
             }
         }
         var home = sources[0];
-        var credits = home[(home.IndexOf("@section PhotoCredits", StringComparison.Ordinal))..];
+        var credits = home[home.IndexOf("id=\"nguon-anh\"", StringComparison.Ordinal)..];
         foreach (Match image in Regex.Matches(home, "<img[^>]*src=\"~/img/landing/([^\"]+)\"")) Assert.Contains(image.Groups[1].Value, credits);
         Assert.Contains("Jan Kahánek", home);
         Assert.All(sources.Skip(1), s => { Assert.Contains("Joanna Kosinska", s); Assert.Contains("d-none d-lg-block", s); });
@@ -344,8 +344,8 @@ public class GiaoDienTests
     public void MoiAnhLandingCoTrongDanhMucVaKhoiNguonAnh()
     {
         var manifest = Read("wwwroot/img/landing/credits.json");
-        var home = Read("Views/Home/Index.cshtml");
-        var credits = home[home.IndexOf("@section PhotoCredits", StringComparison.Ordinal)..];
+        var home = Read("Views/Home/Privacy.cshtml");
+        var credits = home[home.IndexOf("id=\"nguon-anh\"", StringComparison.Ordinal)..];
         foreach (var path in Files("wwwroot/img/landing").Where(p => Regex.IsMatch(p, @"\.(webp|png|jpe?g|svg)$", RegexOptions.IgnoreCase)))
         {
             var name = Path.GetFileName(path);

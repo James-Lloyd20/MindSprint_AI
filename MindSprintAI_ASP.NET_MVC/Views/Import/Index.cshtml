@@ -16,3 +16,22 @@
     <input class="form-control mb-3" id="excel-file" name="file" type="file" accept=".xlsx" required />
     <button class="btn btn-primary">Xem trước</button>
 </form>
+
+@* Tạo bằng AI (chuyển từ nhóm): AI soạn nháp từ tài liệu → cùng trang xem trước như nhập Excel, bạn sửa/bỏ dòng rồi mới lưu. *@
+<section class="ai-generate" aria-labelledby="ai-generate-title">
+    <h2 class="h5" id="ai-generate-title"><icon name="sparkles" />Tạo bằng AI từ tài liệu</h2>
+    <p class="small text-muted">Dán đoạn văn hoặc tải tệp PDF hay tệp chữ TXT, MD, CSV (tối đa 10 MB, đọc tối đa @AiGenerateService.MaxChars.ToString("N0") ký tự). AI dùng <b>API key Gemini của bạn</b> (trang Tài khoản) và chỉ tạo bản nháp: bạn xem lại, sửa hoặc bỏ từng dòng trước khi lưu.</p>
+    <form method="post" asp-action="AiPreview" asp-route-id="@Model" enctype="multipart/form-data">
+        <div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="ai-kind">Tạo</label>
+                <select class="form-select" id="ai-kind" name="kind"><option value="quiz">Câu hỏi trắc nghiệm</option><option value="cards">Thẻ ghi nhớ</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="ai-count">Số lượng (1–@AiGenerateService.MaxCount)</label>
+                <input class="form-control" id="ai-count" name="count" type="number" min="1" max="@AiGenerateService.MaxCount" value="10" /></div>
+            <div class="col-12"><label class="form-label" for="ai-file">Tệp tài liệu (không bắt buộc)</label>
+                <input class="form-control" id="ai-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes)" /></div>
+            <div class="col-12"><label class="form-label" for="ai-text">Hoặc dán nội dung</label>
+                <textarea class="form-control" id="ai-text" name="text" rows="6" maxlength="@AiGenerateService.MaxChars" placeholder="Dán đoạn bài học, ghi chú hoặc tài liệu..."></textarea></div>
+        </div>
+        <button class="btn btn-primary mt-3"><icon name="sparkles" />Tạo bản nháp bằng AI</button>
+    </form>
+</section>

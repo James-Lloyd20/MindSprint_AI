@@ -53,6 +53,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<ReminderDigest> ReminderDigests => Set<ReminderDigest>();
     public DbSet<KnownDevice> KnownDevices => Set<KnownDevice>();
     public DbSet<KanbanTask> KanbanTasks => Set<KanbanTask>();
+    public DbSet<StudySlot> StudySlots => Set<StudySlot>();
+    public DbSet<Notebook> Notebooks => Set<Notebook>();
+    public DbSet<NotebookSource> NotebookSources => Set<NotebookSource>();
+    public DbSet<NotebookNote> NotebookNotes => Set<NotebookNote>();
 
     // SQL Server trả datetime2 không kèm múi giờ; đánh dấu lại là UTC để khi gửi ra trình duyệt
     // (ToString("O") có chữ Z) không bị hiểu nhầm thành giờ máy, lệch 7 tiếng.
@@ -140,6 +144,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         {
             e.Property(x => x.UserId).HasMaxLength(450);
             e.HasIndex(x => new { x.UserId, x.VietnamDate }).IsUnique();
+        });
+        b.Entity<Notebook>(e =>
+        {
+            e.Property(x => x.UserId).HasMaxLength(450);
+            e.Property(x => x.Title).HasMaxLength(200);
+            e.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.UserId);
+            e.HasIndex(x => x.UserId);
+            e.HasMany(x => x.Sources).WithOne(x => x.Notebook).HasForeignKey(x => x.NotebookId); // quy ước cuối file: không xóa dây chuyền → xóa nguồn/ghi chú trước
+            e.HasMany(x => x.Notes).WithOne(x => x.Notebook).HasForeignKey(x => x.NotebookId);
+        });
+        b.Entity<NotebookSource>(e => { e.Property(x => x.Title).HasMaxLength(200); e.Property(x => x.Origin).HasMaxLength(260); });
+        b.Entity<NotebookNote>(e => e.Property(x => x.Title).HasMaxLength(200));
+        b.Entity<StudySlot>(e =>
+        {
+            e.Property(x => x.UserId).HasMaxLength(450);
+            e.Property(x => x.Note).HasMaxLength(40);
+            e.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.UserId);
+            e.HasIndex(x => new { x.UserId, x.DayOfWeek, x.StartTime });
         });
         b.Entity<KanbanTask>(e =>
         {

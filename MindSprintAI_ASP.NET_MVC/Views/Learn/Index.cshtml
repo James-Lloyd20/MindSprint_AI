@@ -1,6 +1,6 @@
 @model List<Assignment>
 @{
-    ViewData["Title"] = "Bài của tôi";
+    ViewData["Title"] = "Luyện tập";
     var participations = (List<Participant>)ViewData["Participations"]!;
     var classes = (List<ClassMember>)ViewData["Classes"]!;
     CompletionStatus StatusOf(Assignment a) => participations.FirstOrDefault(x => x.AssignmentId == a.Id)?.CompletionStatus ?? CompletionStatus.NotStarted;
@@ -24,7 +24,7 @@
 }
 <div class="learn-head">
     <div>
-        <h1 class="mindsprint-title mb-2">Bài của tôi</h1>
+        <h1 class="mindsprint-title mb-2">Luyện tập</h1>
         <p class="learn-summary mb-0">
             @if (Model.Count == 0)
             {
@@ -44,7 +44,11 @@
             <p class="learn-progress-label">@done.Count/@Model.Count bài đã xong</p>
         }
     </div>
-    <a class="btn btn-primary" asp-controller="Classrooms" asp-action="Join"><icon name="ticket" />Tham gia bằng mã</a>
+    <div class="page-head-actions">
+        <a class="btn btn-secondary" asp-controller="Vocab" asp-action="Practice"><icon name="list-checks" />Trắc nghiệm từ vựng</a>
+        <a class="btn btn-secondary" asp-controller="Vocab" asp-action="Game"><icon name="play" />Game ghép thẻ</a>
+        <a class="btn btn-primary" asp-controller="Classrooms" asp-action="Join"><icon name="ticket" />Tham gia bằng mã</a>
+    </div>
 </div>
 
 @if (Model.Count == 0 && classes.Count == 0)

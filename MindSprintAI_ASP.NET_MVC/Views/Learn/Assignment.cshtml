@@ -7,7 +7,7 @@
     var picked = Model.Score;
 }
 <div class="b-learner">
-@if (!GuestAccess.IsGuest(User)) { <a class="btn btn-sm b-back" asp-action="Index"><icon name="chevron-right" class="b-back-icon" />Quay lại Bài của tôi</a> }
+@if (!GuestAccess.IsGuest(User)) { <a class="btn btn-sm b-back" asp-action="Index"><icon name="chevron-right" class="b-back-icon" />Quay lại Luyện tập</a> }
 <header class="b-learner-head">
     <h1 class="mindsprint-title">@(a.Quiz?.Title ?? "Thẻ ghi nhớ")</h1>
     <div class="b-actions mb-3"><span class="badge bg-info">@DisplayText.Of(a.Mode)</span><span>@DisplayText.Of(a.Form)</span>@if (a.Classroom != null) { <span>· @a.Classroom.Name</span> }</div>

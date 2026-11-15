@@ -47,14 +47,14 @@
     {
         <div class="home-row">
             <section class="home-panel" aria-labelledby="home-progress-title">
-                <div class="home-panel-head"><h2 id="home-progress-title">Tiến độ của bạn</h2><a asp-controller="Kanban" asp-action="Index">Bảng công việc</a></div>
+                @* Như nhóm: Chuỗi học · Thẻ đã ôn · Độ chính xác (của hôm nay), tính từ hoạt động thật (StudyStatsService). *@
+                <div class="home-panel-head"><h2 id="home-progress-title">Tiến độ hôm nay</h2><a asp-controller="Schedule" asp-action="Index">Lịch học</a></div>
                 <div class="home-progress">
                     <div class="home-ring" style="--p: @Model.TaskPercent" role="img" aria-label="Đã xong @Model.TaskPercent% công việc"><strong>@Model.TaskPercent%</strong><span>việc đã xong</span></div>
                     <dl class="home-stats">
-                        <div><dt><icon name="layers" />Thẻ cần ôn</dt><dd>@Model.CardsDue thẻ</dd></div>
-                        @if (Model.Lecturer) { <div><dt><icon name="play" />Bài đang mở</dt><dd>@Model.Teaching!.Open.Count bài</dd></div> }
-                        else { <div><dt><icon name="list-checks" />Bài cần làm</dt><dd>@Model.Todo.Count bài</dd></div> }
-                        <div><dt><icon name="square-kanban" />Công việc</dt><dd>@Model.TasksDone/@Model.TasksTotal</dd></div>
+                        <div><dt><icon name="sparkles" />Chuỗi học</dt><dd>@Model.Streak.Current ngày</dd></div>
+                        <div><dt><icon name="layers" />Thẻ đã ôn</dt><dd>@Model.Study.CardsReviewed thẻ</dd></div>
+                        <div><dt><icon name="target" />Độ chính xác</dt><dd>@(Model.Study.Answered == 0 ? "—" : $"{Model.Study.Accuracy}%")</dd></div>
                     </dl>
                 </div>
             </section>
@@ -146,16 +146,8 @@
             <a class="home-card" asp-controller="StudySets" asp-action="Index"><span class="section-icon"><icon name="layers" /></span><strong>Thư viện</strong><span>Gom kiến thức thành những bộ học dễ ôn lại.</span><b>Mở thư viện →</b></a>
             <a class="home-card" asp-controller="Learn" asp-action="Index"><span class="section-icon"><icon name="square-pen" /></span><strong>Luyện tập</strong><span>Làm bài lớp giao và xem lại câu cần chú ý.</span><b>Mở luyện tập →</b></a>
             <a class="home-card" asp-controller="Classrooms" asp-action="Index"><span class="section-icon"><icon name="users" /></span><strong>Lớp học</strong><span>Vào lớp bằng mã, nhận bài và thông báo của lớp.</span><b>Mở lớp học →</b></a>
-            <a class="home-card" asp-controller="Kanban" asp-action="Index"><span class="section-icon"><icon name="square-kanban" /></span><strong>Công việc</strong><span>Sắp xếp việc cần làm và theo dõi hạn hoàn thành.</span><b>Mở công việc →</b></a>
+            <a class="home-card" asp-controller="Schedule" asp-action="Index"><span class="section-icon"><icon name="calendar" /></span><strong>Lịch học</strong><span>Dành thời gian cho từng môn trong tuần.</span><b>Mở lịch học →</b></a>
         </div>
     </section>
 </div>
 
-@section PhotoCredits {
-    <div class="home-photo-credits" aria-labelledby="photo-credits-title">
-        <h2 class="h6" id="photo-credits-title">Nguồn ảnh</h2>
-        <p class="small mb-0">Tranh minh họa tạo bằng AI: <a href="~/img/landing/study-ai-solo.webp">tranh ở trang Luyện tập</a>.</p>
-        <p class="small mb-0"><a href="https://commons.wikimedia.org/wiki/File:Tabel_day_1_(Unsplash).jpg">Sổ tay · Jan Kahánek</a> · <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a> · <a href="~/img/landing/photo-d183.webp">ảnh hiện khi chia sẻ link</a>.</p>
-        <p class="small mb-0"><a href="https://commons.wikimedia.org/wiki/File:Minimal_pencils_on_yellow_(Unsplash).jpg">Bút chì · Joanna Kosinska</a> · <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a> · <a href="~/img/landing/photo-c822.webp">ảnh ở trang Đăng nhập và Đăng ký</a>.</p>
-    </div>
-}

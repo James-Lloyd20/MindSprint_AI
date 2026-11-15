@@ -40,7 +40,7 @@ public class RekalDashboardTests
         var user = await users.FindByIdAsync(s.Lecturer); user!.CurrentMode = UserMode.Lecturer; await h.Db.SaveChangesAsync();
         var controller = new HomeController(users) { ControllerContext = new() { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, s.Lecturer)], "test")) } } };
         // MindSprint 15/11 (người dùng chốt): một trang chủ kiểu nhóm cho cả hai chế độ, số liệu theo chế độ đang dùng.
-        var home = new HomeService(h.Assignments, h.Attempts, h.Library, new KanbanService(h.Db), h.Clock);
+        var home = new HomeService(h.Assignments, h.Attempts, h.Library, new KanbanService(h.Db), new StudyStatsService(h.Db, h.Clock), h.Clock);
         var lecturerView = Assert.IsType<HomeDashboard>(Assert.IsType<ViewResult>(await controller.Index(home)).Model);
         Assert.True(lecturerView.Lecturer);
         Assert.Single(lecturerView.Teaching!.Open);
@@ -63,7 +63,7 @@ public class RekalDashboardTests
         await kanban.CreateAsync(s.Student, new("Đang làm", null, null, null, KanbanStatus.Doing));
         await kanban.CreateAsync(s.Student, new("Chưa làm", null, null));
         await kanban.CreateAsync(s.Student, new("Xong", null, null, null, KanbanStatus.Done));
-        var view = await new HomeService(h.Assignments, h.Attempts, h.Library, kanban, h.Clock).GetAsync(student!);
+        var view = await new HomeService(h.Assignments, h.Attempts, h.Library, kanban, new StudyStatsService(h.Db, h.Clock), h.Clock).GetAsync(student!);
         Assert.Equal(s.Assignment.Id, Assert.Single(view.Todo).Id);
         Assert.Equal(["Đang làm", "Chưa làm"], view.Tasks.Select(t => t.Title));  // việc đang làm lên trước, việc xong không hiện
         Assert.Equal((3, 1, 33), (view.TasksTotal, view.TasksDone, view.TaskPercent));

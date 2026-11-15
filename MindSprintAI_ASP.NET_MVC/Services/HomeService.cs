@@ -5,14 +5,16 @@ namespace MindSprintAI_ASP.NET_MVC.Services;
 public record HomeSet(int Id, string Title, int Quizzes, int Due);
 
 // Trang chủ kiểu nhóm (docs/giao-dien-nhom/01–03), chỉ hiện số liệu thật: bài cần làm, thẻ đến hạn ôn, công việc Kanban, bộ học.
-// Chuỗi ngày học/mục tiêu ngày của nhóm cần Lịch học — thêm khi chuyển Lịch học, không hiện số giả.
+// Chuỗi ngày học + thẻ đã ôn + độ chính xác hôm nay lấy từ StudyStatsService (hoạt động thật, không do trình duyệt khai).
 public record HomeDashboard(string Name, string Greeting, DateOnly Today, bool Lecturer, LecturerDashboard? Teaching,
-    IReadOnlyList<Assignment> Todo, int CardsDue, IReadOnlyList<KanbanTask> Tasks, int TasksTotal, int TasksDone, IReadOnlyList<HomeSet> Sets)
+    IReadOnlyList<Assignment> Todo, int CardsDue, IReadOnlyList<KanbanTask> Tasks, int TasksTotal, int TasksDone, IReadOnlyList<HomeSet> Sets,
+    StudyStreak Streak, StudyToday Study)
 {
     public int TaskPercent => TasksTotal == 0 ? 0 : TasksDone * 100 / TasksTotal;
 }
 
-public sealed class HomeService(AssignmentService assignments, AttemptService attempts, StudyLibraryService library, KanbanService kanban, TimeProvider clock)
+public sealed class HomeService(AssignmentService assignments, AttemptService attempts, StudyLibraryService library, KanbanService kanban,
+    StudyStatsService stats, TimeProvider clock)
 {
     public async Task<HomeDashboard> GetAsync(ApplicationUser user)
     {
@@ -27,7 +29,8 @@ public sealed class HomeService(AssignmentService assignments, AttemptService at
         // Việc chưa xong: đang làm trước, rồi chưa bắt đầu; mỗi cột giữ thứ tự người dùng đã sắp.
         var open = tasks.Where(t => t.Status != KanbanStatus.Done).OrderByDescending(t => t.Status == KanbanStatus.Doing).ThenBy(t => t.Position).Take(3).ToList();
         return new(user.DisplayName, AssignmentService.LecturerGreeting(now), VnTime.Date(now), lecturer, teaching,
-            todo, due.Total, open, tasks.Count, tasks.Count(t => t.Status == KanbanStatus.Done), sets);
+            todo, due.Total, open, tasks.Count, tasks.Count(t => t.Status == KanbanStatus.Done), sets,
+            await stats.StreakAsync(user.Id), await stats.TodayAsync(user.Id));
     }
 
     // Cùng quy tắc nhóm "Cần làm" của Learn/Index: chưa hoàn thành, chưa nộp chờ điểm, chưa quá hạn; kiểm tra trước, hạn gần trước.
