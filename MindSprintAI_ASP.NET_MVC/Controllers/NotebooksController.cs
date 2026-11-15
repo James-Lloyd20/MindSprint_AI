@@ -68,6 +68,15 @@ public class NotebooksController(NotebookService notebooks) : AppController
     public async Task<IActionResult> Studio(int id, string? type, string? focus, [FromServices] NotebookAiService ai) =>
         Json(new { type, result = await ai.StudioAsync(id, type, focus, UserId) });
 
+    // Studio Flashcard/Trắc nghiệm làm thử tại chỗ; "rows" là bản nháp để gửi tiếp sang Import/Recheck khi muốn lưu thành bộ học.
+    [HttpPost]
+    public async Task<IActionResult> StudioItems(int id, string kind = "quiz")
+    {
+        var cards = kind == "cards";
+        var preview = await notebooks.CreateStudySetAsync(id, 10, cards, UserId);
+        return Json(new { kind = cards ? "cards" : "quiz", preview.NewSetTitle, preview.FileName, preview.Notice, rows = preview.Rows, items = Services.StudioItems.From(preview, cards) });
+    }
+
     [HttpPost]
     public async Task<IActionResult> Tutor(int id, [FromBody] TutorInput input, [FromServices] NotebookAiService ai) =>
         Json(await ai.TutorAsync(id, input, UserId));

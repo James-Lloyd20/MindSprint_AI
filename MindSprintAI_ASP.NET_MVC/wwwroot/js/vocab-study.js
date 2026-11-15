@@ -27,7 +27,8 @@
     };
     const go = step => { index = (index + step + cards.length) % cards.length; flipped = false; render(); };
 
-    $('[data-study-card]').addEventListener('click', () => { flipped = !flipped; render(); });
+    const card = $('[data-study-card]');
+    card.addEventListener('click', () => (window.MindSprintFlip ?? ((_, f) => f()))(card, () => { flipped = !flipped; render(); }));
     modal.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => go(Number(b.dataset.step))));
     modal.querySelectorAll('[data-rate]').forEach(b => b.addEventListener('click', () => {
         known[cards[index].front] = Number(b.dataset.rate);

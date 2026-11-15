@@ -70,16 +70,52 @@
         }
     };
 
-    let slots = null;
-    const check = async () => {
-        if (!settings.enabled) return;
-        if (!slots) {
-            try {
-                const res = await fetch('/Schedule/Slots', { headers: { 'Accept': 'application/json' } });
-                slots = res.ok && res.headers.get('content-type')?.includes('json') ? await res.json() : [];
-            } catch { slots = []; }
+    // Học bù (checkMakeupStudyAlert/showMakeupModal của nhóm): giờ học hôm nay đã kết thúc trong lúc không mở MindSprint AI
+    // (tắt máy, khóa màn hình) → mở lại thì hiện "Học bù ngay". Như nhóm: chỉ xét trong cùng ngày, không cần bật chuông.
+    // Khác nhóm (MVC tải lại trang khi chuyển trang): chỉ coi là "đã không mở" khi lần kiểm trước cách đây hơn 2 phút.
+    const lastKey = 'mindsprint-alarm-last-check';
+    const makeupDialog = slot => {
+        let dialog = document.getElementById('makeup-dialog');
+        if (!dialog) {
+            dialog = document.createElement('dialog');
+            dialog.id = 'makeup-dialog';
+            dialog.className = 'alarm-dialog';
+            dialog.setAttribute('aria-labelledby', 'makeup-dialog-title');
+            dialog.innerHTML = `<div class="alarm-bell" aria-hidden="true"><svg class="icon"><use href="#i-clock"></use></svg></div>
+                <h2 id="makeup-dialog-title">Bạn đã lỡ giờ học</h2>
+                <p class="alarm-makeup-text"></p>
+                <button type="button" class="btn btn-primary btn-lg" data-makeup-go>Học bù ngay bây giờ</button>
+                <button type="button" class="btn btn-secondary" data-makeup-later>Để sau</button>`;
+            dialog.querySelector('[data-makeup-go]').addEventListener('click', () => { dialog.close(); location.href = '/Learn'; });
+            dialog.querySelector('[data-makeup-later]').addEventListener('click', () => dialog.close());
+            document.body.append(dialog);
         }
+        dialog.querySelector('.alarm-makeup-text').textContent =
+            `Giờ học ${slot.topic}${slot.note ? ' (' + slot.note + ')' : ''} lúc ${slot.start} – ${slot.end} hôm nay đã trôi qua trong lúc bạn không mở MindSprint AI. Dành ít phút học bù nhé.`;
+        if (!dialog.open) dialog.showModal();
+    };
+    const minutes = hhmm => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));
+
+    let slots = null;
+    const loadSlots = async () => {
+        if (slots) return slots;
+        try {
+            const res = await fetch('/Schedule/Slots', { headers: { 'Accept': 'application/json' } });
+            slots = res.ok && res.headers.get('content-type')?.includes('json') ? await res.json() : [];
+        } catch { slots = []; }
+        return slots;
+    };
+    const check = async () => {
         const now = new Date(), time = `${pad(now.getHours())}:${pad(now.getMinutes())}`, seen = done();
+        const day = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`, last = read(lastKey, '');
+        write(lastKey, `${day} ${time}`);
+        const lastTime = last.startsWith(day + ' ') ? last.slice(day.length + 1) : null;
+        if (lastTime && minutes(time) - minutes(lastTime) > 2) {
+            const missed = (await loadSlots()).find(s => s.day === now.getDay() && s.end > lastTime && s.end <= time && !seen.has(s.id));
+            if (missed) { seen.add(missed.id); write(todayKey(), JSON.stringify([...seen])); makeupDialog(missed); return; }
+        }
+        if (!settings.enabled) return;
+        await loadSlots();
         for (const slot of slots) {
             if (slot.day !== now.getDay() || time < slot.start || time >= slot.end || seen.has(slot.id)) continue;
             seen.add(slot.id);

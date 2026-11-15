@@ -13,6 +13,26 @@ public record TutorInput(string? Question, string Action = "solve", string Style
 // Studio (8 loại tài liệu), gợi ý câu hỏi và Gia sư của Sổ tay AI — chuyển từ MindSprint-AI-D-n NotebookAi + TutorService.
 // Khác nhóm: dùng API key Gemini của chính người dùng (như mọi chức năng AI của QuizEdu); Flashcard/Trắc nghiệm của Studio
 // đi qua trang xem trước nhập (NotebookService.CreateStudySetAsync) thay vì lưu thẳng.
+// Studio "Flashcard"/"Trắc nghiệm" làm thử tại chỗ như nhóm (notebook.js quizHtml/pickAnswer): chỉ các dòng bản nháp đã qua
+// ExcelTemplate.ValidateRows (không lỗi). Correct là chỉ số 0-based trong Options. "Lưu thành bộ học" gửi lại đúng các dòng này
+// tới Import/Recheck → máy chủ kiểm tra lại toàn bộ → trang xem trước → Lưu (không gọi AI lần hai).
+public record StudioItem(string Front, string Back, IReadOnlyList<string> Options, IReadOnlyList<int> Correct, string? Explanation);
+
+public static class StudioItems
+{
+    public static List<StudioItem> From(ImportPreview preview, bool cards) => preview.Rows.Where(r => r.Include && r.Error == null).Select(r =>
+    {
+        string At(int i) => i < r.Values.Count ? r.Values[i].Trim() : "";
+        if (cards) return new StudioItem(At(0), At(1), [], [], null);
+        var options = Enumerable.Range(ExcelTemplate.FirstOption, ExcelTemplate.OptionCount).Select(At).ToList();
+        var correct = At(ExcelTemplate.Correct).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(x => int.TryParse(x, out var n) ? n - 1 : char.ToUpperInvariant(x[0]) - 'A').Where(i => i >= 0 && i < options.Count && options[i] != "").ToList();
+        // Bỏ ô đáp án trống ở cuối (AI tạo 4 đáp án trong 6 cột); chỉ số đáp án đúng không đổi vì chỉ cắt đuôi.
+        var last = options.FindLastIndex(o => o != "");
+        return new StudioItem(At(ExcelTemplate.Prompt), "", options.Take(last + 1).ToList(), correct, At(ExcelTemplate.Explain) is { Length: > 0 } e ? e : null);
+    }).ToList();
+}
+
 public sealed class NotebookAiService(NotebookService notebooks, UserApiKeyService keys, GeminiClient gemini)
 {
     public static readonly string[] StudioTypes = ["summary", "studyguide", "faq", "timeline", "mindmap", "audio"];

@@ -46,7 +46,9 @@ public class Tang3ViewTests
         var temp = scope.ServiceProvider.GetRequiredService<ITempDataDictionaryFactory>().GetTempData(http);
         using var writer = new StringWriter(CultureInfo.InvariantCulture);
         await view.View.RenderAsync(new ViewContext(action, view.View, data, temp, writer, new HtmlHelperOptions()));
-        return writer.ToString();
+        // Mốc thời gian ISO có 7 chữ số lẻ của giây (vd. "08:00:58.9593279Z") thỉnh thoảng chứa đúng đáp án số "9327"
+        // → test hỏng ngẫu nhiên (gặp 15/11/2026). Thay mốc thời gian bằng chữ cố định rồi mới tìm đáp án trong HTML.
+        return System.Text.RegularExpressions.Regex.Replace(writer.ToString(), @"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z?", "THOI_DIEM");
     }
 
     [Theory]

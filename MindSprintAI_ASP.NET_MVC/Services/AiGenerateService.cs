@@ -23,17 +23,36 @@ public sealed class AiGenerateService(ExcelImportService excel, UserApiKeyServic
         if (source.Length < 50) throw new BusinessException("Hãy dán hoặc tải lên tài liệu dài ít nhất 50 ký tự.");
         if (source.Length > MaxChars) source = source[..MaxChars];
         count = Math.Clamp(count, 1, MaxCount);
-        var key = await keys.UseAsync(userId);
         var items = new List<JsonElement>();
-        while (items.Count < count)
+        string? notice = null, name = cards ? "Thẻ ghi nhớ tạo bằng AI" : "Câu hỏi tạo bằng AI";
+        try
         {
-            var batch = await gemini.GenerateAsync(key, source, Math.Min(BatchSize, count - items.Count), cards, items.Select(i => Prompt(i, cards)).ToList());
-            var fresh = batch.EnumerateArray().Where(i => !items.Any(x => string.Equals(Prompt(x, cards), Prompt(i, cards), StringComparison.OrdinalIgnoreCase))).ToList();
-            if (fresh.Count == 0) break;
-            items.AddRange(fresh);
+            var key = await keys.UseAsync(userId);
+            while (items.Count < count)
+            {
+                var batch = await gemini.GenerateAsync(key, source, Math.Min(BatchSize, count - items.Count), cards, items.Select(i => Prompt(i, cards)).ToList());
+                var fresh = batch.EnumerateArray().Where(i => !items.Any(x => string.Equals(Prompt(x, cards), Prompt(i, cards), StringComparison.OrdinalIgnoreCase))).ToList();
+                if (fresh.Count == 0) break;
+                items.AddRange(fresh);
+            }
         }
-        return ExcelImportService.ToPreview(quizId, cards ? "Thẻ ghi nhớ tạo bằng AI" : "Câu hỏi tạo bằng AI",
-            ExcelTemplate.ValidateRows(ToRows(JsonSerializer.SerializeToElement(items), cards, count)), newSetTitle);
+        // Như nhóm (generateAiCards → extractFallbackCards): thẻ ghi nhớ mà AI không dùng được (chưa có key, Gemini lỗi) thì tự tách
+        // thẻ từ tài liệu theo quy tắc. AI đã tạo được một phần rồi mới lỗi thì giữ phần đó. Trắc nghiệm không có dự phòng (như nhóm).
+        catch (BusinessException ex) when (cards)
+        {
+            if (items.Count > 0) notice = $"AI dừng giữa chừng ({ex.Message}). Giữ {items.Count} thẻ AI đã tạo.";
+            else
+            {
+                var drafts = FallbackCards.Extract(source, count);
+                if (drafts.Count == 0) throw;
+                items = drafts.Select(d => JsonSerializer.SerializeToElement(new { front = d.Front, back = d.Back })).ToList();
+                name = "Thẻ ghi nhớ tách tự động";
+                notice = $"Chưa dùng được AI ({ex.Message}). MindSprint AI đã tự tách {drafts.Count} thẻ từ tài liệu theo quy tắc, không dùng AI — hãy xem lại từng thẻ trước khi lưu.";
+            }
+        }
+        var preview = ExcelImportService.ToPreview(quizId, name, ExcelTemplate.ValidateRows(ToRows(JsonSerializer.SerializeToElement(items), cards, count)), newSetTitle);
+        preview.Notice = notice;
+        return preview;
     }
 
     private static string Prompt(JsonElement item, bool cards) =>
@@ -78,7 +97,7 @@ public sealed class AiGenerateService(ExcelImportService excel, UserApiKeyServic
                 using var buffer = new MemoryStream();
                 await file.CopyToAsync(buffer);
                 using var pdf = PdfDocument.Open(buffer.ToArray());
-                text = string.Join("\n\n", pdf.GetPages().Select(p => p.Text));
+                text = PdfSymbols(string.Join("\n\n", pdf.GetPages().Select(p => p.Text)));
             }
             else
             {
@@ -89,6 +108,16 @@ public sealed class AiGenerateService(ExcelImportService excel, UserApiKeyServic
         catch (Exception ex) when (ex is not BusinessException) { throw new BusinessException("Không đọc được tệp này."); }
         if (string.IsNullOrWhiteSpace(text)) throw new BusinessException("Không lấy được chữ từ tệp (có thể là bản scan). Hãy dán chữ vào ô bên dưới.");
         return text;
+    }
+
+    // Ký hiệu toán bị phông Symbol của PDF đọc sai (CleanExtractedText của nhóm): £ → ≤, ¥ → ∞, x!"# → x_{i-1}, x! → x_i, Dx → Δx.
+    // Khác nhóm: chỉ áp cho chữ lấy từ PDF — tệp chữ gõ tay có £/¥ thật (tiền tệ) thì giữ nguyên.
+    public static string PdfSymbols(string text)
+    {
+        var s = text.Replace("£", " ≤ ").Replace("¥", " ∞ ").Replace("x!\"#", "x_{i-1}").Replace("!\"#", "_{i-1}");
+        s = Regex.Replace(s, @"(?<!\p{L})x!", "x_i"); // nhóm thay mọi "x!" → "Max!" thành "Max_i"; ở đây chỉ khi x đứng riêng
+        s = Regex.Replace(s, @"\bDx\s*=", "Δx = ");
+        return Regex.Replace(s, @"\bDx\b", "Δx");
     }
 
     // Dọn chữ trích từ PDF như nhóm (CleanExtractedText): gộp khoảng trắng, thêm cách sau dấu chấm dính chữ hoa.

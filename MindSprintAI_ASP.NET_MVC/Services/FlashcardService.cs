@@ -90,6 +90,28 @@ public partial class FlashcardService(AppDbContext db, StudyLibraryService libra
         return card.Id;
     }
 
+    // "Dán nhiều thẻ" ở trang Soạn thẻ (nhập hàng loạt của nhóm, PasteCards): cùng quy tắc kiểm tra như nhập Excel
+    // (ExcelTemplate.ValidateRows); có dòng sai thì không thêm thẻ nào. Thêm cả loạt trong một giao dịch.
+    public async Task<int> AddManyAsync(int studySetId, string? text, string userId)
+    {
+        await library.GetOwnedStudySetAsync(studySetId, userId);
+        var rows = ExcelTemplate.ValidateRows(PasteCards.Rows(text));
+        var bad = rows.Where(r => r.Error != null).ToList();
+        if (bad.Count > 0)
+            throw new BusinessException($"Có {bad.Count} dòng chưa đúng, chưa thêm thẻ nào. " +
+                // Lỗi của ValidateRows đánh số theo dòng Excel ("Dòng 3: …") → đổi sang số dòng đã dán (bắt đầu từ 1).
+                string.Join("; ", bad.Take(3).Select(r => $"Dòng {r.Row - ExcelTemplate.FirstDataRow + 1}: {r.Error![(r.Error.IndexOf(": ", StringComparison.Ordinal) + 2)..]}"))
+                + (bad.Count > 3 ? "; …" : ""));
+        await using var tx = await db.Database.BeginTransactionAsync();
+        var order = (await db.Flashcards.Where(c => c.StudySetId == studySetId).MaxAsync(c => (int?)c.OrderIndex) ?? -1) + 1;
+        var cards = rows.Select((r, i) => new Flashcard { StudySetId = studySetId, CreatedAt = Now, OrderIndex = order + i, Front = r.Card!.Front.Trim(), Back = r.Card.Back.Trim() }).ToList();
+        db.Flashcards.AddRange(cards);
+        foreach (var card in cards) db.Audit?.Add(AuditAction.FlashcardCreated, "Flashcard", card.Id, userId, resolveTarget: () => card.Id.ToString()); // (NK3)
+        await db.SaveChangesAsync();
+        await tx.CommitAsync();
+        return cards.Count;
+    }
+
     public async Task DeleteAsync(int studySetId, int cardId, string userId)
     {
         await library.GetOwnedStudySetAsync(studySetId, userId);

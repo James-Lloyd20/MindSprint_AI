@@ -230,8 +230,6 @@ main :is(.home-panel-head, .home-section-head) h2 { margin: 0; font-size: 1.1rem
 .home-card-tag { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .home-card-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 6px; color: var(--text-muted); font-size: .85rem; }
 .home-empty { margin: 0; padding: 20px; border: 1px dashed var(--line); border-radius: 16px; color: var(--text-muted); font-size: .9rem; }
-.home-note { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--text-muted); font-size: .88rem; }
-.home-note .icon { flex: none; width: 16px; height: 16px; color: var(--warn-text); }
 @media (max-width: 1100px) { .home-corner { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 991.98px) { .home-row, .home-cards { grid-template-columns: 1fr; } .home-hero-card { padding: 28px; } }
 @media (max-width: 575.98px) { .home-corner { grid-template-columns: 1fr; } .home-stats { grid-template-columns: 1fr; gap: 12px; } .home-stats > div { padding: 0 0 0 12px; } }
@@ -622,6 +620,8 @@ main .nb-out-head h3 { margin: 0; font-size: 1rem; font-weight: 800; }
 #study-modal .set-card-tag { text-transform: uppercase; font-size: .62rem; letter-spacing: .06em; }
 /* Nút "Bắt đầu ngay"/"Mở…" trong khung trang chủ: thắng luật chung `main a:not(.btn)` (inline-block) để biểu tượng mũi tên nằm sát phải. */
 main a.home-go { display: flex; }
+/* Giao diện tối: --pink là cam sáng nên chữ sáng chỉ đạt 1,7:1 → nền cam pha tối, viền cam (tương phản ≥ 4,5:1). */
+[data-bs-theme="dark"] .home-go { background: color-mix(in srgb, var(--pink) 16%, var(--surface)); border-color: var(--pink); }
 main .practice-tabs a, main .home-section-head a { display: inline-flex; } /* cùng lý do: biểu tượng cách chữ */
 main a.home-card { display: flex; }
 /* Điện thoại 390px theo ảnh nhóm (docs/giao-dien-nhom/18): không có hàng logo riêng (menu đầy đủ chỉ hiện khi bấm "Khác"),
@@ -638,3 +638,36 @@ main a.home-card { display: flex; }
   .schedule-grid { min-width: 820px; } /* lưới tuần cuộn ngang trong khung; cột đủ rộng để giờ "08:00 – 08:30" không vỡ chữ */
   .schedule-slot .slot-time { white-space: nowrap; }
 }
+/* "Cần xem" của giảng viên: mỗi lớp một dòng bấm được, loại việc chờ ở dòng nhỏ. */
+.home-review { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+main .home-review a { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--text); text-decoration: none; }
+.home-review a:hover { border-color: var(--accent-border); }
+.home-review .icon { flex: none; width: 18px; height: 18px; color: var(--warn-text); }
+.home-review span { display: grid; gap: 2px; min-width: 0; }
+.home-review small { color: var(--text-muted); }
+.home-review b { margin-left: auto; color: var(--accent-ink); font-size: .85rem; white-space: nowrap; }
+/* FR-13 của nhóm: ghi chú (kể cả đoạn code) giữ nguyên xuống dòng và thụt dòng. */
+.nb-note-list li p { margin: 2px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Studio làm thử tại chỗ (nhóm: .nb-opt ok/bad): đáp án đúng xanh, chọn sai đỏ, thẻ lật đổi nền. */
+.nb-quiz, .nb-flash { display: grid; gap: 12px; margin: 12px 0 0; padding-left: 1.25rem; }
+.nb-flash { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); padding-left: 0; list-style: none; }
+.nb-quiz > li { padding: 4px 0 12px; border-bottom: 1px solid var(--line); }
+.nb-quiz-opts { display: grid; gap: 6px; margin: 8px 0; }
+.nb-opt { padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); text-align: left; }
+.nb-opt:hover:not(:disabled) { border-color: var(--accent-border); }
+.nb-opt.is-picked { border-color: var(--accent-ink); background: var(--acid-soft); }
+.nb-opt.is-ok { border-color: var(--ok-text); background: color-mix(in srgb, var(--ok) 45%, var(--surface)); color: var(--text); }
+.nb-opt.is-bad { border-color: var(--bad-text); background: color-mix(in srgb, var(--bad) 40%, var(--surface)); color: var(--text); }
+.nb-opt:disabled { opacity: 1; cursor: default; }
+.nb-quiz-exp { color: var(--text-muted); font-size: .9rem; }
+.nb-quiz-exp .nb-md, .nb-quiz-exp p { display: inline; }
+.nb-quiz-score { margin: 12px 0 0; font-weight: 800; }
+.nb-flash-card { display: grid; gap: 8px; width: 100%; min-height: 120px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--acid-soft); color: var(--text); text-align: left; }
+.nb-flash-card.is-flipped { background: color-mix(in srgb, #8b7cf6 10%, var(--surface)); }
+.nb-flash-card small { align-self: end; color: var(--text-muted); }
+.alarm-makeup-text { margin: 0 0 16px; color: var(--text-muted); line-height: 1.6; }
+#makeup-dialog .btn { width: 100%; }
+#makeup-dialog .btn + .btn { margin-top: 8px; }
+.nb-notice { margin: 8px 0 0; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 30%, var(--surface)); color: var(--text); font-size: .88rem; }
+.fc-card .fc-badges { right: 16px; flex-wrap: wrap; align-items: center; } /* kéo hết chiều ngang để "Sửa thẻ" nằm góc phải */
+main a.fc-edit { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; color: var(--text-muted); font-size: .8rem; }

@@ -31,8 +31,10 @@
             }
             else if (Model.Lecturer)
             {
+                @* 3 lối tắt của trang chủ giảng viên QuizEdu: Tạo bộ học · Tạo lớp · Giao bài (giao bài bắt đầu từ bộ học, nút "…" của mỗi bộ). *@
                 <a class="btn btn-primary" href="@Url.Action("Index", "StudySets")#tao-bo-hoc"><icon name="plus" />Tạo bộ học</a>
-                <a class="btn btn-secondary" asp-controller="Classrooms" asp-action="Index"><icon name="send" />Giao bài cho lớp</a>
+                <a class="btn btn-secondary" href="@Url.Action("Index", "Classrooms")#new-class-name"><icon name="users" />Tạo lớp</a>
+                <a class="btn btn-secondary" asp-controller="StudySets" asp-action="Index"><icon name="send" />Giao bài</a>
             }
             else
             {
@@ -75,7 +77,7 @@
         @if (Model.Lecturer)
         {
             <section class="home-section" aria-labelledby="home-open-title">
-                <div class="home-section-head"><h2 id="home-open-title">Bài đang diễn ra</h2><a asp-controller="Reports" asp-action="Index">Xem tất cả<icon name="chevron-right" /></a></div>
+                <div class="home-section-head"><h2 id="home-open-title">Bài đang diễn ra</h2><a asp-controller="Reports" asp-action="Index">Xem tất cả (@Model.Teaching!.Open.Count)<icon name="chevron-right" /></a></div>
                 @if (Model.Teaching!.Open.Count == 0) { <p class="home-empty">Chưa có bài đang mở. Khi bạn giao bài cho lớp, bài sẽ hiện ở đây để theo dõi.</p> }
                 else
                 {
@@ -85,14 +87,26 @@
                             <a class="home-card" asp-controller="Assignments" asp-action="Details" asp-route-id="@a.Id">
                                 <span class="home-card-tag"><span class="section-icon"><icon name="play" /></span>@a.Classroom</span>
                                 <strong>@a.Title</strong>
+                                <span class="home-card-due">@DisplayText.Of(a.Mode) · @(a.EndsAt == null ? "không có hạn" : (a.Mode == AssignmentMode.Test ? "kết thúc " : "hạn ") + VnTime.Format(a.EndsAt))</span>
                                 <span class="home-card-meta"><span>@a.Working đang làm · @a.Submitted đã nộp</span><b>Theo dõi</b></span>
                             </a>
                         }
                     </div>
                 }
-                @if (Model.Teaching.Review.Sum(c => c.Count) is > 0 and var waiting)
+            </section>
+            @* "Cần xem" của QuizEdu: từng lớp có việc chờ, bấm vào là tới lớp đó; ghi rõ loại việc (ReviewWork.Describe). *@
+            <section class="home-section" aria-labelledby="home-review-title">
+                <div class="home-section-head"><h2 id="home-review-title">Cần xem <span class="badge bg-secondary">@Model.Teaching.Review.Sum(c => c.Count)</span></h2></div>
+                @if (Model.Teaching.Review.Count == 0) { <p class="home-empty">Bạn đã xem hết các việc đang chờ.</p> }
+                else
                 {
-                    <p class="home-note"><icon name="circle-alert" /><span>Có <b>@waiting việc</b> đang chờ bạn xem trong @string.Join(", ", Model.Teaching.Review.Select(r => r.Name)).</span></p>
+                    <ul class="home-review">
+                        @foreach (var room in Model.Teaching.Review)
+                        {
+                            <li><a asp-controller="Classrooms" asp-action="Details" asp-route-id="@room.Id"><icon name="circle-alert" /><span><strong>@room.Name</strong>
+                                @if (room.Work?.Describe().ToList() is { Count: > 0 } parts) { <small>@string.Join(" · ", parts)</small> }</span><b>@room.Count việc chờ</b></a></li>
+                        }
+                    </ul>
                 }
             </section>
         }

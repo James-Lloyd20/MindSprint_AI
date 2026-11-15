@@ -46,7 +46,9 @@ else
         {
             var reviewDays = 1 << (card.Box - 1);
             <section class="card card-body d-none study-card fc-card" data-id="@card.Id" tabindex="0" aria-label="Thẻ học" aria-describedby="card-instructions" style="touch-action: pan-y">
-                <div class="fc-badges">@if (card.IsNew) { <span class="badge bg-info text-body">Thẻ mới thêm, học thêm tùy ý</span> } @if (card.Edited) { <span class="badge bg-secondary">Đã sửa</span> }</div>
+                <div class="fc-badges">@if (card.IsNew) { <span class="badge bg-info text-body">Thẻ mới thêm, học thêm tùy ý</span> } @if (card.Edited) { <span class="badge bg-secondary">Đã sửa</span> }
+                    @* Bút chì trên thẻ như nhóm (ảnh 14): tự học = bộ học của chính mình → mở đúng thẻ ở trang Soạn thẻ (sửa/xóa có hỏi lại). *@
+                    @if (Model.AssignmentId == null) { <a class="fc-edit" href="@Url.Action("Editor", new { id = Model.StudySetId })#card-@card.Id"><icon name="square-pen" />Sửa thẻ</a> }</div>
                 @if (Model.Mode == FlashcardMode.SpacedRepetition) { <p class="small text-muted text-center">Hộp @card.Box (ôn lại sau @reviewDays ngày) · @(card.Due ? "Đến hạn" : "Chưa tới lúc ôn lại; học thêm chỉ để xem lại") @(card.DueDate?.ToString("dd/MM/yyyy"))</p> }
                 <p class="fc-front">@card.Front</p>
                 <button type="button" class="btn btn-outline-primary flip fc-flip"><icon name="repeat-2" />Lật thẻ</button>

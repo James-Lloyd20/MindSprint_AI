@@ -99,4 +99,33 @@ public class SoTayStudioGiaSuTests
         Assert.Contains("\"feedback\"", JsonSerializer.Serialize(NotebookPrompts.TutorSchema("check")));
         Assert.Contains("\"programming\"", JsonSerializer.Serialize(NotebookPrompts.TutorSchema("code")));
     }
+
+    [Fact]
+    public void PdfKyHieuToan_SuaNhuNhom_KhongPhaChuThuong()
+    {
+        // Khoảng trắng thừa được AiGenerateService.Clean gộp ở bước sau.
+        Assert.Equal("a ≤ b, x_{i-1} + x_i, Δx = 1, Δx", AiGenerateService.Clean(AiGenerateService.PdfSymbols("a£b, x!\"# + x!, Dx= 1, Dx")));
+        Assert.Equal("Max! Dxy", AiGenerateService.PdfSymbols("Max! Dxy")); // chữ thường không bị đổi
+    }
+
+    [Fact]
+    public void StudioLamThuTaiCho_ChiDongHopLe_DapAnDungTinhTu0()
+    {
+        // Bản nháp AI như GeminiClient trả: câu 1 chọn một (đáp án 2), câu 2 chọn nhiều (1 và 3), câu 3 thiếu đáp án đúng → lỗi, không hiện.
+        var quiz = JsonSerializer.SerializeToElement(new object[] {
+            new { question = "Ti thể làm gì?", options = new[] { "Quang hợp", "Tạo năng lượng", "Chứa ADN", "" }, correct = new[] { 2 }, explanation = "Hô hấp tế bào." },
+            new { question = "Có ở tế bào thực vật?", options = new[] { "Lục lạp", "Trung thể", "Thành tế bào" }, correct = new[] { 1, 3 }, explanation = "" },
+            new { question = "Câu lỗi", options = new[] { "A", "B" }, correct = Array.Empty<int>(), explanation = "" } });
+        var preview = ExcelImportService.ToPreview(0, "AI", ExcelTemplate.ValidateRows(AiGenerateService.ToRows(quiz, false, 10)), "Sinh học");
+        Assert.Equal(3, preview.Rows.Count);
+        var items = StudioItems.From(preview, cards: false);
+        Assert.Equal(2, items.Count);
+        Assert.Equal(("Ti thể làm gì?", 3, 1, "Hô hấp tế bào."), (items[0].Front, items[0].Options.Count, Assert.Single(items[0].Correct), items[0].Explanation));
+        Assert.Equal([0, 2], items[1].Correct);
+        Assert.Null(items[1].Explanation);
+
+        var cards = JsonSerializer.SerializeToElement(new object[] { new { front = "Ribôxôm", back = "Tổng hợp prôtêin" }, new { front = "", back = "x" } });
+        var cardItems = StudioItems.From(ExcelImportService.ToPreview(0, "AI", ExcelTemplate.ValidateRows(AiGenerateService.ToRows(cards, true, 10)), "Sinh học"), cards: true);
+        Assert.Equal(("Ribôxôm", "Tổng hợp prôtêin"), (Assert.Single(cardItems).Front, cardItems[0].Back));
+    }
 }

@@ -36,9 +36,37 @@
 
     // ---------- Chế độ ----------
     document.querySelectorAll('.nb-mode-btn').forEach(btn => btn.addEventListener('click', () => {
+        stopSpeaking();
         document.querySelectorAll('.nb-mode-btn').forEach(b => { const on = b === btn; b.classList.toggle('is-active', on); b.setAttribute('aria-checked', String(on)); });
         document.querySelectorAll('.nb-pane').forEach(p => { p.hidden = p.dataset.pane !== btn.dataset.mode; });
     }));
+
+    // ---------- Nghe / Dừng câu trả lời (voice.js của nhóm, FR-16) ----------
+    // Chỉ đọc khi người dùng bấm; một giọng đọc tại một lúc; đổi chế độ hoặc rời trang (đổi sổ tay, đăng xuất) thì dừng.
+    const canSpeak = 'speechSynthesis' in window;
+    const stopSpeaking = () => {
+        if (canSpeak) speechSynthesis.cancel();
+        document.querySelectorAll('[data-speaking]').forEach(b => { b.removeAttribute('data-speaking'); b.querySelector('span').textContent = 'Nghe'; });
+    };
+    const speakButton = el => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'btn btn-sm btn-secondary'; b.hidden = !canSpeak;
+        b.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#i-play"></use></svg><span>Nghe</span>';
+        b.addEventListener('click', () => {
+            const was = b.hasAttribute('data-speaking');
+            stopSpeaking();
+            if (was) return;
+            const say = new SpeechSynthesisUtterance(el.textContent.trim());
+            say.lang = 'vi-VN';
+            const voice = speechSynthesis.getVoices().find(v => v.lang?.toLowerCase().startsWith('vi'));
+            if (voice) say.voice = voice;
+            say.onend = say.onerror = () => { if (b.hasAttribute('data-speaking')) stopSpeaking(); };
+            b.setAttribute('data-speaking', ''); b.querySelector('span').textContent = 'Dừng đọc';
+            speechSynthesis.speak(say);
+        });
+        return b;
+    };
+    window.addEventListener('pagehide', stopSpeaking);
 
     // ---------- Hỏi đáp theo nguồn (lịch sử lưu theo sổ) ----------
     const historyKey = `mindsprint-nb-thread-${notebookId}`;
@@ -50,6 +78,7 @@
         a.innerHTML = `<b>Sổ tay AI</b><div class="nb-md">${md(turn.a)}</div>` +
             (turn.cites?.length ? `<ol class="nb-cites">${turn.cites.map(c => `<li>“${escapeHtml(c)}”</li>`).join('')}</ol>` : '');
         const actions = document.createElement('div'); actions.className = 'nb-a-actions';
+        actions.append(speakButton(a.querySelector('.nb-md')));
         if (saveButton) actions.append(saveNoteForm(turn.q, turn.a));
         a.append(actions);
         thread.append(q, a);
@@ -58,6 +87,8 @@
     const history = store.get(historyKey, []);
     if (!thread.querySelector('.nb-a')) history.forEach(t => renderTurn(t));
     thread.querySelectorAll('[data-markdown]').forEach(el => { el.innerHTML = md(el.textContent); });
+    // Câu trả lời do máy chủ dựng (gửi form khi không có JS) cũng có nút Nghe.
+    document.querySelector('#nb-answer .nb-a-actions')?.prepend(speakButton(document.querySelector('#nb-answer .nb-md')));
     clearBtn?.addEventListener('click', () => { store.set(historyKey, []); location.reload(); });
 
     const askForm = document.getElementById('nb-ask');
@@ -129,6 +160,82 @@
         finally { busy(btn, false); }
     }));
 
+    // ---------- Studio Flashcard / Trắc nghiệm: làm thử tại chỗ (quizHtml/pickAnswer của nhóm) rồi tùy chọn lưu ----------
+    // "Lưu thành bộ học" gửi đúng các dòng bản nháp tới Import/Recheck: máy chủ kiểm tra lại toàn bộ, mở trang xem trước để bấm Lưu.
+    const saveSetForm = res => {
+        const form = document.createElement('form');
+        form.method = 'post'; form.action = studio.dataset.saveUrl;
+        const add = (name, value) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = name; i.value = value ?? ''; form.append(i); };
+        add('__RequestVerificationToken', tokenInput.value); add('QuizId', '0'); add('FileName', res.fileName); add('NewSetTitle', res.newSetTitle);
+        res.rows.forEach((r, i) => {
+            add(`Rows[${i}].Sheet`, r.sheet); add(`Rows[${i}].Row`, r.row); add(`Rows[${i}].Include`, r.include ? 'true' : 'false');
+            (r.values ?? []).forEach((v, j) => add(`Rows[${i}].Values[${j}]`, v));
+        });
+        const b = document.createElement('button'); b.className = 'btn btn-sm btn-primary'; b.textContent = 'Lưu thành bộ học'; form.append(b);
+        return form;
+    };
+    const showItems = res => {
+        const quiz = res.kind === 'quiz', items = res.items ?? [];
+        const card = document.createElement('article'); card.className = 'nb-out';
+        card.innerHTML = `<div class="nb-out-head"><h3>${quiz ? 'Trắc nghiệm' : 'Flashcard'} (${items.length})</h3></div>`;
+        card.querySelector('.nb-out-head').append(saveSetForm(res));
+        if (res.notice) { const n = document.createElement('p'); n.className = 'nb-notice'; n.setAttribute('role', 'status'); n.textContent = res.notice; card.append(n); }
+        const list = document.createElement('ol'); list.className = quiz ? 'nb-quiz' : 'nb-flash';
+        const score = document.createElement('p'); score.className = 'nb-quiz-score'; score.setAttribute('role', 'status');
+        let done = 0, right = 0;
+        items.forEach(it => {
+            const li = document.createElement('li');
+            if (!quiz) {
+                li.innerHTML = `<button type="button" class="nb-flash-card"><span class="nb-md">${md(it.front)}</span><span class="nb-md nb-flash-back" hidden>${md(it.back)}</span><small>Nhấp để lật thẻ</small></button>`;
+                const b = li.querySelector('button');
+                b.addEventListener('click', () => (window.MindSprintFlip ?? ((_, f) => f()))(b, () => {
+                    const back = b.querySelector('.nb-flash-back'); back.hidden = !back.hidden; b.classList.toggle('is-flipped', !back.hidden);
+                }));
+                list.append(li); return;
+            }
+            li.innerHTML = `<div class="nb-md">${md(it.front)}</div><div class="nb-quiz-opts"></div><div class="nb-quiz-exp" hidden></div>`;
+            const opts = li.querySelector('.nb-quiz-opts'), multi = it.correct.length > 1, chosen = new Set();
+            const check = () => {
+                const ok = chosen.size === it.correct.length && it.correct.every(k => chosen.has(k));
+                opts.querySelectorAll('button').forEach(b => {
+                    const k = Number(b.dataset.k); b.disabled = true;
+                    if (it.correct.includes(k)) b.classList.add('is-ok'); else if (chosen.has(k)) b.classList.add('is-bad');
+                });
+                const exp = li.querySelector('.nb-quiz-exp');
+                exp.innerHTML = `<b>${ok ? 'Đúng' : 'Chưa đúng'}</b>${it.explanation ? ` · ${md(it.explanation)}` : ''}`; exp.hidden = false;
+                done++; if (ok) right++;
+                if (done === items.length) score.textContent = `Kết quả: ${right}/${items.length} câu đúng`;
+            };
+            it.options.forEach((o, k) => {
+                if (!o) return;
+                const b = document.createElement('button'); b.type = 'button'; b.className = 'nb-opt'; b.dataset.k = k; b.textContent = o;
+                b.addEventListener('click', () => {
+                    if (!multi) { chosen.add(k); check(); return; }
+                    chosen.has(k) ? chosen.delete(k) : chosen.add(k); b.classList.toggle('is-picked', chosen.has(k)); b.setAttribute('aria-pressed', String(chosen.has(k)));
+                });
+                opts.append(b);
+            });
+            if (multi) {
+                const c = document.createElement('button'); c.type = 'button'; c.className = 'btn btn-sm btn-secondary'; c.textContent = 'Kiểm tra (chọn nhiều đáp án)';
+                c.addEventListener('click', () => { if (chosen.size) { c.remove(); check(); } });
+                li.append(c);
+            }
+            list.append(li);
+        });
+        card.append(list);
+        if (quiz) card.append(score);
+        out.prepend(card);
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+    document.querySelectorAll('form[data-items]').forEach(form => form.addEventListener('submit', async e => {
+        if (!studio?.dataset.itemsUrl) return; // không có khung Studio → gửi form như cũ (trang xem trước)
+        e.preventDefault();
+        const btn = form.querySelector('button'); busy(btn, true);
+        try { showItems(await post(studio.dataset.itemsUrl, { kind: form.dataset.items })); }
+        catch (err) { const box = document.createElement('div'); errorBox(box, err.message); out.prepend(box); }
+        finally { busy(btn, false); }
+    }));
+
     // Nghe tổng quan: đọc kịch bản hai người dẫn bằng giọng đọc của trình duyệt (A giọng thường, B cao hơn) như audio overview của nhóm.
     const viVoice = () => window.speechSynthesis?.getVoices().find(v => v.lang?.toLowerCase().startsWith('vi'));
     const playDialogue = lines => {
@@ -180,7 +287,7 @@
             }
             a.innerHTML = `<b>Gia sư</b><div class="nb-md">${md(r.answer)}</div>${extra}`;
             if (r.programming?.fixedCode) a.querySelector('pre code').textContent = r.programming.fixedCode;
-            const actions = document.createElement('div'); actions.className = 'nb-a-actions'; actions.append(saveNoteForm(`Gia sư: ${asked}`, r.answer)); a.append(actions);
+            const actions = document.createElement('div'); actions.className = 'nb-a-actions'; actions.append(speakButton(a.querySelector('.nb-md')), saveNoteForm(`Gia sư: ${asked}`, r.answer)); a.append(actions);
             tutorThread.append(q, a);
             tutorHistory.push({ role: 'user', text: asked.slice(0, 10000) }, { role: 'assistant', text: String(r.answer).slice(0, 10000) });
             f.question.value = ''; if (action === 'check') f.submission.value = '';

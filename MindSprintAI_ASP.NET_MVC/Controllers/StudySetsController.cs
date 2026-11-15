@@ -41,6 +41,12 @@ public class StudySetsController(StudyLibraryService library, StudySetCloneServi
         Success("Đã nhân bản bộ học. Hãy kiểm tra và đánh dấu Sẵn sàng giao cho từng quiz.");
         return RedirectToAction(nameof(Index));
     }
+    // Ô tìm ở đầu trang ("Tìm trang hoặc bộ thẻ" của nhóm): tên bộ học của chính mình + chủ đề từ vựng hệ thống, chỉ tên và đường dẫn.
+    [HttpGet, ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> SearchItems([FromServices] VocabCatalog vocab) => Json(
+        (await library.ListOwnedAsync(UserId)).Select(x => new { name = "Bộ học: " + x.Title, url = Url.Action("Details", new { id = x.Id }) })
+            .Concat(vocab.Topics.Select(t => new { name = $"Từ vựng {t.CategoryName}: {t.Topic}", url = Url.Action("Topic", "Vocab", new { category = t.Category, topic = t.Topic }) })));
+
     public async Task<IActionResult> Index([FromServices] UnhideRequestService requests)
     {
         ViewData["Counts"] = await library.GetOwnedCountsAsync(UserId);

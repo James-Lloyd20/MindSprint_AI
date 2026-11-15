@@ -13,7 +13,7 @@ public class FlashcardsController(FlashcardService cards) : AppController
         var (set, list) = await cards.GetEditorAsync(id, UserId);
         ViewData["Cards"] = list;
         ViewData["SrsDueCount"] = await cards.PersonalDueCountAsync(id, UserId); // (D5b)
-        return View(set);
+        return View(nameof(Editor), set); // ghi rõ tên: AddMany gọi lại hàm này khi hiện lại trang sau lỗi
     }
 
     [HttpPost]
@@ -23,6 +23,19 @@ public class FlashcardsController(FlashcardService cards) : AppController
         Success(cardId == null ? "Đã thêm thẻ (ở cuối danh sách)." : "Đã lưu thẻ.");
         return RedirectToAction(nameof(Editor), null, new { id = studySetId }, $"card-{savedId}");
     }
+
+    // Dán nhiều thẻ (nhập hàng loạt của nhóm). Lỗi thì hiện lại trang Soạn thẻ còn nguyên đoạn đã dán để sửa.
+    [HttpPost]
+    public Task<IActionResult> AddMany(int studySetId, string? text) => KeepFormOnErrorAsync(async () =>
+    {
+        var added = await cards.AddManyAsync(studySetId, text, UserId);
+        Success($"Đã thêm {added} thẻ vào cuối danh sách.");
+        return RedirectToAction(nameof(Editor), new { id = studySetId });
+    }, async () =>
+    {
+        ViewData["PasteText"] = text;
+        return await Editor(studySetId);
+    });
 
     [HttpPost]
     public async Task<IActionResult> Delete(int studySetId, int cardId)

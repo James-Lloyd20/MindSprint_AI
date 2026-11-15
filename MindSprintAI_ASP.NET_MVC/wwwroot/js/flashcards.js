@@ -52,7 +52,8 @@
         }
     }
     cards.forEach(card => {
-        card.querySelector('.flip').addEventListener('click', () => card.querySelector('.card-back').classList.toggle('d-none'));
+        // Lật thẻ 3D như nhóm (MindSprintFlip trong site.js; giảm chuyển động thì lật ngay).
+        card.querySelector('.flip').addEventListener('click', () => (window.MindSprintFlip ?? ((_, f) => f()))(card, () => card.querySelector('.card-back').classList.toggle('d-none')));
         card.querySelectorAll('.rate').forEach(button => button.addEventListener('click', () => rate(card, button.dataset.rating)));
         card.addEventListener('keydown', event => {
             if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;

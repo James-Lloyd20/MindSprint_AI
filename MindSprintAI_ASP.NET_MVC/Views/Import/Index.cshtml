@@ -13,7 +13,7 @@
 <a class="btn btn-outline-primary mb-3" asp-action="Template" asp-route-id="@Model">Tải file mẫu</a>
 <form method="post" asp-action="Preview" asp-route-id="@Model" enctype="multipart/form-data">
     <label class="form-label" for="excel-file">File Excel theo mẫu</label>
-    <input class="form-control mb-3" id="excel-file" name="file" type="file" accept=".xlsx" required />
+    <input class="form-control mb-3" id="excel-file" name="file" type="file" accept=".xlsx" data-max-bytes="@ExcelTemplate.MaxBytes" required />
     <button class="btn btn-primary">Xem trước</button>
 </form>
 
@@ -26,12 +26,23 @@
             <div class="col-md-6"><label class="form-label" for="ai-kind">Tạo</label>
                 <select class="form-select" id="ai-kind" name="kind"><option value="quiz">Câu hỏi trắc nghiệm</option><option value="cards">Thẻ ghi nhớ</option></select></div>
             <div class="col-md-6"><label class="form-label" for="ai-count">Số lượng (1–@AiGenerateService.MaxCount)</label>
-                <input class="form-control" id="ai-count" name="count" type="number" min="1" max="@AiGenerateService.MaxCount" value="10" /></div>
+                <input class="form-control" id="ai-count" name="count" data-estimate-from="ai-text" type="number" min="1" max="@AiGenerateService.MaxCount" value="10" /></div>
             <div class="col-12"><label class="form-label" for="ai-file">Tệp tài liệu (không bắt buộc)</label>
-                <input class="form-control" id="ai-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes)" /></div>
+                <input class="form-control" id="ai-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes)" data-max-bytes="@AiGenerateService.MaxFileBytes" /></div>
             <div class="col-12"><label class="form-label" for="ai-text">Hoặc dán nội dung</label>
                 <textarea class="form-control" id="ai-text" name="text" rows="6" maxlength="@AiGenerateService.MaxChars" placeholder="Dán đoạn bài học, ghi chú hoặc tài liệu..."></textarea></div>
         </div>
         <button class="btn btn-primary mt-3"><icon name="sparkles" />Tạo bản nháp bằng AI</button>
     </form>
 </section>
+@* Dán nhiều thẻ một lúc ("Nhập hàng loạt flashcards" của nhóm) → cùng trang xem trước, sửa/bỏ dòng rồi mới lưu. *@
+<section class="ai-generate" id="dan-nhieu-the" aria-labelledby="paste-title">
+    <h2 class="h5" id="paste-title"><icon name="layers" />Dán nhiều thẻ ghi nhớ</h2>
+    <p class="small text-muted">Mỗi dòng một thẻ: <b>Câu hỏi : Câu trả lời</b> (tách ở dấu hai chấm đầu tiên) hoặc <b>mặt trước | mặt sau</b>. Tối đa @ExcelTemplate.MaxRows thẻ mỗi lần.</p>
+    <form method="post" asp-action="PastePreview" asp-route-id="@Model">
+        <label class="form-label" for="paste-text">Nội dung</label>
+        <textarea class="form-control" id="paste-text" name="text" rows="6" maxlength="@PasteCards.MaxChars" required placeholder="Ti thể : Bào quan tạo năng lượng cho tế bào&#10;Lục lạp | Nơi diễn ra quang hợp"></textarea>
+        <button class="btn btn-primary mt-3"><icon name="eye" />Xem trước</button>
+    </form>
+</section>
+@section Scripts { <script src="~/js/ai-count.js" asp-append-version="true"></script> }

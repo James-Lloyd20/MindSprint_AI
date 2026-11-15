@@ -160,8 +160,8 @@ else
                 <div class="row g-3">
                     <div class="col-md-6"><label class="form-label" for="ai-set-title">Tên bộ học mới</label><input class="form-control" id="ai-set-title" name="newSetTitle" maxlength="200" required placeholder="Ví dụ: Sinh học — Chương 3" /></div>
                     <div class="col-md-3"><label class="form-label" for="ai-lib-kind">Tạo</label><select class="form-select" id="ai-lib-kind" name="kind"><option value="cards">Thẻ ghi nhớ</option><option value="quiz">Câu trắc nghiệm</option></select></div>
-                    <div class="col-md-3"><label class="form-label" for="ai-lib-count">Số lượng (1–@AiGenerateService.MaxCount)</label><input class="form-control" id="ai-lib-count" name="count" type="number" min="1" max="@AiGenerateService.MaxCount" value="10" /></div>
-                    <div class="col-12"><label class="form-label" for="ai-lib-file">Tệp tài liệu (PDF hoặc tệp chữ, tối đa 10 MB)</label><input class="form-control" id="ai-lib-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes)" /></div>
+                    <div class="col-md-3"><label class="form-label" for="ai-lib-count">Số lượng (1–@AiGenerateService.MaxCount)</label><input class="form-control" id="ai-lib-count" name="count" data-estimate-from="ai-lib-text" type="number" min="1" max="@AiGenerateService.MaxCount" value="10" /></div>
+                    <div class="col-12"><label class="form-label" for="ai-lib-file">Tệp tài liệu (PDF hoặc tệp chữ, tối đa 10 MB)</label><input class="form-control" id="ai-lib-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes)" data-max-bytes="@AiGenerateService.MaxFileBytes" /></div>
                     <div class="col-12"><label class="form-label" for="ai-lib-text">Hoặc dán nội dung</label><textarea class="form-control" id="ai-lib-text" name="text" rows="6" maxlength="@AiGenerateService.MaxChars"></textarea></div>
                 </div>
             </div>
@@ -169,4 +169,4 @@ else
         </form>
     </div></div>
 </div>
-@section Scripts { <script src="~/js/library-tools.js" asp-append-version="true"></script> }
+@section Scripts { <script src="~/js/library-tools.js" asp-append-version="true"></script><script src="~/js/ai-count.js" asp-append-version="true"></script> }

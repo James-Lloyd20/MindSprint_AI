@@ -85,7 +85,8 @@ public sealed class NotebookService(AppDbContext db, UserApiKeyService keys, Gem
         if (string.IsNullOrWhiteSpace(content)) throw new BusinessException("Ghi chú trống.");
         if (content.Length > 20_000) throw new BusinessException("Ghi chú tối đa 20.000 ký tự.");
         if (await db.NotebookNotes.CountAsync(n => n.NotebookId == id) >= MaxNotes) throw new BusinessException($"Mỗi sổ tay có tối đa {MaxNotes} ghi chú.");
-        db.NotebookNotes.Add(new() { NotebookId = id, Title = Title(title, "Ghi chú"), Content = content.Trim(), CreatedAt = Now });
+        // Giữ thụt dòng của dòng đầu (ghi chú là code, FR-13 nhóm): chỉ bỏ dòng trống ở đầu và khoảng trắng ở cuối.
+        db.NotebookNotes.Add(new() { NotebookId = id, Title = Title(title, "Ghi chú"), Content = content.TrimStart('\r', '\n').TrimEnd(), CreatedAt = Now });
         await db.SaveChangesAsync();
     }
 

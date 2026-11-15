@@ -31,6 +31,9 @@ public class SoTayAiTests
         Assert.False((await new StudyStatsService(h.Db, h.Clock).TodayAsync(u)).Noted);
         await service.AddNoteAsync(nb.Id, null, "Ý chính", u);
         Assert.Equal("Ghi chú", (await service.GetAsync(nb.Id, u)).Notes.Single().Title);
+        // FR-13 nhóm: ghi chú là code giữ nguyên thụt dòng (kể cả dòng đầu), chỉ bỏ dòng trống đầu và khoảng trắng cuối.
+        await service.AddNoteAsync(nb.Id, "Code", "\n    for i in range(3):\n        print(i)  \n", u);
+        Assert.Equal("    for i in range(3):\n        print(i)", (await service.GetAsync(nb.Id, u)).Notes.Single(n => n.Title == "Code").Content);
         Assert.True((await new StudyStatsService(h.Db, h.Clock).TodayAsync(u)).Noted); // mục tiêu ngày "Ghi chú điều muốn tìm hiểu" tự tích
         Assert.Throws<BusinessException>(() => NotebookService.Combined(new Notebook()));
         // Gia sư OCR: chỉ ảnh PNG/JPG/WEBP ≤ 10 MB; sai loại bị chặn trước khi gửi gì sang Gemini.

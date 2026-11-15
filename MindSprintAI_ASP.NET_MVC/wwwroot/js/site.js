@@ -89,6 +89,14 @@ document.querySelectorAll('textarea[data-limit]').forEach(box => {
         if (name && !pages.has(name)) pages.set(name, a.href);
     });
     for (const name of pages.keys()) list.append(new Option(name));
+    // Như nhóm ("Tìm trang hoặc bộ thẻ"): thêm tên bộ học của mình + chủ đề từ vựng, lấy một lần khi bấm vào ô tìm lần đầu.
+    if (form.dataset.itemsUrl) input.addEventListener('focus', async () => {
+        try {
+            const res = await fetch(form.dataset.itemsUrl, { headers: { Accept: 'application/json' } });
+            if (!res.ok || !res.headers.get('content-type')?.includes('json')) return;
+            for (const item of await res.json()) if (item.url && !pages.has(item.name)) { pages.set(item.name, item.url); list.append(new Option(item.name)); }
+        } catch { }
+    }, { once: true });
     const go = () => {
         const text = input.value.trim().toLocaleLowerCase('vi');
         if (!text) return;
@@ -104,3 +112,41 @@ document.querySelectorAll('textarea[data-limit]').forEach(box => {
     const open = () => { const box = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1))); if (box instanceof HTMLDetailsElement) box.open = true; };
     open(); window.addEventListener('hashchange', open);
 })();
+
+// Lật thẻ 3D (hiệu ứng lật thẻ của nhóm: rotateY, tổng 0,5 giây). Thẻ của mình cao thấp theo nội dung nên không chồng hai mặt
+// cố định như nhóm, mà quay nửa vòng → đổi mặt (swap) → quay nốt. Máy bật "giảm chuyển động" thì đổi mặt ngay, không quay.
+window.MindSprintFlip = async (card, swap) => {
+    if (card.dataset.flipping) return;
+    if (!card.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) { swap(); return; }
+    card.dataset.flipping = '1';
+    let swapped = false;
+    try {
+        await card.animate([{ transform: 'perspective(900px) rotateY(0deg)' }, { transform: 'perspective(900px) rotateY(90deg)' }],
+            { duration: 250, easing: 'cubic-bezier(.4, 0, 1, 1)' }).finished;
+        swap(); swapped = true;
+        await card.animate([{ transform: 'perspective(900px) rotateY(-90deg)' }, { transform: 'perspective(900px) rotateY(0deg)' }],
+            { duration: 250, easing: 'cubic-bezier(0, 0, .2, 1)' }).finished;
+    } catch { if (!swapped) swap(); } // hiệu ứng bị hủy giữa chừng: vẫn đổi mặt đúng một lần
+    finally { delete card.dataset.flipping; }
+};
+
+// Kiểm tra tệp ngay trên trình duyệt trước khi gửi (phân công nhóm: "bắt lỗi file dung lượng lớn trước khi gửi lên Server"):
+// <input type="file" data-max-bytes="…" accept="…"> quá cỡ hoặc sai loại thì báo tại ô và bỏ tệp đã chọn. Máy chủ vẫn kiểm lại.
+document.querySelectorAll('input[type="file"][data-max-bytes]').forEach(input => {
+    const max = Number(input.dataset.maxBytes);
+    const types = (input.accept || '').split(',').map(t => t.trim().toLowerCase()).filter(t => t.startsWith('.'));
+    const mb = n => (n / 1024 / 1024).toLocaleString('vi', { maximumFractionDigits: 1 });
+    input.addEventListener('change', () => {
+        let message = '';
+        for (const file of input.files) {
+            const ext = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')).toLowerCase() : '';
+            if (types.length && !types.includes(ext)) { message = `Tệp "${file.name}" không đúng loại. Chỉ nhận: ${types.join(', ')}.`; break; }
+            if (file.size > max) { message = `Tệp "${file.name}" nặng ${mb(file.size)} MB, quá giới hạn ${mb(max)} MB. Hãy chọn tệp nhỏ hơn.`; break; }
+        }
+        input.setCustomValidity(message);
+        if (message) { input.reportValidity(); input.value = ''; input.setCustomValidity(''); }
+        let note = input.parentElement.querySelector('.file-check');
+        if (!note) { note = document.createElement('p'); note.className = 'file-check text-danger small mt-1 mb-0'; note.setAttribute('role', 'alert'); input.after(note); }
+        note.textContent = message;
+    });
+});

@@ -24,7 +24,7 @@
   --pastel-a: linear-gradient(135deg, #F2F6E7, #FBF8E9); --pastel-b: linear-gradient(135deg, #FFF0E9, #FFFEFA); --pastel-c: linear-gradient(135deg, #E9E9F5, #F3F2FA);
   --ok: #D9EBBD; --warn: #F1CDBB; --bad: #F3C9C2; --focus: #78964E;
   /* Màu trạng thái là nền, chữ trên đó luôn đậm. */
-  --ok-text: #55763C; --warn-text: #9A5B3F; --bad-text: #BF5B52; --sage: #7E9A67;
+  --ok-text: #55763C; --warn-text: #9A5B3F; --bad-text: #AD4D45; /* đỏ đậm hơn nhóm một chút: chữ đỏ đạt ≥ 4,5:1 trên mọi nền sáng */ --sage: #7E9A67;
   --btn-main-bg: #C7E977; --btn-main-fg: #24321D; --btn-main-hover: #BCE365;
   --btn-shadow: 0 6px 16px rgba(166, 202, 92, .22); --btn-shadow-hover: 0 9px 22px rgba(166, 202, 92, .29);
   --alert-ok-bg: #EEF6D9; --alert-ok-line: #DCE8C2; --alert-warn-bg: #FFF0E9; --alert-warn-line: #F1CDBB;
@@ -34,7 +34,7 @@
   --footer-bg: #FCFBF8; --footer-fg: #536071;
   --bs-primary-rgb: 199, 233, 119; --bs-secondary-rgb: 126, 154, 103;
   --bs-success-rgb: 126, 154, 103; --bs-warning-rgb: 241, 205, 187;
-  --bs-danger-rgb: 191, 91, 82; --bs-info-rgb: 102, 139, 161;
+  --bs-danger-rgb: 173, 77, 69; --bs-info-rgb: 102, 139, 161;
   --bs-body-color-rgb: 32, 43, 62; --bs-body-bg-rgb: 255, 254, 250;
   --bs-emphasis-color-rgb: 32, 43, 62; --bs-link-color-rgb: 82, 109, 49;
 }

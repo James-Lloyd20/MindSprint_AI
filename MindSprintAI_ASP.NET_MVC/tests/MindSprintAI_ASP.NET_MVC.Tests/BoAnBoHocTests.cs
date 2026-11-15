@@ -249,6 +249,23 @@ public class BoAnBoHocPureTests
         Assert.Contains("b-back-icon", html);
     }
 
+    [Fact]
+    public async Task TrangChuGiangVien_DuNhuQuizEdu_LoiTat_HanBai_CanXemTheoLop()
+    {
+        // Trang chủ giảng viên QuizEdu (Home/Lecturer) gộp vào trang chủ nhóm: 3 lối tắt, bài đang mở có chế độ + hạn, "Cần xem" từng lớp có link.
+        var teaching = new LecturerDashboard("Lan", "Chào buổi sáng",
+            [new(7, "Kiểm tra chương 1", "Web – Nhóm 1", 2, 5, AssignmentMode.Test, new DateTime(2026, 11, 20, 2, 0, 0, DateTimeKind.Utc))],
+            [new(3, "Web – Nhóm 1", 4, new ReviewWork(JoinRequests: 3, Manual: 1))]);
+        var model = new HomeDashboard("Lan", "Chào buổi sáng", new DateOnly(2026, 11, 15), true, teaching, [], 0, [], 0, 0, [],
+            new StudyStreak(0, 0, null), new StudyToday(0, 0, 0));
+        var html = WebUtility.HtmlDecode(await RenderAsync("Home", "Index", model)); // máy test mã hóa chữ có dấu thành &#x..;
+        foreach (var text in new[] { "Tạo bộ học", "Tạo lớp", "Giao bài", "#new-class-name", "Xem tất cả (1)",
+            "Kiểm tra chương 1", "kết thúc", "2 đang làm · 5 đã nộp", "Cần xem", "4 việc chờ", "3 học viên xin vào lớp · 1 bài làm cần chấm tay" })
+            Assert.Contains(text, html);
+        // Mỗi lớp trong "Cần xem" là một link bấm vào lớp (máy test không có bảng đường dẫn nên chỉ kiểm cấu trúc).
+        Assert.Matches(@"class=""home-review"">\s*<li><a [^>]*><svg[^>]*>.*?</svg><span><strong>Web – Nhóm 1</strong>", html);
+    }
+
     private static async Task<string> RenderAsync(string folder, string name, object model, Dictionary<string, object?>? values = null)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions

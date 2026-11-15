@@ -43,6 +43,18 @@ public class ImportController(ExcelImportService excel) : AppController
         return View("Preview", await ai.GenerateAsync(id, text, count, kind == "cards", UserId, id == 0 ? newSetTitle!.Trim() : null));
     }
 
+    // Dán nhiều thẻ một lúc (nhập hàng loạt của nhóm) → cùng trang xem trước như nhập Excel.
+    [HttpPost]
+    public async Task<IActionResult> PastePreview(int id, string? text)
+    {
+        if (id == 0) return RedirectToAction("Index", "StudySets");
+        await excel.EnsureCanImportAsync(id, UserId);
+        return View("Preview", ExcelImportService.ToPreview(id, "Thẻ dán từ văn bản", ExcelTemplate.ValidateRows(PasteCards.Rows(text))));
+    }
+
+    [HttpGet, ActionName("PastePreview")]
+    public IActionResult PastePreviewAgain(int id) => RedirectToAction(nameof(Index), new { id });
+
     [HttpGet, ActionName("AiPreview")]
     public IActionResult AiPreviewAgain(int id) => RedirectToAction(nameof(Index), new { id });
 

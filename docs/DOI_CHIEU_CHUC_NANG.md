@@ -38,3 +38,26 @@ Ký hiệu: ✅ đã có · 🟡 có nhưng thiếu/khác · ❌ chưa có
 Đã đối chiếu lại toàn bộ 9 tab (`data-tab`), 10 hộp thoại (thêm/sửa thẻ, tạo thẻ AI, ôn bộ thẻ, mốc chuỗi, lịch học, công việc, chuông báo, hộp hỏi chung) và 6 nút có id của `index.html` nhóm: **không còn mục ❌**.
 Khác biệt có chủ ý: Điểm yếu tính ngay khi mở trang nên không cần nút "Phân tích lại"; nút thử của nhà phát triển không chuyển.
 Thêm cho buổi demo: dữ liệu mẫu khi bấm "Dùng thử tài khoản demo", `README.md`, `docs/KICH_BAN_DEMO.md`.
+
+## Rà lần 3 (15/11, chiều) — đối chiếu từ mã nguồn, không dựa vào bảng cũ
+Nguồn đã đối chiếu: 201 action + 107 view + toàn bộ service/JS của QuizEdu; toàn bộ endpoint backend nhóm (bản chính ASP.NET) và bản FastAPI phụ (`backend/app`, `standalone.html`); mọi hàm trong `script.js`, `notebook.js`, `ui.js`, `auth.js`, `voice.js`, `kanban.js`, `cockpit.js`; yêu cầu FR-01…FR-23 (`docs/requirements`); bảng phân công `YeuCauNhom/Phân Công Nhiệm Vụ`.
+
+| Phát hiện | Nguồn | Đã làm |
+|---|---|---|
+| Trang chủ giảng viên thiếu "Cần xem" từng lớp (link + loại việc), chế độ + hạn bài, lối tắt "Tạo lớp"; "Giao bài" trỏ sai | QuizEdu `Home/Lecturer` | Bù đủ trong trang chủ nhóm |
+| Mất nút "Nghe câu trả lời" (do viết lại notebook.js) | FR-16, voice.js | Nút Nghe/Dừng ở mọi câu trả lời hỏi đáp + Gia sư; đổi chế độ/rời trang thì dừng |
+| Ghi chú mất xuống dòng/thụt dòng | FR-13 | Giữ nguyên (cả dòng đầu) |
+| Studio Flashcard/Trắc nghiệm không làm thử tại chỗ | notebook.js quizHtml/pickAnswer | Làm thử tại chỗ (chấm, giải thích, tổng điểm; lật thẻ) + "Lưu thành bộ học" không gọi AI lần hai |
+| Không có key / AI lỗi thì không tạo được thẻ | script.js extractFallbackCards | Tự tách thẻ theo quy tắc của nhóm (`FallbackCards`), có thông báo |
+| PDF đọc sai ký hiệu toán (£ ≥ ¥ Dx x!"#) | AiController CleanExtractedText | `PdfSymbols` (chỉ cho chữ từ PDF) |
+| Không tự gợi ý số thẻ | estimateOptimalCardCount | `ai-count.js` |
+| Không có học bù khi lỡ giờ học | checkMakeupStudyAlert | Hộp "Bạn đã lỡ giờ học → Học bù ngay" |
+| Không dán được nhiều thẻ một lúc | standalone + flashcards_bulk.py | Trang Soạn thẻ + trang Nhập |
+| Ô tìm chỉ tìm trang | ui.js "Tìm trang hoặc bộ thẻ" | Tìm cả bộ học + chủ đề từ vựng |
+| Không có nút sửa trên thẻ đang ôn | ảnh 14 nhóm | "Sửa thẻ" mở đúng thẻ ở Soạn thẻ |
+| Lật thẻ không có hiệu ứng 3D | phân công 5B | `MindSprintFlip` (tắt khi giảm chuyển động) |
+| Không chặn tệp quá cỡ/sai loại trước khi gửi | phân công 5B | `data-max-bytes` + kiểm loại theo `accept` |
+| Chế độ tối: nút "Bắt đầu ngay" 1,7:1; chữ đỏ giao diện sáng 4,3:1 | đo WCAG 25 trang | đều ≥ 4,5:1 |
+
+Có ở nhóm nhưng **cố ý không chuyển**: số "phút học" (nhóm cộng 1 phút mỗi thẻ — số giả); bật/tắt lịch (API có, giao diện nhóm không gọi; GAP-04 của nhóm); `.doc/.docx` (máy chủ nhóm từ chối); job tự tạo task ôn từ câu sai (nhóm chưa làm); AI lập kế hoạch FR-23 (nhóm chưa làm, GAP-01).
+**Cần người dùng quyết:** học khi mất mạng FR-21/22 (xem báo cáo mục 9).

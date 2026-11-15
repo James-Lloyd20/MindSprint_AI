@@ -235,9 +235,9 @@
         {
             @* Header ứng dụng như giao diện nhóm: ô tìm trang bên trái; chuông + tài khoản bên phải. *@
             <div class="app-topbar">
-                <form class="app-search" role="search" data-app-search>
+                <form class="app-search" role="search" data-app-search data-items-url="@(signedIn ? Url.Action("SearchItems", "StudySets") : null)">
                     <icon name="search" />
-                    <input type="search" class="form-control" list="app-pages" placeholder="Tìm trang…" aria-label="Tìm trang trong MindSprint AI" autocomplete="off" />
+                    <input type="search" class="form-control" list="app-pages" placeholder="@(signedIn ? "Tìm trang hoặc bộ thẻ…" : "Tìm trang…")" aria-label="@(signedIn ? "Tìm trang hoặc bộ thẻ" : "Tìm trang trong MindSprint AI")" autocomplete="off" />
                     <datalist id="app-pages"></datalist>
                 </form>
                 <div class="app-actions">

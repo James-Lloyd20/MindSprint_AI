@@ -147,3 +147,15 @@
 - **Demo:** `DemoSeedService` chạy khi tài khoản demo được tạo lần đầu (bộ học 6 thẻ + 5 câu, sổ tay, 3 việc, 2 buổi học; đi qua service thật). `README.md` (chạy lần đầu, demo, vai trò, AI, test), `docs/KICH_BAN_DEMO.md`. Test `DuLieuDemoTests`.
 - Sửa CSS: menu tài khoản trên thanh trên bị `width: 100%` (luật của thanh bên) → tràn ngang 20px khi thêm nút thư.
 - `docs/DOI_CHIEU_CHUC_NANG.md`: đối chiếu lại 9 tab, 10 hộp thoại, 6 nút của bản nhóm — không còn mục thiếu.
+
+### 2026-11-15 chiều (2) — chế độ tối 390px + rà lần 3 từ mã nguồn
+
+- Đo tương phản: chỉ `.home-go` ở giao diện tối thiếu → `[data-bs-theme="dark"] .home-go` nền pha tối; `--bad-text` #BF5B52 → #AD4D45 (`--bs-danger-rgb` theo).
+- **Bẫy CSS điện thoại:** `mindsprint.css` có `main a:not(.btn) { display: inline-block }` (ô bấm ≥ 44px) — mọi link trong `main` cần flex phải viết `main a.x { display: flex }` (đã làm: `.home-go`, `.home-card`, `.home-section-head a`, `.practice-tabs a`, `.home-review a`, `.fc-edit`).
+- Trang chủ giảng viên: `Views/Home/Index.cshtml` nhánh `Model.Lecturer` = đủ QuizEdu `Home/Lecturer` (3 lối tắt, chế độ + hạn, "Cần xem" từng lớp `ReviewWork.Describe`). Test `BoAnBoHocTests.TrangChuGiangVien_DuNhuQuizEdu_…` (dựng view; máy test mã hóa chữ có dấu nên `WebUtility.HtmlDecode`).
+- Sổ tay: `speakButton`/`stopSpeaking` (FR-16); `StudioItems` (Controllers/NotebooksController + `Services.StudioItems.From`) → làm thử tại chỗ; "Lưu thành bộ học" gửi `rows` tới `Import/Recheck` (QuizId 0). Ghi chú: `TrimStart('\r','\n').TrimEnd()` + CSS `pre-wrap`.
+- `FallbackCards` (quy tắc extractFallbackCards của nhóm) chạy trong `AiGenerateService.GenerateAsync` khi **thẻ** mà AI ném `BusinessException`; `ImportPreview.Notice` ([BindNever]) hiện ở trang xem trước. `AiGenerateService.PdfSymbols` chỉ cho chữ từ PDF.
+- `PasteCards` + `FlashcardService.AddManyAsync` (trang Soạn thẻ, có dòng sai thì không thêm gì, `KeepFormOnErrorAsync` giữ đoạn đã dán; `Editor` trả `View(nameof(Editor))`) + `ImportController.PastePreview` (trang Nhập).
+- `alarm.js`: học bù (khoảng cách lần kiểm trước > 2 phút, cùng ngày). `site.js`: `MindSprintFlip` (lật 3D), kiểm tệp `data-max-bytes`, ô tìm lấy `StudySets/SearchItems`. `ai-count.js`: gợi ý số thẻ.
+- Không chuyển (lý do trong DOI_CHIEU): phút học giả, bật/tắt lịch, .doc/.docx, job task ôn, FR-23. **Chờ người dùng:** học khi mất mạng (báo cáo mục 9).
+- Tài khoản demo cũ không có dữ liệu mẫu → `DemoSeedService.SeedIfEmptyAsync` (chưa có bộ học nào thì thêm).

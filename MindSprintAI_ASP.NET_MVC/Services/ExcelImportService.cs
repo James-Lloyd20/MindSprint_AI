@@ -21,6 +21,7 @@ public class ImportPreview
     public int QuizId { get; set; }
     public string FileName { get; set; } = "";
     public string? NewSetTitle { get; set; } // QuizId = 0: bản nháp sẽ thành bộ học mới mang tên này khi bấm Lưu
+    [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever] public string? Notice { get; set; } // chỉ hiện lần đầu (vd. "Chưa dùng được AI, đã tách thẻ theo quy tắc"); không gửi lại khi kiểm tra/lưu
     public List<ImportEditRow> Rows { get; set; } = [];
 }
 

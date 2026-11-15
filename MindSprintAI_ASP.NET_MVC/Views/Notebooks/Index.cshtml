@@ -112,8 +112,8 @@
                 <div class="nb-chips" id="nb-suggestions" data-url="@Url.Action("Suggestions", new { id = nb.Id })">
                     <button type="button" class="nb-chip" data-suggest><icon name="lightbulb" />Gợi ý câu hỏi</button>
                     <form method="post" asp-action="Ask" asp-route-id="@nb.Id"><input type="hidden" name="question" value="Tóm tắt các ý chính trong tài liệu." /><button class="nb-chip" data-quick-ask><icon name="file-text" />Tóm tắt nhanh</button></form>
-                    <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id"><input type="hidden" name="kind" value="cards" /><button class="nb-chip"><icon name="layers" />Flashcard</button></form>
-                    <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id"><input type="hidden" name="kind" value="quiz" /><button class="nb-chip"><icon name="list-checks" />Trắc nghiệm</button></form>
+                    <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id" data-items="cards"><input type="hidden" name="kind" value="cards" /><button class="nb-chip"><icon name="layers" />Flashcard</button></form>
+                    <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id" data-items="quiz"><input type="hidden" name="kind" value="quiz" /><button class="nb-chip"><icon name="list-checks" />Trắc nghiệm</button></form>
                 </div>
 
                 <form method="post" asp-action="Ask" asp-route-id="@nb.Id" class="nb-ask" id="nb-ask" data-json="@Url.Action("AskJson", new { id = nb.Id })">
@@ -169,7 +169,7 @@
                 <div class="nb-thread" id="nb-tutor-thread" aria-live="polite"></div>
             </div>
 
-            <section class="nb-studio" aria-labelledby="nb-studio-title" data-url="@Url.Action("Studio", new { id = nb.Id })">
+            <section class="nb-studio" aria-labelledby="nb-studio-title" data-url="@Url.Action("Studio", new { id = nb.Id })" data-items-url="@Url.Action("StudioItems", new { id = nb.Id })" data-save-url="@Url.Action("Recheck", "Import")">
                 <div class="home-section-head"><h2 id="nb-studio-title">Studio</h2><span class="nb-hint">Tạo tài liệu ôn tập từ mọi nguồn</span></div>
                 <div class="nb-studio-grid">
                     <button type="button" data-gen="summary"><icon name="file-text" /><span>Tóm tắt</span><small>Nắm nhanh các ý chính</small></button>
@@ -177,8 +177,8 @@
                     <button type="button" data-gen="faq"><icon name="circle-help" /><span>Hỏi đáp thường gặp</span><small>Giải đáp điều cần nhớ</small></button>
                     <button type="button" data-gen="timeline"><icon name="list-ordered" /><span>Dòng thời gian</span><small>Kết nối các mốc sự kiện</small></button>
                     <button type="button" data-gen="mindmap"><icon name="layers" /><span>Sơ đồ tư duy</span><small>Hệ thống hóa kiến thức</small></button>
-                    <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id"><input type="hidden" name="kind" value="cards" /><button><icon name="layers" /><span>Flashcard</span><small>Ghi nhớ qua bộ thẻ</small></button></form>
-                    <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id"><input type="hidden" name="kind" value="quiz" /><button><icon name="list-checks" /><span>Trắc nghiệm</span><small>Kiểm tra điều đã hiểu</small></button></form>
+                    <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id" data-items="cards"><input type="hidden" name="kind" value="cards" /><button><icon name="layers" /><span>Flashcard</span><small>Ghi nhớ qua bộ thẻ</small></button></form>
+                    <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id" data-items="quiz"><input type="hidden" name="kind" value="quiz" /><button><icon name="list-checks" /><span>Trắc nghiệm</span><small>Kiểm tra điều đã hiểu</small></button></form>
                     <button type="button" data-gen="audio"><icon name="message-square" /><span>Nghe tổng quan</span><small>Nghe lại nội dung học</small></button>
                 </div>
                 <label class="visually-hidden" for="nb-focus">Trọng tâm (không bắt buộc)</label>
@@ -218,7 +218,7 @@
                 <div class="modal-header"><h2 class="modal-title fs-5" id="source-modal-title">Thêm nguồn</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
                 <div class="modal-body">
                     <div class="mb-3"><label class="form-label" for="source-title">Tên nguồn (không bắt buộc)</label><input class="form-control" id="source-title" name="title" maxlength="200" /></div>
-                    <div class="mb-3"><label class="form-label" for="source-file">Tệp PDF, tệp chữ hoặc ảnh đề bài (tối đa 10 MB)</label><input class="form-control" id="source-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes.Concat(NotebookService.ImageTypes))" /><small class="text-muted">Ảnh: AI đọc và chép lại chữ trong ảnh (dùng API key Gemini của bạn), ảnh không được lưu.</small></div>
+                    <div class="mb-3"><label class="form-label" for="source-file">Tệp PDF, tệp chữ hoặc ảnh đề bài (tối đa 10 MB)</label><input class="form-control" id="source-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes.Concat(NotebookService.ImageTypes))" data-max-bytes="@AiGenerateService.MaxFileBytes" /><small class="text-muted">Ảnh: AI đọc và chép lại chữ trong ảnh (dùng API key Gemini của bạn), ảnh không được lưu.</small></div>
                     <div><label class="form-label" for="source-text">Hoặc dán văn bản</label><textarea class="form-control" id="source-text" name="text" rows="6" maxlength="@NotebookService.MaxCharsPerSource"></textarea></div>
                 </div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary">Thêm nguồn</button></div>

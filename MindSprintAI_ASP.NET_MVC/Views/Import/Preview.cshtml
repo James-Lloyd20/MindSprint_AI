@@ -4,6 +4,7 @@
 else { <a class="btn btn-sm b-back" asp-controller="Import" asp-action="Index" asp-route-id="@Model.QuizId"><icon name="chevron-right" class="b-back-icon" />Quay lại chọn file khác</a> }
 <h1 class="h3">Xem trước — @Model.FileName</h1>
 @if (Model.NewSetTitle != null) { <p class="alert alert-info">Khi bấm Lưu, MindSprint AI tạo bộ học mới <b>@Model.NewSetTitle</b> chứa các dòng đã chọn. Chưa lưu thì chưa có bộ học nào được tạo.</p> }
+@if (Model.Notice != null) { <p class="alert alert-warning" role="status">@Model.Notice</p> }
 <p>Chưa lưu dữ liệu. Có @Model.Rows.Count(r => r.Error == null) dòng hợp lệ, @Model.Rows.Count(r => r.Error != null) dòng lỗi.</p>
 <p class="small text-muted">Sửa trực tiếp các ô, hoặc bỏ tick Nhập để bỏ qua dòng. Bấm Kiểm tra lại để cập nhật lỗi trước khi Lưu. Vuốt ngang bảng để xem đủ cột trên điện thoại.</p>
 <form method="post" asp-controller="Import" asp-action="Save">
