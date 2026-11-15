@@ -108,8 +108,8 @@ public class Tang5d1PureTests
             "Account.PasskeyRequestOptions", "Account.PasskeyLogin", "Account.TwoFactorPasskeyOptions", "Account.TwoFactorPasskeyLogin",
             // (7d/D1a, D3b) khách được đổi chế độ và xem lịch sử của chính phiên trong bài giao.
             "Flashcards.Study", "Flashcards.Rate", "Flashcards.ChangeMode", "Flashcards.History",
-            // Pháp lý: khách đọc được Chính sách/Điều khoản và đồng ý lại khi chính sách đổi phiên bản.
-            "Home.Privacy", "Home.Terms", "Account.AcceptPolicy"
+            // Pháp lý: khách đọc được Chính sách/Điều khoản/Trợ giúp và đồng ý lại khi chính sách đổi phiên bản.
+            "Home.Privacy", "Home.Terms", "Home.Help", "Account.AcceptPolicy"
         };
         Assert.True(actions.Count > 80);
         foreach (var action in actions)

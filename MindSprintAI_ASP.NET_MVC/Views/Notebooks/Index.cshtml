@@ -39,6 +39,14 @@
         @if (nb != null)
         {
             <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#source-modal"><icon name="plus" />Thêm nguồn</button>
+            <details class="nb-new">
+                <summary><icon name="link" />Thêm từ đường link</summary>
+                <form method="post" asp-action="AddUrl" asp-route-id="@nb.Id" class="nb-inline">
+                    <label class="visually-hidden" for="nb-url">Đường link trang web hoặc tệp PDF</label>
+                    <input class="form-control form-control-sm" id="nb-url" name="url" type="url" maxlength="4096" placeholder="Dán đường link bài viết, tệp PDF…" required />
+                    <button class="btn btn-sm btn-primary">Thêm</button>
+                </form>
+            </details>
             <p class="nb-label">Nguồn tài liệu <span>@nb.Sources.Count/@NotebookService.MaxSources</span></p>
             @if (nb.Sources.Count == 0)
             {
@@ -48,7 +56,7 @@
                 @foreach (var s in nb.Sources)
                 {
                     <li>
-                        <icon name="@(s.Kind switch { NotebookSourceKind.Text => "notebook-pen", NotebookSourceKind.Image => "image", _ => "file-text" })" />
+                        <icon name="@(s.Kind switch { NotebookSourceKind.Text => "notebook-pen", NotebookSourceKind.Image => "image", NotebookSourceKind.Url => "link", _ => "file-text" })" />
                         <span><b>@s.Title</b><small>@s.Content.Length.ToString("N0") ký tự@(s.Origin != null ? " · " + s.Origin : "")</small></span>
                         <form method="post" asp-action="DeleteSource" asp-route-id="@nb.Id" asp-route-sourceId="@s.Id" data-confirm="Xóa nguồn &quot;@s.Title&quot;?">
                             <button class="nb-icon-btn" aria-label="Xóa nguồn @s.Title" title="Xóa nguồn"><icon name="trash-2" /></button>
@@ -69,48 +77,114 @@
         }
         else
         {
-            <div class="nb-thread" id="nb-thread">
-                @if (Model.Answer == null)
-                {
-                    <div class="nb-hero"><span class="nb-orb" aria-hidden="true"></span><h2>Bạn muốn khám phá điều gì từ tài liệu?</h2><p>AI đọc hiểu nguồn trong sổ tay, trả lời có trích dẫn và giúp bạn tạo bộ ôn tập.</p></div>
-                }
-                else
-                {
-                    <div class="nb-q"><b>Bạn hỏi</b><p>@Model.Question</p></div>
-                    <div class="nb-a" id="nb-answer">
-                        <b>Sổ tay AI</b>
-                        <p>@Model.Answer.Answer</p>
-                        @if (Model.Answer.Citations.Count > 0)
-                        {
-                            <ol class="nb-cites">@foreach (var c in Model.Answer.Citations) { <li>“@c.ExcerptText”</li> }</ol>
-                        }
-                        <div class="nb-a-actions">
-                            <button type="button" class="btn btn-sm btn-secondary" data-speak="#nb-answer > p" hidden><icon name="message-square" />Nghe câu trả lời</button>
-                            <form method="post" asp-action="AddNote" asp-route-id="@nb.Id">
-                                <input type="hidden" name="title" value="@Model.Question" /><input type="hidden" name="content" value="@Model.Answer.Answer" />
-                                <button class="btn btn-sm btn-primary"><icon name="notebook-pen" />Lưu vào ghi chú</button>
-                            </form>
+            @* Hai chế độ như nhóm (notebook.js nb-mode-btn): Theo nguồn (hỏi đáp có trích dẫn) · Gia sư (giải/kiểm tra/gợi ý/lập trình). *@
+            <div class="nb-modes" role="radiogroup" aria-label="Chế độ trò chuyện">
+                <button type="button" class="nb-mode-btn is-active" role="radio" aria-checked="true" data-mode="source">Theo nguồn</button>
+                <button type="button" class="nb-mode-btn" role="radio" aria-checked="false" data-mode="tutor">Gia sư</button>
+            </div>
+
+            <div class="nb-pane" data-pane="source">
+                <div class="nb-thread" id="nb-thread" data-notebook="@nb.Id">
+                    @if (Model.Answer == null)
+                    {
+                        <div class="nb-hero" id="nb-hero"><span class="nb-orb" aria-hidden="true"></span><h2>Bạn muốn khám phá điều gì từ tài liệu?</h2><p>AI đọc hiểu nguồn trong sổ tay, trả lời có trích dẫn và giúp bạn tạo bộ ôn tập.</p></div>
+                    }
+                    else
+                    {
+                        <div class="nb-q"><b>Bạn hỏi</b><p>@Model.Question</p></div>
+                        <div class="nb-a" id="nb-answer">
+                            <b>Sổ tay AI</b>
+                            <div class="nb-md" data-markdown>@Model.Answer.Answer</div>
+                            @if (Model.Answer.Citations.Count > 0)
+                            {
+                                <ol class="nb-cites">@foreach (var c in Model.Answer.Citations) { <li>“@c.ExcerptText”</li> }</ol>
+                            }
+                            <div class="nb-a-actions">
+                                <form method="post" asp-action="AddNote" asp-route-id="@nb.Id">
+                                    <input type="hidden" name="title" value="@Model.Question" /><input type="hidden" name="content" value="@Model.Answer.Answer" />
+                                    <button class="btn btn-sm btn-primary"><icon name="notebook-pen" />Lưu vào ghi chú</button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
-                }
-            </div>
-
-            <div class="nb-chips">
-                <form method="post" asp-action="Ask" asp-route-id="@nb.Id"><input type="hidden" name="question" value="Tóm tắt các ý chính trong tài liệu." /><button class="nb-chip"><icon name="file-text" />Tóm tắt</button></form>
-                <form method="post" asp-action="Ask" asp-route-id="@nb.Id"><input type="hidden" name="question" value="Những khái niệm quan trọng nhất trong tài liệu là gì?" /><button class="nb-chip"><icon name="lightbulb" />Khái niệm chính</button></form>
-                <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id"><input type="hidden" name="kind" value="cards" /><button class="nb-chip"><icon name="layers" />Tạo thẻ ghi nhớ</button></form>
-                <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id"><input type="hidden" name="kind" value="quiz" /><button class="nb-chip"><icon name="list-checks" />Tạo trắc nghiệm</button></form>
-            </div>
-
-            <form method="post" asp-action="Ask" asp-route-id="@nb.Id" class="nb-ask">
-                <label class="visually-hidden" for="nb-question">Câu hỏi về tài liệu</label>
-                <textarea class="form-control" id="nb-question" name="question" rows="2" maxlength="1000" placeholder="Bạn muốn hỏi gì về tài liệu của mình?" required>@Model.Question</textarea>
-                <div class="nb-ask-actions">
-                    <button type="button" class="btn btn-secondary" data-voice-input hidden aria-pressed="false"><icon name="message-square" /><span>Nhập bằng giọng nói</span></button>
-                    <button class="btn btn-primary"><icon name="send" />Gửi câu hỏi</button>
+                    }
                 </div>
-                <p class="nb-hint">Câu hỏi và đoạn nguồn liên quan được gửi tới Google Gemini bằng API key Gemini của bạn (trang Tài khoản). Câu trả lời chỉ dựa trên nguồn trong sổ tay.</p>
-            </form>
+
+                <div class="nb-chips" id="nb-suggestions" data-url="@Url.Action("Suggestions", new { id = nb.Id })">
+                    <button type="button" class="nb-chip" data-suggest><icon name="lightbulb" />Gợi ý câu hỏi</button>
+                    <form method="post" asp-action="Ask" asp-route-id="@nb.Id"><input type="hidden" name="question" value="Tóm tắt các ý chính trong tài liệu." /><button class="nb-chip" data-quick-ask><icon name="file-text" />Tóm tắt nhanh</button></form>
+                    <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id"><input type="hidden" name="kind" value="cards" /><button class="nb-chip"><icon name="layers" />Flashcard</button></form>
+                    <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id"><input type="hidden" name="kind" value="quiz" /><button class="nb-chip"><icon name="list-checks" />Trắc nghiệm</button></form>
+                </div>
+
+                <form method="post" asp-action="Ask" asp-route-id="@nb.Id" class="nb-ask" id="nb-ask" data-json="@Url.Action("AskJson", new { id = nb.Id })">
+                    <label class="visually-hidden" for="nb-question">Câu hỏi về tài liệu</label>
+                    <textarea class="form-control" id="nb-question" name="question" rows="2" maxlength="1000" placeholder="Bạn muốn hỏi gì về tài liệu của mình?" required>@Model.Question</textarea>
+                    <div class="nb-ask-actions">
+                        <button type="button" class="btn btn-secondary btn-sm" data-clear-thread hidden>Xóa lịch sử hỏi đáp</button>
+                        <button type="button" class="btn btn-secondary" data-voice-input data-target="nb-question" hidden aria-pressed="false"><icon name="message-square" /><span>Nhập bằng giọng nói</span></button>
+                        <button class="btn btn-primary"><icon name="send" />Gửi câu hỏi</button>
+                    </div>
+                    <p class="nb-hint">Câu hỏi và đoạn nguồn liên quan được gửi tới Google Gemini bằng API key Gemini của bạn (trang Tài khoản). Câu trả lời chỉ dựa trên nguồn trong sổ tay.</p>
+                </form>
+            </div>
+
+            <div class="nb-pane" data-pane="tutor" hidden>
+                <form class="nb-tutor" id="nb-tutor" data-url="@Url.Action("Tutor", new { id = nb.Id })">
+                    <div class="nb-tutor-row" role="radiogroup" aria-label="Hoạt động Gia sư">
+                        <label><input type="radio" name="action" value="solve" checked /> Giải bài</label>
+                        <label><input type="radio" name="action" value="check" /> Kiểm tra bài làm</label>
+                        <label><input type="radio" name="action" value="hint" /> Tự luyện</label>
+                        <label><input type="radio" name="action" value="code" /> Lập trình</label>
+                    </div>
+                    <div class="nb-tutor-row" data-when="solve" role="radiogroup" aria-label="Cách giải">
+                        <label><input type="radio" name="style" value="steps" checked /> Từng bước</label>
+                        <label><input type="radio" name="style" value="brief" /> Ngắn gọn</label>
+                    </div>
+                    <div class="nb-tutor-row" data-when="hint" hidden role="radiogroup" aria-label="Mức gợi ý">
+                        <label><input type="radio" name="hintLevel" value="1" checked /> Gợi ý 1: kiến thức cần dùng</label>
+                        <label><input type="radio" name="hintLevel" value="2" /> Gợi ý 2: hướng làm</label>
+                        <label><input type="radio" name="hintLevel" value="3" /> Gợi ý 3: gần đủ các bước</label>
+                    </div>
+                    <label class="form-label" for="tutor-question">Đề bài hoặc câu hỏi <small class="text-muted">(có thể ghi "Câu 1 trong tài liệu")</small></label>
+                    <textarea class="form-control" id="tutor-question" name="question" rows="3" maxlength="10000"></textarea>
+                    <div data-when="check" hidden>
+                        <label class="form-label mt-2" for="tutor-submission">Bài làm của bạn</label>
+                        <textarea class="form-control" id="tutor-submission" name="submission" rows="4" maxlength="10000"></textarea>
+                    </div>
+                    <div data-when="code" hidden>
+                        <label class="form-label mt-2" for="tutor-language">Ngôn ngữ</label>
+                        <select class="form-select" id="tutor-language" name="language"><option value="python">Python</option><option value="javascript">JS</option></select>
+                        <label class="form-label mt-2" for="tutor-code">Đoạn code</label>
+                        <textarea class="form-control nb-code" id="tutor-code" name="code" rows="6" maxlength="10000" spellcheck="false"></textarea>
+                        <label class="form-label mt-2" for="tutor-error">Thông báo lỗi (nếu có)</label>
+                        <textarea class="form-control nb-code" id="tutor-error" name="error" rows="2" maxlength="10000" spellcheck="false"></textarea>
+                    </div>
+                    <div class="nb-ask-actions mt-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-tutor-new>Bài mới</button>
+                        <button type="button" class="btn btn-secondary" data-voice-input data-target="tutor-question" hidden aria-pressed="false"><icon name="message-square" /><span>Nhập bằng giọng nói</span></button>
+                        <button class="btn btn-primary"><icon name="send" />Hỏi Gia sư</button>
+                    </div>
+                    <p class="nb-hint">Gia sư dùng API key Gemini của bạn và có thể đọc đề trong nguồn của sổ tay. Gia sư không chạy code thật.</p>
+                </form>
+                <div class="nb-thread" id="nb-tutor-thread" aria-live="polite"></div>
+            </div>
+
+            <section class="nb-studio" aria-labelledby="nb-studio-title" data-url="@Url.Action("Studio", new { id = nb.Id })">
+                <div class="home-section-head"><h2 id="nb-studio-title">Studio</h2><span class="nb-hint">Tạo tài liệu ôn tập từ mọi nguồn</span></div>
+                <div class="nb-studio-grid">
+                    <button type="button" data-gen="summary"><icon name="file-text" /><span>Tóm tắt</span><small>Nắm nhanh các ý chính</small></button>
+                    <button type="button" data-gen="studyguide"><icon name="graduation-cap" /><span>Hướng dẫn ôn</span><small>Lập hướng dẫn ôn tập</small></button>
+                    <button type="button" data-gen="faq"><icon name="circle-help" /><span>Hỏi đáp thường gặp</span><small>Giải đáp điều cần nhớ</small></button>
+                    <button type="button" data-gen="timeline"><icon name="list-ordered" /><span>Dòng thời gian</span><small>Kết nối các mốc sự kiện</small></button>
+                    <button type="button" data-gen="mindmap"><icon name="layers" /><span>Sơ đồ tư duy</span><small>Hệ thống hóa kiến thức</small></button>
+                    <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id"><input type="hidden" name="kind" value="cards" /><button><icon name="layers" /><span>Flashcard</span><small>Ghi nhớ qua bộ thẻ</small></button></form>
+                    <form method="post" asp-action="CreateStudySet" asp-route-id="@nb.Id"><input type="hidden" name="kind" value="quiz" /><button><icon name="list-checks" /><span>Trắc nghiệm</span><small>Kiểm tra điều đã hiểu</small></button></form>
+                    <button type="button" data-gen="audio"><icon name="message-square" /><span>Nghe tổng quan</span><small>Nghe lại nội dung học</small></button>
+                </div>
+                <label class="visually-hidden" for="nb-focus">Trọng tâm (không bắt buộc)</label>
+                <input class="form-control form-control-sm mt-2" id="nb-focus" maxlength="500" placeholder="Trọng tâm (không bắt buộc), ví dụ: chỉ phần chương 2" />
+                <div class="nb-studio-out" id="nb-studio-out" aria-live="polite"></div>
+            </section>
 
             <section class="nb-notes" aria-labelledby="nb-notes-title">
                 <div class="home-section-head"><h2 id="nb-notes-title">Ghi chú (@nb.Notes.Count)</h2></div>

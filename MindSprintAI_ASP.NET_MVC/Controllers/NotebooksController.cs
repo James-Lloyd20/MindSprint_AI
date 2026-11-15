@@ -43,6 +43,35 @@ public class NotebooksController(NotebookService notebooks) : AppController
         return RedirectToAction(nameof(Index), new { id });
     }
 
+    // Nguồn từ đường link (như nhóm): máy chủ tải trang công khai, lấy phần chữ chính hoặc nội dung PDF.
+    [HttpPost]
+    public async Task<IActionResult> AddUrl(int id, string? url, [FromServices] IHttpClientFactory http)
+    {
+        var source = await NotebookUrlReader.ReadAsync(http.CreateClient(NotebookUrlReader.ClientName), url, HttpContext.RequestAborted);
+        await notebooks.AddSourceAsync(id, source.Title, source.Content, NotebookSourceKind.Url, source.Url.Length > 260 ? source.Url[..260] : source.Url, UserId);
+        Success("Đã thêm nguồn từ đường link.");
+        return RedirectToAction(nameof(Index), new { id });
+    }
+
+    // ---- Gọi từ js/notebook.js (fetch kèm mã chống giả mạo; lỗi nghiệp vụ trả JSON qua BusinessExceptionFilter) ----
+    [HttpPost]
+    public async Task<IActionResult> AskJson(int id, string? question)
+    {
+        var answer = await notebooks.AskAsync(id, question, UserId, HttpContext.RequestAborted);
+        return Json(new { answer = answer.Answer, citations = answer.Citations.Select(c => c.ExcerptText) });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Suggestions(int id, [FromServices] NotebookAiService ai) => Json(await ai.SuggestAsync(id, UserId));
+
+    [HttpPost]
+    public async Task<IActionResult> Studio(int id, string? type, string? focus, [FromServices] NotebookAiService ai) =>
+        Json(new { type, result = await ai.StudioAsync(id, type, focus, UserId) });
+
+    [HttpPost]
+    public async Task<IActionResult> Tutor(int id, [FromBody] TutorInput input, [FromServices] NotebookAiService ai) =>
+        Json(await ai.TutorAsync(id, input, UserId));
+
     [HttpPost]
     public async Task<IActionResult> DeleteSource(int id, int sourceId)
     {

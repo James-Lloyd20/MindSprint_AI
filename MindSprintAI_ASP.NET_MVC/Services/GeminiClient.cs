@@ -149,6 +149,36 @@ public sealed class GeminiClient(HttpClient http, IConfiguration configuration)
         { throw new BusinessException("Gemini trả về dữ liệu không hợp lệ. Vui lòng thử lại."); }
     }
 
+    // Sổ tay AI (Studio, Gia sư, gợi ý câu hỏi của nhóm — NotebookAi/TutorService): một lời nhắc → JSON đúng schema.
+    // Lời nhắc nằm ở Prompts/ (chuyển từ nhóm); nội dung người dùng/tài liệu luôn đi trong lời nhắc như DỮ LIỆU.
+    public async Task<JsonElement> PromptJsonAsync(string key, string prompt, object schema, int maxTokens = 8192, CancellationToken cancellationToken = default)
+    {
+        var model = configuration["Gemini:Model"] ?? DefaultModel;
+        if (!Regex.IsMatch(model, @"\A[a-zA-Z0-9.-]{1,100}\z")) throw new BusinessException("Cấu hình model Gemini không hợp lệ.");
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent");
+        request.Headers.Add("x-goog-api-key", key);
+        request.Content = JsonContent.Create(new
+        {
+            contents = new[] { new { role = "user", parts = new[] { new { text = prompt } } } },
+            generationConfig = new { responseMimeType = "application/json", maxOutputTokens = maxTokens, responseSchema = schema }
+        });
+        try
+        {
+            using var response = await http.SendAsync(request, cancellationToken);
+            await EnsureOkAsync(response, cancellationToken);
+            var raw = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (raw.Length > 600000) throw new JsonException();
+            using var envelope = JsonDocument.Parse(raw);
+            var content = envelope.RootElement.GetProperty("candidates")[0].GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString();
+            using var output = JsonDocument.Parse(content ?? "");
+            return output.RootElement.Clone();
+        }
+        catch (OperationCanceledException) { throw new BusinessException("Gemini phản hồi quá lâu hoặc yêu cầu đã dừng. Vui lòng thử lại."); }
+        catch (HttpRequestException) { throw new BusinessException("Không kết nối được Gemini. Vui lòng thử lại sau."); }
+        catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or IndexOutOfRangeException)
+        { throw new BusinessException("Gemini trả về dữ liệu không hợp lệ. Vui lòng thử lại."); }
+    }
+
     // Gia sư OCR của nhóm (TutorOcrService): chỉ chép lại chữ/đề trong ảnh, không giải; chữ trong ảnh là dữ liệu, không phải lệnh.
     public async Task<string> ReadImageAsync(string key, byte[] image, string mimeType, CancellationToken cancellationToken = default)
     {

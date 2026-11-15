@@ -28,8 +28,10 @@ public class SoTayAiTests
         for (var i = 2; i < NotebookService.MaxSources; i++) await service.AddSourceAsync(nb.Id, null, "x", NotebookSourceKind.Text, null, u);
         Assert.Equal($"Mỗi sổ tay có tối đa {NotebookService.MaxSources} nguồn.",
             (await Assert.ThrowsAsync<BusinessException>(() => service.AddSourceAsync(nb.Id, null, "y", NotebookSourceKind.Text, null, u))).Message);
+        Assert.False((await new StudyStatsService(h.Db, h.Clock).TodayAsync(u)).Noted);
         await service.AddNoteAsync(nb.Id, null, "Ý chính", u);
         Assert.Equal("Ghi chú", (await service.GetAsync(nb.Id, u)).Notes.Single().Title);
+        Assert.True((await new StudyStatsService(h.Db, h.Clock).TodayAsync(u)).Noted); // mục tiêu ngày "Ghi chú điều muốn tìm hiểu" tự tích
         Assert.Throws<BusinessException>(() => NotebookService.Combined(new Notebook()));
         // Gia sư OCR: chỉ ảnh PNG/JPG/WEBP ≤ 10 MB; sai loại bị chặn trước khi gửi gì sang Gemini.
         var gif = new Microsoft.AspNetCore.Http.FormFile(new MemoryStream([1, 2, 3]), 0, 3, "file", "de.gif");

@@ -23,6 +23,10 @@ public class HomeController(UserManager<ApplicationUser> users) : Controller
         return View(await home.GetAsync(user));
     }
 
+    // "Trợ giúp" cuối thanh bên như nhóm (bản nhóm chỉ là dòng chữ; ở đây là trang hướng dẫn thật).
+    [HttpGet("tro-giup"), AllowGuest, AllowWithoutPolicy]
+    public IActionResult Help() => View();
+
     [HttpGet("chinh-sach"), AllowGuest, AllowWithoutPolicy]
     public IActionResult Privacy([FromServices] IConfiguration config) => View(LegalInfo.From(config));
 

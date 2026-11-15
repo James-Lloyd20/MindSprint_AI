@@ -37,7 +37,7 @@
             else
             {
                 @if (next != null) { <a class="btn btn-primary" asp-controller="Learn" asp-action="Assignment" asp-route-id="@next.Id"><icon name="play" />Làm bài: @(next.Quiz?.Title ?? "Thẻ ghi nhớ")</a> }
-                else { <a class="btn btn-primary" asp-controller="StudySets" asp-action="Index"><icon name="play" />Mở thư viện để ôn</a> }
+                else { <a class="btn btn-primary" asp-controller="Vocab" asp-action="Practice"><icon name="play" />Bắt đầu học 15 phút</a> }
                 <a class="btn btn-secondary" href="@Url.Action("Index", "StudySets")#tao-bo-hoc"><icon name="plus" />Tạo bộ học</a>
             }
         </div>
@@ -50,7 +50,7 @@
                 @* Như nhóm: Chuỗi học · Thẻ đã ôn · Độ chính xác (của hôm nay), tính từ hoạt động thật (StudyStatsService). *@
                 <div class="home-panel-head"><h2 id="home-progress-title">Tiến độ hôm nay</h2><a asp-controller="Schedule" asp-action="Index">Lịch học</a></div>
                 <div class="home-progress">
-                    <div class="home-ring" style="--p: @Model.TaskPercent" role="img" aria-label="Đã xong @Model.TaskPercent% công việc"><strong>@Model.TaskPercent%</strong><span>việc đã xong</span></div>
+                    <div class="home-ring" id="home-goal-ring" style="--p: @Model.GoalPercent" role="img" aria-label="Hoàn thành @Model.GoalPercent% mục tiêu hôm nay"><strong id="home-goal-value">@Model.GoalPercent%</strong><span>Hoàn thành</span></div>
                     <dl class="home-stats">
                         <div><dt><icon name="sparkles" />Chuỗi học</dt><dd>@Model.Streak.Current ngày</dd></div>
                         <div><dt><icon name="layers" />Thẻ đã ôn</dt><dd>@Model.Study.CardsReviewed thẻ</dd></div>
@@ -58,20 +58,17 @@
                     </dl>
                 </div>
             </section>
-            <section class="home-panel" aria-labelledby="home-today-title">
-                <div class="home-panel-head"><h2 id="home-today-title">Việc hôm nay</h2><span>@Model.Tasks.Count việc chưa xong</span></div>
-                @if (Model.Tasks.Count == 0) { <p class="home-empty">Chưa có việc nào cần làm. Ghi việc mới ở bảng công việc nhé.</p> }
-                else
-                {
-                    <ul class="home-tasks">
-                        @foreach (var t in Model.Tasks)
-                        {
-                            <li><span class="home-task-dot @(t.Status == KanbanStatus.Doing ? "is-doing" : "")" aria-hidden="true"></span>
-                                <span>@t.Title<small>@(t.Status == KanbanStatus.Doing ? "Đang làm" : "Chưa bắt đầu")@(t.DueDate is { } d ? $" · hạn {d:dd/MM}" : "")</small></span></li>
-                        }
-                    </ul>
-                }
-                <a class="home-go" asp-controller="Kanban" asp-action="Index"><icon name="play" />Mở bảng công việc<icon name="chevron-right" /></a>
+            @* "Mục tiêu hôm nay" của nhóm (3 ô tích, "x/3 xong", Bắt đầu ngay). Khác nhóm: ô tự tích khi đã có hoạt động thật hôm nay;
+               vẫn tích tay được (lưu theo ngày ở trình duyệt này, js/home.js). *@
+            <section class="home-panel" aria-labelledby="home-today-title" id="home-goals" data-day="@Model.Today.ToString("yyyy-MM-dd")">
+                <div class="home-panel-head"><h2 id="home-today-title">Mục tiêu hôm nay</h2><span id="home-goals-count">@Model.GoalsDone/3 xong</span></div>
+                <div class="home-goals">
+                    <label><input type="checkbox" data-daily-goal="review" checked="@(Model.Study.CardsReviewed > 0)" /> Ôn lại ít nhất 1 bộ thẻ</label>
+                    <label><input type="checkbox" data-daily-goal="quiz" checked="@(Model.Study.Answered > 0)" /> Làm một bài kiểm tra nhanh</label>
+                    <label><input type="checkbox" data-daily-goal="note" checked="@Model.NotedToday" /> Ghi chú điều muốn tìm hiểu</label>
+                </div>
+                <a class="home-go" asp-controller="Learn" asp-action="Index"><icon name="play" />Bắt đầu ngay<icon name="chevron-right" /></a>
+                @if (Model.Tasks.Count > 0) { <a class="home-tasks-link" asp-controller="Kanban" asp-action="Index">Công việc: @Model.Tasks.Count việc chưa xong →</a> }
             </section>
         </div>
 
@@ -151,3 +148,15 @@
     </section>
 </div>
 
+
+@if (Model != null)
+{
+    @* Màn ăn mừng mốc chuỗi ngày học của nhóm (streak-milestone-modal): mỗi mốc chỉ hiện một lần trên trình duyệt này. *@
+    <dialog class="streak-dialog" id="streak-dialog" data-streak="@Model.Streak.Current" aria-labelledby="streak-title">
+        <span class="streak-badge" aria-hidden="true"><icon name="trophy" /></span>
+        <h2 id="streak-title">Chuỗi <span data-streak-days>@Model.Streak.Current</span> ngày học!</h2>
+        <p>Bạn đã học đều đặn <b>@Model.Streak.Current ngày liên tiếp</b>. Giữ nhịp này nhé — mỗi ngày một chút tiến bộ.</p>
+        <form method="dialog"><button class="btn btn-primary">Nhận thưởng tinh thần</button></form>
+    </dialog>
+}
+@section Scripts { <script src="~/js/home.js" asp-append-version="true"></script> }

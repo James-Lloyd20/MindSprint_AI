@@ -71,7 +71,7 @@ public sealed class StudyScheduleService(AppDbContext db)
     }
 }
 
-public record StudyToday(int CardsReviewed, int Answered, int Correct)
+public record StudyToday(int CardsReviewed, int Answered, int Correct, bool Noted = false) // Noted: có ghi chú Sổ tay AI hôm nay (mục tiêu ngày của nhóm)
 {
     public int Accuracy => Answered == 0 ? 0 : Correct * 100 / Answered;
 }
@@ -121,7 +121,8 @@ public sealed class StudyStatsService(AppDbContext db, TimeProvider clock)
         var start = VnTime.Date(clock.GetUtcNow().UtcDateTime).ToDateTime(TimeOnly.MinValue) - Vn; // 00:00 giờ VN tính ra UTC
         var cards = await db.FlashcardReviews.CountAsync(r => r.UserId == userId && r.ReviewedAt >= start);
         var answers = await Answers(userId, start).Select(a => a.IsCorrect).ToListAsync();
-        return new(cards, answers.Count, answers.Count(c => c == true));
+        var noted = await db.NotebookNotes.AnyAsync(n => n.Notebook.UserId == userId && n.CreatedAt >= start);
+        return new(cards, answers.Count, answers.Count(c => c == true), noted);
     }
 
     private IQueryable<AnswerSubmission> Answers(string userId, DateTime fromUtc) => db.AnswerSubmissions.Where(a =>

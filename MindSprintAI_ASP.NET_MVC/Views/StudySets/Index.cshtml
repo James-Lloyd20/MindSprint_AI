@@ -15,6 +15,7 @@
     </div>
     <div class="page-head-actions">
         <p class="set-due-pill @(dueTotal > 0 ? "has-due" : "")" role="status"><icon name="clock" />Hôm nay có @dueTotal thẻ đến hạn ôn</p>
+        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#ai-card-modal"><icon name="sparkles" />Tạo thẻ bằng AI</button>
         <a class="btn btn-primary" href="#new-set-title"><icon name="plus" />Tạo bộ học</a>
     </div>
 </header>
@@ -147,5 +148,25 @@ else
     }
     </div>
 }
+</div>
+
+@* "Tạo thẻ bằng AI" của nhóm (ai-card-modal): dán bài học hoặc tải tài liệu → AI soạn bản nháp → trang xem trước, bộ học mới chỉ tạo khi bấm Lưu. *@
+<div class="modal fade" id="ai-card-modal" tabindex="-1" aria-labelledby="ai-card-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content">
+        <form method="post" asp-controller="Import" asp-action="AiPreview" asp-route-id="0" enctype="multipart/form-data">
+            <div class="modal-header"><h2 class="modal-title fs-5" id="ai-card-title"><icon name="sparkles" />Tạo thẻ bằng AI</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+            <div class="modal-body">
+                <p class="small text-muted">Dán nội dung bài học hoặc tải tài liệu để AI tạo thẻ ghi nhớ hoặc câu trắc nghiệm. Bạn xem và chọn từng dòng trước khi lưu. AI dùng API key Gemini của bạn (trang Tài khoản).</p>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label" for="ai-set-title">Tên bộ học mới</label><input class="form-control" id="ai-set-title" name="newSetTitle" maxlength="200" required placeholder="Ví dụ: Sinh học — Chương 3" /></div>
+                    <div class="col-md-3"><label class="form-label" for="ai-lib-kind">Tạo</label><select class="form-select" id="ai-lib-kind" name="kind"><option value="cards">Thẻ ghi nhớ</option><option value="quiz">Câu trắc nghiệm</option></select></div>
+                    <div class="col-md-3"><label class="form-label" for="ai-lib-count">Số lượng (1–@AiGenerateService.MaxCount)</label><input class="form-control" id="ai-lib-count" name="count" type="number" min="1" max="@AiGenerateService.MaxCount" value="10" /></div>
+                    <div class="col-12"><label class="form-label" for="ai-lib-file">Tệp tài liệu (PDF hoặc tệp chữ, tối đa 10 MB)</label><input class="form-control" id="ai-lib-file" name="file" type="file" accept="@string.Join(",", AiGenerateService.FileTypes)" /></div>
+                    <div class="col-12"><label class="form-label" for="ai-lib-text">Hoặc dán nội dung</label><textarea class="form-control" id="ai-lib-text" name="text" rows="6" maxlength="@AiGenerateService.MaxChars"></textarea></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary"><icon name="sparkles" />Tạo bản nháp</button></div>
+        </form>
+    </div></div>
 </div>
 @section Scripts { <script src="~/js/library-tools.js" asp-append-version="true"></script> }

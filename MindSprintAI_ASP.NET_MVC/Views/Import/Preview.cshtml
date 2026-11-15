@@ -1,6 +1,6 @@
 @model ImportPreview
 @{ ViewData["Title"] = "Xem trước dữ liệu nhập"; }
-@if (Model.QuizId == 0) { <a class="btn btn-sm b-back" asp-controller="Notebooks" asp-action="Index"><icon name="chevron-right" class="b-back-icon" />Quay lại Sổ tay AI</a> }
+@if (Model.QuizId == 0) { <a class="btn btn-sm b-back" href="@BackLink.Url(Context.Request, Url.Action("Index", "StudySets")!)"><icon name="chevron-right" class="b-back-icon" />Quay lại trang trước</a> } @* bản nháp bộ học mới: từ Sổ tay AI hoặc "Tạo thẻ bằng AI" ở Thư viện *@
 else { <a class="btn btn-sm b-back" asp-controller="Import" asp-action="Index" asp-route-id="@Model.QuizId"><icon name="chevron-right" class="b-back-icon" />Quay lại chọn file khác</a> }
 <h1 class="h3">Xem trước — @Model.FileName</h1>
 @if (Model.NewSetTitle != null) { <p class="alert alert-info">Khi bấm Lưu, MindSprint AI tạo bộ học mới <b>@Model.NewSetTitle</b> chứa các dòng đã chọn. Chưa lưu thì chưa có bộ học nào được tạo.</p> }

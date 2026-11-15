@@ -178,7 +178,7 @@ public class GiaoDienTests
         Assert.Single(Regex.Matches(home, @"<h1\b", RegexOptions.IgnoreCase).Cast<Match>());
         Assert.Contains("ViewData[\"Description\"]", home);
         Assert.Contains("ViewData[\"OgImage\"]", home);
-        foreach (var text in new[] { "Hôm nay học gì?", "Tiến độ hôm nay", "Việc hôm nay", "Bộ học của bạn", "Góc học tập của bạn" }) Assert.Contains(text, home);
+        foreach (var text in new[] { "Hôm nay học gì?", "Tiến độ hôm nay", "Mục tiêu hôm nay", "Bộ học của bạn", "Góc học tập của bạn" }) Assert.Contains(text, home);
         // Khách (model null) chỉ thấy lời chào, thẻ "Hôm nay học gì?" và góc học tập; số liệu cá nhân nằm trong nhánh Model != null.
         Assert.Contains("@if (Model == null)", home);
         Assert.Contains("@if (Model != null)", home);

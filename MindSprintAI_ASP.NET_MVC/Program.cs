@@ -165,6 +165,9 @@ builder.Services.AddScoped<WeakAreaService>();
 builder.Services.AddScoped<OverviewService>();
 builder.Services.AddScoped<AiGenerateService>();
 builder.Services.AddScoped<NotebookService>();
+builder.Services.AddScoped<NotebookAiService>();
+// Đọc nguồn Sổ tay từ đường link: chỉ địa chỉ công khai, không tự chuyển hướng (NotebookUrlReader kiểm từng bước).
+builder.Services.AddHttpClient(NotebookUrlReader.ClientName, http => http.Timeout = TimeSpan.FromSeconds(20)).ConfigurePrimaryHttpMessageHandler(NotebookUrlReader.CreateHandler);
 builder.Services.AddScoped<TrashService>();
 builder.Services.AddScoped<TrashPurgeService>();
 builder.Services.AddHostedService<TrashPurgeWorker>();
@@ -187,6 +190,7 @@ builder.Services.AddScoped<GradebookService>();
 builder.Services.AddScoped<RetakeService>();
 builder.Services.AddScoped<FlashcardService>();
 builder.Services.AddScoped<ExcelImportService>();
+builder.Services.AddScoped<DemoSeedService>();
 builder.Services.AddScoped<SurveyService>();
 
 builder.Services.AddControllersWithViews(o =>

@@ -58,11 +58,11 @@ public class PhapLyPureTests
     [Fact]
     public void CacTrangKhongCanDongYVanMoDuoc()
     {
-        // Chỉ các trang này được mở khi chưa đồng ý: đọc chính sách, đồng ý, đăng xuất, xóa tài khoản (không đồng ý bản mới), trang lỗi.
+        // Chỉ các trang này được mở khi chưa đồng ý: đọc chính sách/trợ giúp, đồng ý, đăng xuất, xóa tài khoản (không đồng ý bản mới), trang lỗi.
         var open = typeof(LearnController).Assembly.GetTypes().Where(t => typeof(Controller).IsAssignableFrom(t))
             .SelectMany(t => t.GetMethods().Where(m => m.IsDefined(typeof(AllowWithoutPolicyAttribute))).Select(m => t.Name.Replace("Controller", "") + "/" + m.Name))
             .Distinct().OrderBy(x => x).ToArray();
-        Assert.Equal(new[] { "Account/AcceptPolicy", "Account/DeleteAccount", "Account/DeleteAccountConfirm", "Account/Logout", "Home/Error", "Home/Privacy", "Home/Terms" }, open);
+        Assert.Equal(new[] { "Account/AcceptPolicy", "Account/DeleteAccount", "Account/DeleteAccountConfirm", "Account/Logout", "Home/Error", "Home/Help", "Home/Privacy", "Home/Terms" }, open);
     }
 
     [Fact]

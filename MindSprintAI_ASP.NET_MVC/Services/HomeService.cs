@@ -11,6 +11,10 @@ public record HomeDashboard(string Name, string Greeting, DateOnly Today, bool L
     StudyStreak Streak, StudyToday Study)
 {
     public int TaskPercent => TasksTotal == 0 ? 0 : TasksDone * 100 / TasksTotal;
+    public bool NotedToday => Study.Noted;
+    // "Mục tiêu hôm nay" của nhóm: ôn ≥ 1 thẻ · làm ≥ 1 câu quiz · có ghi chú — tự tính từ hoạt động thật.
+    public int GoalsDone => (Study.CardsReviewed > 0 ? 1 : 0) + (Study.Answered > 0 ? 1 : 0) + (Study.Noted ? 1 : 0);
+    public int GoalPercent => GoalsDone * 100 / 3;
 }
 
 public sealed class HomeService(AssignmentService assignments, AttemptService attempts, StudyLibraryService library, KanbanService kanban,

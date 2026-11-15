@@ -315,9 +315,9 @@ public class ExcelImportService(AppDbContext db, StudyLibraryService library, Ti
         if (input.QuizId == 0)
         {
             // Bộ học mới (Sổ tay AI): chỉ tạo khi lưu, cùng giao dịch với câu hỏi → AI lỗi hay bấm Hủy thì không để lại bộ rỗng.
-            if (string.IsNullOrWhiteSpace(input.NewSetTitle)) throw new BusinessException("Thiếu tên bộ học mới. Hãy tạo lại từ Sổ tay AI.");
+            if (string.IsNullOrWhiteSpace(input.NewSetTitle)) throw new BusinessException("Thiếu tên bộ học mới. Hãy tạo lại bản nháp.");
             var set = await library.CreateStudySetAsync(input.NewSetTitle, userId);
-            newQuizId = (await library.CreateQuizAsync(set.Id, $"Quiz từ sổ tay {set.Title}", userId)).Id;
+            newQuizId = (await library.CreateQuizAsync(set.Id, $"Quiz — {set.Title}", userId)).Id;
         }
         var quizId = newQuizId ?? input.QuizId;
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT [Id] FROM [Quizzes] WITH (UPDLOCK, HOLDLOCK) WHERE [Id] = {quizId}");

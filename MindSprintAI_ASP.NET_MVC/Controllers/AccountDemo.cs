@@ -15,7 +15,7 @@ public partial class AccountController
     public static bool CanUseDemo(bool isDevelopment, System.Net.IPAddress? remoteAddress) => CanShowDevLink(isDevelopment, remoteAddress);
 
     [AllowAnonymous, HttpPost, ValidateAntiForgeryToken, EnableRateLimiting("account-post"), ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-    public async Task<IActionResult> DemoLogin([FromServices] TimeProvider clock)
+    public async Task<IActionResult> DemoLogin([FromServices] TimeProvider clock, [FromServices] DemoSeedService seed)
     {
         if (!CanUseDemo(env.IsDevelopment(), HttpContext.Connection.RemoteIpAddress)) return NotFound();
         var user = await users.FindByEmailAsync(DemoEmail);
@@ -25,6 +25,7 @@ public partial class AccountController
                 CreatedAt = clock.GetUtcNow().UtcDateTime };
             var created = await users.CreateAsync(user);
             if (!created.Succeeded) throw new BusinessException("Chưa tạo được tài khoản demo. Hãy thử lại.");
+            await seed.SeedAsync(user.Id); // lần đầu: có sẵn bộ học, sổ tay, công việc, lịch học để trình diễn
         }
         await signIn.SignInAsync(user, isPersistent: false);
         return RedirectToAction("Index", "Home");
