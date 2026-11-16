@@ -591,9 +591,9 @@ main a.learn-card { display: flex; }
 @media (min-width: 992px) { .has-sidebar .account-menu { min-width: 0; flex: none; } }
 /* Menu xổ trên thanh bên mở sang phải thanh (không bị cắt, không tràn khỏi màn hình). */
 @media (min-width: 992px) {
-  .has-sidebar .navbar { overflow: visible; }
-  .has-sidebar .mindsprint-header .dropdown-menu { position: absolute; top: 0; bottom: auto; left: calc(100% + 16px) !important; right: auto !important; margin: 0; min-width: 240px; transform: none !important; }
-  .has-sidebar .account-menu .dropdown-menu { top: auto; bottom: 0; }
+  /* Thanh bên vẫn cuộn được khi màn hình thấp (16/11/2026: trước đây overflow: visible làm mất cuộn, mục cuối bị che);
+     menu xổ đặt position: fixed theo vị trí nút (js/site.js) nên không bị vùng cuộn cắt. */
+  .has-sidebar .mindsprint-header .dropdown-menu { position: fixed !important; margin: 0; min-width: 240px; transform: none !important; }
   .has-sidebar .nav-item.dropdown, .has-sidebar .account-menu { position: relative; }
 }
 

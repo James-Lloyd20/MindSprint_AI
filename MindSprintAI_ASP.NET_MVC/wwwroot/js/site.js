@@ -150,3 +150,29 @@ document.querySelectorAll('input[type="file"][data-max-bytes]').forEach(input =>
         note.textContent = message;
     });
 });
+
+// Menu xổ trên thanh bên (Quản trị, menu tài khoản): mở sang phải thanh bằng position: fixed theo vị trí nút,
+// để thanh bên vẫn cuộn được mà menu không bị vùng cuộn cắt. Thanh bên cuộn hoặc đổi cỡ cửa sổ thì đóng menu.
+(() => {
+    const desktop = matchMedia('(min-width: 992px)');
+    const place = toggle => {
+        const menu = toggle.parentElement.querySelector('.dropdown-menu');
+        if (!menu || !desktop.matches || !toggle.closest('.has-sidebar .mindsprint-header')) return;
+        const r = toggle.getBoundingClientRect();
+        const left = r.right + 16;
+        const top = Math.max(8, Math.min(toggle.closest('.account-menu') ? r.bottom - menu.offsetHeight : r.top, innerHeight - menu.offsetHeight - 8));
+        Object.assign(menu.style, { left: `${left}px`, top: `${top}px`, right: 'auto', bottom: 'auto' });
+        // Khối chứa có thể không phải cả màn hình (thanh bên có hiệu ứng): chỉnh theo độ lệch đo được.
+        const m = menu.getBoundingClientRect();
+        Object.assign(menu.style, { left: `${2 * left - m.left}px`, top: `${2 * top - m.top}px` });
+    };
+    document.addEventListener('shown.bs.dropdown', e => place(e.target));
+    document.addEventListener('hidden.bs.dropdown', e => {
+        const menu = e.target.parentElement?.querySelector('.dropdown-menu');
+        if (menu) menu.style.left = menu.style.top = menu.style.right = menu.style.bottom = '';
+    });
+    const closeOpen = () => document.querySelectorAll('.has-sidebar .mindsprint-header [data-bs-toggle="dropdown"].show')
+        .forEach(t => window.bootstrap?.Dropdown.getInstance(t)?.hide());
+    document.querySelector('.has-sidebar .mindsprint-header .navbar')?.addEventListener('scroll', closeOpen, { passive: true });
+    addEventListener('resize', closeOpen);
+})();
