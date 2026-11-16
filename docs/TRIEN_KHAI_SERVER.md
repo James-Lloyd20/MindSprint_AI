@@ -4,6 +4,8 @@ Mô hình: **Trình duyệt → Cloudflare → Cloudflare Tunnel (cloudflared tr
 
 > **Cổng 80/443 là gì?** Là "cửa" mặc định của web (80 = http, 443 = https). Vì dùng **Cloudflare Tunnel**, server tự kết nối ra Cloudflare nên **không cần mở cửa nào** trên server; Cloudflare lo phần https. App chỉ mở `127.0.0.1:8080` cho chính server.
 
+> **Server của nhóm (đã chạy Rekal / QuizEdu)** dùng cách riêng ở cuối tài liệu: mục "Server đã có Rekal". Phần Docker dưới đây dành cho server mới.
+
 ## 0. Chuẩn bị (làm trên trình duyệt, một lần)
 
 | Cần | Ở đâu | Dùng cho |
@@ -118,3 +120,18 @@ Bản `.bak` nên chép sang máy khác (một bản sao lưu chỉ nằm trên 
 | Log có "Login failed" / "server was not found" | Sai mật khẩu SQL hoặc app không cùng mạng với SQL | Kiểm `ConnectionStrings__Default`, `SQL_NETWORK` |
 | Người đăng ký không nhận được thư | Thiếu/sai SMTP | Kiểm `Smtp__*`; log có dòng "Chưa cấu hình SMTP" |
 | Google báo `redirect_uri_mismatch` | Chưa thêm địa chỉ server | Thêm `https://<tên-miền>/signin-google` ở Google Cloud |
+
+## Server đã có Rekal (cách đang dùng cho mindsprint.rekal.id.vn)
+
+Server đã có .NET 10, nginx, Cloudflare Tunnel và container SQL Server `rekal-sql` của Rekal. MindSprint chạy giống Rekal (dịch vụ systemd `mindsprint`, cổng 127.0.0.1:5002, nginx 127.0.0.1:8082), dùng chung SQL Server nhưng **database `MindSprintAI` + tài khoản SQL `mindsprint_app` riêng**; Turnstile, email Admin, thông tin pháp lý và Gmail chép từ cấu hình Rekal ngay trên server. Cấu hình bí mật nằm ở `/etc/mindsprint` (chỉ root đọc).
+
+1. Trên máy dev (thư mục gốc repo), tạo bản build và công cụ tạo bảng:
+   ```bash
+   dotnet publish MindSprintAI_ASP.NET_MVC/MindSprintAI_ASP.NET_MVC.csproj -c Release -r linux-x64 --self-contained false -o out/app
+   rm -rf out/app/App_Data out/app/appsettings.Development.json && tar -czf out/mindsprint-app.tar.gz -C out/app .
+   dotnet ef migrations bundle --project MindSprintAI_ASP.NET_MVC/MindSprintAI_ASP.NET_MVC.csproj --target-runtime linux-x64 --output out/efbundle --force   # --target-runtime, KHÔNG phải --runtime (16/11: --runtime ra tệp Windows)
+   scp out/mindsprint-app.tar.gz out/efbundle deploy/setup-mindsprint.sh james@<server>:mindsprint-deploy/
+   ```
+2. Trên server: `cd ~/mindsprint-deploy && sudo bash setup-mindsprint.sh` (chạy lại y hệt khi cập nhật bản mới; giữ nguyên dữ liệu và cấu hình).
+3. Một lần trên trang Cloudflare: **Tunnel → Public hostname** `mindsprint.rekal.id.vn` → `HTTP` `127.0.0.1:8082`; **Turnstile** → widget của Rekal → thêm hostname `mindsprint.rekal.id.vn`.
+4. Sửa cấu hình: `sudo nano /etc/mindsprint/mindsprint.env` (hoặc `secrets.env` cho Gmail/Google) rồi `sudo systemctl restart mindsprint`. Xem log: `sudo journalctl -u mindsprint -n 50`.
