@@ -28,8 +28,12 @@ public class BaiLamTheoDePureTests
 }
 
 [Collection("db")]
-public class BaiLamTheoDeDbTests
+public class BaiLamTheoDeDbTests : IDisposable
 {
+    // Mỗi test một thư mục tạm cho tệp đề/bài nộp; xUnit gọi Dispose sau từng test (kể cả khi test hỏng) để không để lại rác.
+    private readonly List<string> roots = [];
+    public void Dispose() { foreach (var root in roots) try { Directory.Delete(root, true); } catch (IOException) { } }
+
     public static readonly byte[] Pdf = Encoding.ASCII.GetBytes("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF");
 
     public static byte[] Zip(string entry)
@@ -55,9 +59,10 @@ public class BaiLamTheoDeDbTests
 
     private sealed record Ctx(Harness H, PaperTestService Papers, Scenario S, Assignment Paper, string Root);
 
-    private static async Task<Ctx> SetupAsync(Harness h, int minutes = 30, string? soffice = null)
+    private async Task<Ctx> SetupAsync(Harness h, int minutes = 30, string? soffice = null)
     {
         var root = Directory.CreateTempSubdirectory("paper-test-").FullName;
+        roots.Add(root);
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Paper:SofficePath"] = soffice }).Build();
         var store = new PaperFileStore(new Env(root), config, NullLogger<PaperFileStore>.Instance);
         var papers = new PaperTestService(h.Db, h.Assignments, h.Attempts, h.Classrooms, h.Codes, store, h.Clock);
