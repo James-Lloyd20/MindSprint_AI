@@ -594,6 +594,7 @@ main a.learn-card { display: flex; }
   /* Thanh bên vẫn cuộn được khi màn hình thấp (16/11/2026: trước đây overflow: visible làm mất cuộn, mục cuối bị che);
      menu xổ đặt position: fixed theo vị trí nút (js/site.js) nên không bị vùng cuộn cắt. */
   .has-sidebar .mindsprint-header .dropdown-menu { position: fixed !important; margin: 0; min-width: 240px; transform: none !important; }
+  .has-sidebar .mindsprint-header .navbar { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }   /* thanh cuộn mảnh, không ép chữ */
   .has-sidebar .nav-item.dropdown, .has-sidebar .account-menu { position: relative; }
 }
 

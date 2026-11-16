@@ -243,7 +243,9 @@ main :is(.home-panel-head, .home-section-head) h2 { margin: 0; font-size: 1.1rem
   .has-sidebar .mindsprint-footer { margin-left: calc(-1 * (var(--sb-w) + var(--safe-left))); padding-left: calc(var(--sb-w) + var(--safe-left)); }
   .has-sidebar .sidebar-toggle { position: fixed; top: 105px; left: calc(var(--sb-w) + 12px + var(--safe-left)); z-index: 1031; width: 36px; height: 36px; min-height: 36px;
       padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-  :root[data-sidebar="collapsed"] .has-sidebar .sidebar-toggle { display: inline-flex; flex-direction: row; min-height: 36px; height: 36px; }
+  /* Thu gọn: nút vẫn nổi cạnh mép thanh (position: fixed) — nằm trong thanh thì bị vùng cuộn của thanh cắt mất (16/11/2026). */
+  :root[data-sidebar="collapsed"] .has-sidebar .sidebar-toggle { display: inline-flex; flex-direction: row; min-height: 36px; height: 36px; position: fixed; padding: 0; }
+  :root[data-sidebar="collapsed"] .has-sidebar .brand-short { display: none; }   /* thanh thu gọn chỉ rộng 87px: chỉ hiện biểu tượng logo */
   :root[data-sidebar="collapsed"] .has-sidebar .sidebar-toggle .nav-short { display: none; }
   /* Mục menu: cao 43px, cách nhau 5px, icon 16px xám tím (mục đang chọn xanh rêu); tiêu đề nhóm cách mục dưới 8px. */
   .has-sidebar .navbar .nav-link { min-height: 43px; padding: 10px 12px; gap: 12px; font-size: 14px; font-weight: 600; }
