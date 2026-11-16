@@ -190,6 +190,17 @@ public class GiaoDienTests
     }
 
     [Fact]
+    public void CookieChongGiaMaoTaoTruocMenuTaiKhoanDungLuoi()
+    {
+        // Lỗi trên server 16/11: khách mở /Learn/Review khi chưa có cookie → form trong menu dựng lười đặt cookie sau khi trang
+        // đã gửi một phần → trang bị cắt. Cookie phải được tạo trước khi layout ghi gì ra.
+        var layout = Read("Views/Shared/_Layout.cshtml");
+        var early = layout.IndexOf("Antiforgery.GetAndStoreTokens(Context)", StringComparison.Ordinal);
+        Assert.InRange(early, 0, layout.IndexOf("<!DOCTYPE", StringComparison.OrdinalIgnoreCase));
+        Assert.True(early < layout.IndexOf("accountMenu = @<", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void DangNhapDangKyLaTheTheoBanNhomCoBieuTuong()
     {
         foreach (var page in new[] { "Views/Account/Login.cshtml", "Views/Account/Register.cshtml" })

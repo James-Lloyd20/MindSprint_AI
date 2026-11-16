@@ -2,8 +2,12 @@
 @inject UserManager<ApplicationUser> Users
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Environment
 @inject NotificationService Notifications
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     var me = User.Identity?.IsAuthenticated == true ? await Users.GetUserAsync(User) : null;
+    // Menu tài khoản (accountMenu bên dưới) là khuôn dựng lười, chạy khi trang đã ghi ra một phần: nếu form trong đó là form đầu
+    // tiên cần cookie chống giả mạo thì không đặt cookie được nữa và trang bị cắt (lỗi /Learn/Review của khách trên server 16/11).
+    if (me != null) Antiforgery.GetAndStoreTokens(Context);
     var lecturer = me?.CurrentMode == UserMode.Lecturer;
     var unread = me == null || me.IsGuest ? 0 : await Notifications.UnreadAsync(me.Id);
     var controller = ViewContext.RouteData.Values["controller"]?.ToString();
