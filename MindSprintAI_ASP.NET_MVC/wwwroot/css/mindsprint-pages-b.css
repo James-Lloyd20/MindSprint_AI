@@ -184,18 +184,8 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-qr-preview { flex: 0 0 132px; width: 132px; text-align: center; }
 .b-qr-preview[hidden] { display: none; }
 .b-qr-small { display: block; width: 132px; height: 132px; padding: 0; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: #000; overflow: hidden; }
-.b-qr-small svg, .b-qr-large svg { display: block; width: 100%; height: 100%; }
+.b-qr-small svg { display: block; width: 100%; height: 100%; }
 .b-assignment .b-qr-enlarge { margin-top: 8px; width: 100%; padding: 8px 4px; font-size: .8125rem; }
-.b-qr-modal { --ink: #202B3E; }
-.b-qr-modal .modal-dialog { --bs-modal-width: 960px; }
-.b-qr-modal .modal-content { overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: var(--ink); color: #FFFEFA; }
-.b-qr-modal .modal-header { gap: 16px; border-bottom: 2px solid #FFFEFA; background: var(--ink); }
-.b-qr-modal .modal-title { min-width: 0; font: 700 1.75rem/1.4 var(--bs-font-monospace); color: #FFFEFA; overflow-wrap: anywhere; }
-.b-qr-modal .modal-title span { display: inline-block; }
-.b-qr-modal .b-qr-close { flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 8px; border-color: #FFFEFA; background: var(--ink); color: #FFFEFA; box-shadow: none; }
-.b-qr-modal .modal-body { display: grid; justify-items: center; gap: 24px; padding: 24px; background: var(--ink); }
-.b-qr-large { width: min(70vh, 520px, 100%); aspect-ratio: 1; padding: 0; border: 2px solid var(--line); border-radius: 20px; overflow: hidden; background: #fff; color: #000; }
-.b-qr-modal .modal-body p { max-width: 38rem; margin: 0; text-align: center; color: #FFFEFA; }
 @media (min-width: 768px) {
   .b-assignment .card:has(.b-code-layout) { container-type: inline-size; }
   main .b-code-layout:has(.b-qr-preview:not([hidden])) .b-assignment-code { font-size: clamp(1.25rem, 6cqi, 2rem); }
@@ -207,8 +197,6 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
   .b-qr-small { width:112px; height:112px; }
   main .b-code-layout .b-assignment-code { font-size:1.5rem; }
   .b-entry-edit form.row > :is(.col-sm-5, .col-sm-4, .col-sm-3) { width:100%; }
-  .b-qr-modal .modal-title { font-size: 1.25rem; }
-  .b-qr-modal .modal-body { padding: 16px; }
 }
 /* Bảng điểm: điều khiển nằm ngoài vùng cập nhật trực tiếp. */
 .b-grade-tools { margin-block: 16px; }
@@ -310,3 +298,9 @@ main .b-assignment-code { font: 700 2rem/1.4 var(--bs-font-monospace); letter-sp
 .b-more-settings > summary::-webkit-details-marker { display: none; }
 .b-more-settings > summary::before { content: "+"; width: 1.25rem; font: 700 1.25rem/1 var(--bs-font-sans-serif); }
 .b-more-settings[open] > summary::before { content: "−"; }
+
+/* Popup mã QR: cỡ hộp thông báo; QR luôn đen trên nền trắng để quét được ở cả giao diện tối. */
+.qr-popup-code { width: min(280px, 100%); aspect-ratio: 1; margin: 0 auto 12px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #FFFFFF; }
+.qr-popup-code svg { display: block; width: 100%; height: 100%; }
+.qr-popup-number { font: 700 1.75rem/1.2 var(--bs-font-monospace); letter-spacing: .08em; }
+.qr-popup-link { overflow-wrap: anywhere; }

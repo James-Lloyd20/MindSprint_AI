@@ -284,3 +284,16 @@ public record QuestionRef(long AttemptQuestionId);
 public record OpenQuestionRequest(long AttemptQuestionId, bool Retry = false, int? QuestionVersion = null);
 
 public record DraftRequest(long AttemptQuestionId, List<int> Selected, List<string>? Blanks = null, string? Value = null, int? QuestionVersion = null);
+
+// Bài làm theo đề tài liệu (Papers/Create).
+public class PaperInput
+{
+    public int ClassroomId { get; set; }
+    [Required(ErrorMessage = "Hãy nhập tên bài."), StringLength(200)] public string? Title { get; set; }
+    [Range(1, 180, ErrorMessage = "Thời lượng làm bài phải từ 1 đến 180 phút.")] public int DurationMinutes { get; set; } = 60;
+    public DateTime? OpensAt { get; set; }
+    public bool DeviceLock { get; set; }
+    public bool MonitorScreen { get; set; } = true;
+    [Range(1, 20)] public int? AutoSubmitLeaves { get; set; }
+    public AudiencePolicy AudiencePolicy { get; set; } = AudiencePolicy.IncludeLateJoiners;
+}

@@ -109,7 +109,9 @@ public class Tang5d1PureTests
             // (7d/D1a, D3b) khách được đổi chế độ và xem lịch sử của chính phiên trong bài giao.
             "Flashcards.Study", "Flashcards.Rate", "Flashcards.ChangeMode", "Flashcards.History",
             // Pháp lý: khách đọc được Chính sách/Điều khoản/Trợ giúp và đồng ý lại khi chính sách đổi phiên bản.
-            "Home.Privacy", "Home.Terms", "Home.Help", "Account.AcceptPolicy"
+            "Home.Privacy", "Home.Terms", "Home.Help", "Account.AcceptPolicy",
+            // Bài làm theo đề (16/11/2026): khách làm bài như bài quiz; service tự kiểm chủ lượt / người có lượt / GV của lớp.
+            "Papers.Exam", "Papers.File", "Papers.Save", "Papers.Upload", "Papers.DeleteFile"
         };
         Assert.True(actions.Count > 80);
         foreach (var action in actions)

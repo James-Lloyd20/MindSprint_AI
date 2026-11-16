@@ -36,15 +36,6 @@
         preview.hidden = true;
         if (fallback) fallback.hidden = false;
     }
-    modal.addEventListener('show.bs.modal', event => {
-        try {
-            draw(document.getElementById('assignment-qr-large'), 16);
-        } catch {
-            event.preventDefault();
-            preview.hidden = true;
-        if (fallback) fallback.hidden = false;
-            fallback?.focus();
-        }
-    });
+    // QR lớn trong popup do js/qr-popup.js vẽ.
     modal.addEventListener('hidden.bs.modal', () => setTimeout(() => small.focus(), 0));
 })();

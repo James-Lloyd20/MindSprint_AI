@@ -1,7 +1,7 @@
 @model AssignmentDetailsModel
 @{
     var a = Model.Assignment;
-    ViewData["Title"] = a.Quiz?.Title ?? "Thẻ ghi nhớ";
+    ViewData["Title"] = a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ";
     var closed = a.Status == AssignmentStatus.Closed;
 }
 <div class="b-assignment">
@@ -16,7 +16,7 @@ else
 
 <header class="b-scoreboard">
     <div class="b-scoreboard-title">
-        <h1 class="mindsprint-title mb-2">@(a.Quiz?.Title ?? "Thẻ ghi nhớ")</h1>
+        <h1 class="mindsprint-title mb-2">@(a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ")</h1>
         <div class="b-actions"><span class="badge bg-info">@DisplayText.Of(a.Mode)</span><span>@DisplayText.Of(a.Form)</span>
             @if (closed) { <span class="badge bg-body-tertiary">Đã đóng lúc @VnTime.Format(a.ClosedAt)</span> }
         </div>
@@ -48,6 +48,27 @@ else
 
 @if (a.CloseReason == CloseReason.HiddenByAdmin) { <p class="alert alert-warning" role="status">Đã đóng vì quản trị viên ẩn nội dung: @Model.HiddenContentReason</p> }
 
+@{ var paper = a.Form == AssignmentForm.Document; }
+@if (paper)
+{
+    @* Bài làm theo đề tài liệu: đề + lối vào trang chấm; đổi đề chỉ trước khi bấm Bắt đầu. *@
+    <section class="flat-section mb-3" aria-labelledby="paper-panel-title">
+        <h2 class="section-head" id="paper-panel-title"><span class="section-icon"><icon name="file-text" /></span>Đề bài và bài nộp</h2>
+        <p>Đề: <a asp-controller="Papers" asp-action="Exam" asp-route-id="@a.Id" target="_blank" rel="noopener">@a.PaperFileName</a> · tải lên @VnTime.Format(a.PaperUploadedAt)</p>
+        <a class="btn btn-primary" asp-controller="Papers" asp-action="Submissions" asp-route-id="@a.Id"><icon name="check" />Xem bài nộp và chấm điểm</a>
+        @if (a.TestStartedAt == null)
+        {
+            <form method="post" asp-controller="Papers" asp-action="Replace" asp-route-id="@a.Id" enctype="multipart/form-data" class="mt-3"
+                  data-confirm="Thay đề bằng tệp mới? Đề cũ bị xóa.">
+                <label class="form-label" for="replace-paper">Đổi đề (PDF hoặc Word, tối đa 20 MB)</label>
+                <div class="d-flex flex-wrap gap-2">
+                    <input class="form-control" style="max-width: 24rem" id="replace-paper" name="paper" type="file" required accept=".pdf,.docx" data-max-bytes="@PaperFileStore.MaxBytes" />
+                    <button class="btn btn-outline-secondary">Đổi đề</button>
+                </div>
+            </form>
+        }
+    </section>
+}
 <div class="row g-3 mb-4 b-entry-panels">
     <div class="col-md-4">
         <div class="card"><div class="card-body">
@@ -238,6 +259,8 @@ else
         <button class="btn btn-outline-primary align-self-start mt-2">Lưu chế độ thẻ ghi nhớ</button>
     </form>
 }
+@if (!paper)
+{
 <section class="flat-section mb-3" aria-labelledby="ai-setting-title">
     <h2 class="section-head" id="ai-setting-title"><span class="section-icon"><icon name="sparkles" /></span>Trợ lý AI</h2>
     <form asp-fragment="cai-dat" method="post" asp-controller="Ai" asp-action="Settings" data-autosave>
@@ -254,6 +277,7 @@ else
     }
     else { <p class="small mb-0">Chưa có lượt hỏi.</p> }
 </section>
+}
 
 @if (a.Mode == AssignmentMode.Practice && a.Form != AssignmentForm.FlashcardOnly)
 {
@@ -274,6 +298,8 @@ else
         </fieldset>
     </form>
 }
+@if (!paper)
+{
 <form asp-fragment="cai-dat" method="post" asp-action="ChangeQuestionTimers" asp-route-id="@a.Id" class="flat-section mb-3" data-autosave>
     <h2 class="section-head"><span class="section-icon"><icon name="clock" /></span>Giờ riêng từng câu</h2>
     <p data-autosave-summary>Hiện tại: @(a.IgnoreQuestionTimers ? "Bỏ giờ riêng từng câu" : "Dùng giờ riêng của câu hỏi").</p>
@@ -289,6 +315,7 @@ else
         <button class="btn btn-outline-primary mt-2">Lưu giờ riêng</button>
     </fieldset>
 </form>
+}
 @if (a.Form == AssignmentForm.Combined && !closed)
 {
     <form asp-fragment="cai-dat" method="get" asp-action="ChangeParts" asp-route-id="@a.Id" class="d-flex flex-wrap gap-2 mb-3">
@@ -312,7 +339,8 @@ else
             </form>
         }
         else { <span>Đã công bố điểm lúc @VnTime.Format(a.ScoresPublishedAt)</span> }
-        @if (a.AnswersPublishedAt == null)
+        @if (paper) { }
+        else if (a.AnswersPublishedAt == null)
         {
             <form asp-fragment="cham-lai" method="post" asp-action="PublishAnswers" asp-route-id="@a.Id"
                   data-confirm="@((Model.HasUnusedRetakes ? "Còn học viên được duyệt làm lại mà chưa làm. " : "") + "Công bố đáp án và giải thích? Học viên sẽ xem được đáp án đúng, nên sau đó bạn không cộng giờ riêng cho ai được nữa. Đã công bố thì không rút lại được.")">
@@ -410,26 +438,16 @@ else
 </div>
 </div>
 
-<div class="modal fade b-qr-modal" id="assignment-qr-modal" tabindex="-1" aria-labelledby="assignment-qr-title" aria-describedby="assignment-qr-help" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title" id="assignment-qr-title">@Context.Request.Host/Classrooms/Join <span>• @(Model.Code.Length == 8 ? Model.Code.Insert(4, " ") : Model.Code)</span></h2>
-                <button type="button" class="btn b-qr-close" data-bs-dismiss="modal" aria-label="Đóng"><icon name="x" /></button>
-            </div>
-            <div class="modal-body">
-                <div class="b-qr-large" id="assignment-qr-large"></div>
-                <p id="assignment-qr-help">Học viên quét mã bằng camera điện thoại, hoặc vào trang Tham gia bằng mã và nhập mã trên</p>
-            </div>
-        </div>
-    </div>
-</div>
+<partial name="_QrPopup" model="@(new QrPopupModel("assignment-qr-modal", "Mã QR vào bài",
+    new JoinQrModel(Model.Code, Url.Action("Join", "Classrooms", new { code = Model.Code }, Context.Request.Scheme)!, Url.Action("Join", "Classrooms", null, Context.Request.Scheme)!),
+    Url.Action("Qr", new { id = a.Id })!))" />
 @section Scripts {
     <script src="~/js/mastery-settings.js" asp-append-version="true"></script>
     <script src="~/js/setting-presets.js" asp-append-version="true"></script>
     <script src="~/lib/microsoft-signalr/signalr.min.js"></script>
     <script src="~/js/assignment-live.js" asp-append-version="true"></script>
     <script src="~/lib/qrcode-generator/qrcode.js"></script>
+    <script src="~/js/qr-popup.js" asp-append-version="true"></script>
     <script src="~/js/assignment-insights.js" asp-append-version="true"></script>
     <script src="~/js/gradebook-pager.js" asp-append-version="true"></script>
     <script src="~/js/assignment-tabs.js" asp-append-version="true"></script>

@@ -31,6 +31,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<Attempt> Attempts => Set<Attempt>();
     public DbSet<AttemptQuestion> AttemptQuestions => Set<AttemptQuestion>();
     public DbSet<AnswerSubmission> AnswerSubmissions => Set<AnswerSubmission>();
+    public DbSet<PaperSubmission> PaperSubmissions => Set<PaperSubmission>();
+    public DbSet<PaperFile> PaperFiles => Set<PaperFile>();
     public DbSet<RetakeRequest> RetakeRequests => Set<RetakeRequest>();
     public DbSet<QuestionBlank> QuestionBlanks => Set<QuestionBlank>();
     public DbSet<BlankAnswer> BlankAnswers => Set<BlankAnswer>();
@@ -315,6 +317,30 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         b.Entity<StudySet>().Property(s => s.Category).HasMaxLength(Services.StudyLibraryService.MaxCategory);
         b.Entity<Flashcard>().Property(c => c.Example).HasMaxLength(Services.FlashcardService.MaxExample);
         b.Entity<Quiz>().Property(q => q.Title).HasMaxLength(200);
+
+        // Bài làm theo đề tài liệu.
+        b.Entity<Assignment>(e =>
+        {
+            e.Property(a => a.PaperTitle).HasMaxLength(200);
+            e.Property(a => a.PaperFileName).HasMaxLength(255);
+            e.Property(a => a.PaperStoredName).HasMaxLength(64);
+        });
+        b.Entity<PaperSubmission>(e =>
+        {
+            e.HasKey(x => x.AttemptId);
+            e.HasOne(x => x.Attempt).WithOne().HasForeignKey<PaperSubmission>(x => x.AttemptId);
+            e.Property(x => x.Score).HasPrecision(4, 2);
+            e.Property(x => x.Comment).HasMaxLength(Services.PaperTestService.MaxComment);
+            e.Property(x => x.GradedById).HasMaxLength(450);
+        });
+        b.Entity<PaperFile>(e =>
+        {
+            e.HasOne(x => x.Submission).WithMany(s => s.Files).HasForeignKey(x => x.AttemptId);
+            e.Property(x => x.FileName).HasMaxLength(255);
+            e.Property(x => x.ContentType).HasMaxLength(100);
+            e.Property(x => x.StoredName).HasMaxLength(64);
+            e.HasIndex(x => x.AttemptId);
+        });
 
         b.Entity<Question>(e =>
         {

@@ -190,13 +190,28 @@ public class GiaoDienTests
     }
 
     [Fact]
+    public void DangNhapDangKyLaTheTheoBanNhomCoBieuTuong()
+    {
+        foreach (var page in new[] { "Views/Account/Login.cshtml", "Views/Account/Register.cshtml" })
+        {
+            var html = Read(page);
+            Assert.Contains("class=\"auth-card\"", html);
+            Assert.Contains("aria-current=\"page\"", html);   // tab đang ở
+            Assert.Contains("<icon name=\"mail\" class=\"auth-field-icon\" />", html);
+            Assert.Contains("class=\"visually-hidden\"", html);   // ô nhập vẫn có nhãn cho trình đọc màn hình
+        }
+        Assert.Contains("data-toggle-password", Read("Views/Account/Login.cshtml"));
+    }
+
+    [Fact]
     public void AnhCoKichThuocChuThayTheVaNguonCongKhai()
     {
         // MindSprint 15/11 (người dùng chốt): khối "Nguồn ảnh" chuyển từ trang chủ sang trang Chính sách, mục 12.
         var sources = new[] { "Views/Home/Privacy.cshtml", "Views/Account/Login.cshtml", "Views/Account/Register.cshtml" }.Select(Read).ToArray();
         Assert.Contains("Nguồn ảnh", sources[0]);
         Assert.Contains("https://creativecommons.org/publicdomain/zero/1.0/", sources[0]);
-        foreach (var source in sources.Skip(1))
+        // 16/11/2026: Đăng nhập/Đăng ký thành thẻ theo bản nhóm, không còn ảnh; trang nào còn ảnh thì vẫn phải ghi nguồn.
+        foreach (var source in sources.Skip(1).Where(s => s.Contains("<img", StringComparison.OrdinalIgnoreCase)))
         {
             Assert.Contains("Nguồn ảnh", source);
             Assert.Contains("https://creativecommons.org/publicdomain/zero/1.0/", source);
@@ -214,7 +229,7 @@ public class GiaoDienTests
         var credits = home[home.IndexOf("id=\"nguon-anh\"", StringComparison.Ordinal)..];
         foreach (Match image in Regex.Matches(home, "<img[^>]*src=\"~/img/landing/([^\"]+)\"")) Assert.Contains(image.Groups[1].Value, credits);
         Assert.Contains("Jan Kahánek", home);
-        Assert.All(sources.Skip(1), s => { Assert.Contains("Joanna Kosinska", s); Assert.Contains("d-none d-lg-block", s); });
+        Assert.Contains("Joanna Kosinska", home);   // ảnh bút chì không còn ở Đăng nhập/Đăng ký nhưng nguồn vẫn ghi ở trang Chính sách
         Assert.True(Files("wwwroot/img/landing").Sum(p => new FileInfo(p).Length) <= 2400L * 1024);
         foreach (Match path in Regex.Matches(string.Join('\n', sources), "~/img/landing/([^\"]+\\.webp)")) Assert.True(File.Exists(Path.Combine(Root, "wwwroot/img/landing", path.Groups[1].Value)));
     }

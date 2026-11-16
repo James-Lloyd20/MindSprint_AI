@@ -33,7 +33,7 @@ public partial class AssignmentService
         p.ExtraMinutesReason = why;
         foreach (var at in changed) at.DeadlineAt = AttemptRules.DeadlineFor(a, p);
         await Notifications.AddAsync(learnerId, NotificationType.ExtraMinutes,
-            new($"Giảng viên đã cộng thêm {minutes} phút cho bạn ở bài {a.Quiz?.Title ?? "Thẻ ghi nhớ"}: {why}", $"/Learn/Assignment/{id}", AssignmentId: id));
+            new($"Giảng viên đã cộng thêm {minutes} phút cho bạn ở bài {a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ"}: {why}", $"/Learn/Assignment/{id}", AssignmentId: id));
         db.Audit?.Add(AuditAction.ExtraTimeGranted, "Assignment", id, userId); // (NK3)
         await db.SaveChangesAsync();
         await tx.CommitAsync();
@@ -129,7 +129,7 @@ public partial class AssignmentService
             Field = field, OldValue = old?.ToString(), NewValue = value.ToString(), Reason = why });
 
     private Task AddAttemptsNoticeAsync(Assignment a, string userId, long count) => Notifications.AddAsync(userId,
-        NotificationType.ExtraAttempts, new($"Bạn được thêm {count} lượt ở bài {a.Quiz?.Title ?? "Thẻ ghi nhớ"}",
+        NotificationType.ExtraAttempts, new($"Bạn được thêm {count} lượt ở bài {a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ"}",
             $"/Learn/Assignment/{a.Id}", AssignmentId: a.Id));
 
     public async Task<int> CountExtraTimeOpenAsync(int id, string userId)

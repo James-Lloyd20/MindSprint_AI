@@ -356,7 +356,7 @@ public partial class ClassroomService(AppDbContext db, JoinCodeService codes, Ti
     {
         var ids = open.Where(a => a.Kind != AttemptKind.SelfReview && (a.DeadlineAt == null || a.DeadlineAt > Now)).Select(a => a.Participant.AssignmentId).ToList();
         var titles = await db.Assignments.Where(a => ids.Contains(a.Id)).OrderBy(a => a.Id)
-            .Select(a => a.Quiz == null ? "Thẻ ghi nhớ" : a.Quiz.Title).ToListAsync();
+            .Select(a => (a.Quiz != null ? a.Quiz.Title : a.PaperTitle ?? "Thẻ ghi nhớ")).ToListAsync();
         var name = await db.Users.Where(u => u.Id == member.UserId).Select(u => u.DisplayName).SingleAsync();
         return new(member.ClassroomId, member.Id, leaving, name, titles);
     }

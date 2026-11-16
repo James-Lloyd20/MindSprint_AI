@@ -37,7 +37,8 @@ public enum AuditAction
     ReportHandled = 104, TwoFactorEmailEnabled = 105, TwoFactorEmailDisabled = 106,
     AttemptStopped = 107, AttemptCompleted = 108,
     UnhideRequested = 109, ContentUnhidden = 110, UnhideRejected = 111,
-    ClassroomJoinPolicyChanged = 112, AccountDeleted = 113
+    ClassroomJoinPolicyChanged = 112, AccountDeleted = 113,
+    PaperGraded = 114 // GV chấm tay bài làm theo đề
 }
 
 // (NK3) Không FK vào dữ liệu sống: vẫn tra được sau khi đối tượng bị xóa; không lưu địa chỉ mạng.

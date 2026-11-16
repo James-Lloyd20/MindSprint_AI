@@ -74,6 +74,8 @@ public static class RegradeRules
 
     public static void Recompute(Attempt a)
     {
+        // Bài làm theo đề: điểm do GV chấm tay (PaperTestService.GradeAsync), không tính lại từ câu hỏi (lượt không có câu nào).
+        if (a.Participant.Assignment.Form == AssignmentForm.Document) return;
         var scores = a.Questions.Select(q => Effective(q, a.Participant.Assignment.Regrades)).ToList();
         a.FirstScore = scores.Sum(s => s.First);
         a.MaxScore = scores.Sum(s => s.Max);

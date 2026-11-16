@@ -1,7 +1,7 @@
 @model LearnerAssignmentModel
 @{
     var a = Model.Assignment;
-    ViewData["Title"] = a.Quiz?.Title ?? "Thẻ ghi nhớ";
+    ViewData["Title"] = a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ";
     var open = Model.Attempts.FirstOrDefault(x => x.Kind != AttemptKind.SelfReview && AttemptRules.IsOpen(x));
     var ended = Model.Attempts.Where(x => x.Status == AttemptStatus.Ended).ToList();
     var picked = Model.Score;
@@ -9,7 +9,7 @@
 <div class="b-learner">
 @if (!GuestAccess.IsGuest(User)) { <a class="btn btn-sm b-back" asp-action="Index"><icon name="chevron-right" class="b-back-icon" />Quay lại Luyện tập</a> }
 <header class="b-learner-head">
-    <h1 class="mindsprint-title">@(a.Quiz?.Title ?? "Thẻ ghi nhớ")</h1>
+    <h1 class="mindsprint-title">@(a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ")</h1>
     <div class="b-actions mb-3"><span class="badge bg-info">@DisplayText.Of(a.Mode)</span><span>@DisplayText.Of(a.Form)</span>@if (a.Classroom != null) { <span>· @a.Classroom.Name</span> }</div>
     <dl class="b-assignment-facts">
         @if (a.Mode == AssignmentMode.Test)
@@ -29,12 +29,12 @@
         }
     </dl>
 </header>
-@if (!GuestAccess.IsGuest(User))
+@if (!GuestAccess.IsGuest(User) && a.Form != AssignmentForm.Document)   @* bài theo đề không có câu hỏi cho trợ lý AI *@
 {
     <partial name="_AiAssistant" model="@(new AiPanelModel(a.Id))" />
 }
 @if (Model.HiddenContentNotice != null) { <p class="alert alert-warning" role="status">@Model.HiddenContentNotice</p> }
-@if (!GuestAccess.IsGuest(User))
+@if (!GuestAccess.IsGuest(User) && a.Form != AssignmentForm.Document)   @* bài theo đề không có câu hỏi cho trợ lý AI *@
 {
 <div class="d-flex flex-wrap gap-3 mb-2 b-learner-links">
     @if (a.QuizId != null) { <a asp-controller="Reports" asp-action="Create" asp-route-targetType="Quiz" asp-route-targetId="@a.QuizId" asp-route-assignmentId="@a.Id"><icon name="flag" />Báo lỗi bài này</a> }

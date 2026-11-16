@@ -72,13 +72,18 @@ public class LearnController(AssignmentService assignments, AttemptService attem
     }
 
     [AllowGuest]
-    public async Task<IActionResult> Play(long id)
+    public async Task<IActionResult> Play(long id, [FromServices] PaperTestService? papers = null)
     {
         var (attempt, needsTakeover) = await attempts.OpenPlayAsync(id, UserId);
         if (!AttemptRules.IsOpen(attempt)) return RedirectToAction(nameof(Review), new { id });
         if (attempt.Kind != AttemptKind.SelfReview && AttemptService.NeedsConsent(attempt.Participant.Assignment) && attempt.DeviceConsentAt == null)
             return RedirectToAction(nameof(Consent), new { id = attempt.Participant.AssignmentId, attemptId = id });
         if (needsTakeover) return View("Takeover", attempt);
+        if (attempt.Participant.Assignment.Form == AssignmentForm.Document)
+        {
+            ViewData["Submission"] = await (papers ?? HttpContext.RequestServices.GetRequiredService<PaperTestService>()).GetSubmissionAsync(id);
+            return View("Paper", attempt);
+        }
         ViewData["Questions"] = await attempts.GetPlayQuestionsAsync(attempt, UserId);
         ViewData["Mastery"] = MasteryRules.Progress(attempt);
         return View(attempt);
@@ -174,10 +179,16 @@ public class LearnController(AssignmentService assignments, AttemptService attem
     }
 
     [AllowGuest]
-    public async Task<IActionResult> Review(long id)
+    public async Task<IActionResult> Review(long id, [FromServices] PaperTestService? papers = null)
     {
         var attempt = await attempts.GetForLearnerAsync(id, UserId);
         if (AttemptRules.IsOpen(attempt)) return RedirectToAction(nameof(Play), new { id });
+        if (attempt.Participant.Assignment.Form == AssignmentForm.Document)
+        {
+            ViewData["Submission"] = await (papers ?? HttpContext.RequestServices.GetRequiredService<PaperTestService>()).GetSubmissionAsync(id);
+            ViewData["ShowScores"] = AttemptService.CanShowScores(attempt.Participant);
+            return View("PaperReview", attempt);
+        }
         ViewData["Questions"] = await attempts.GetPlayQuestionsAsync(attempt, UserId);
         ViewData["ShowScores"] = AttemptService.CanShowScores(attempt.Participant);
         ViewData["CriticalText"] = AttemptService.CanShowScores(attempt.Participant)

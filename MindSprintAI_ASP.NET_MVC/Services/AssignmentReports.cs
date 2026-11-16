@@ -34,7 +34,7 @@ public partial class AssignmentService
         var query = db.Assignments.AsNoTracking().Where(a => a.ClassroomId != null && teaching.Any(m => m.ClassroomId == a.ClassroomId)
             && a.ReportDeletedAt == null && a.ArchivedAt == null
             && (classId == null || a.ClassroomId == classId)
-            && (q == null || (a.Quiz == null ? "Thẻ ghi nhớ" : a.Quiz.Title).Contains(q)))
+            && (q == null || ((a.Quiz != null ? a.Quiz.Title : a.PaperTitle ?? "Thẻ ghi nhớ")).Contains(q)))
             .Select(a => new
             {
                 Assignment = a,
@@ -49,7 +49,7 @@ public partial class AssignmentService
         if (state != null) query = query.Where(a => a.State == state);
         var items = await query.OrderByDescending(x => x.Assignment.CreatedAt).ThenByDescending(x => x.Assignment.Id)
             .Skip((page - 1) * 20).Take(20)
-            .Select(x => new AssignmentReportItem(x.Assignment.Id, x.Assignment.Quiz == null ? "Thẻ ghi nhớ" : x.Assignment.Quiz.Title,
+            .Select(x => new AssignmentReportItem(x.Assignment.Id, (x.Assignment.Quiz != null ? x.Assignment.Quiz.Title : x.Assignment.PaperTitle ?? "Thẻ ghi nhớ"),
                 x.Assignment.Mode, x.State, x.Assignment.CreatedAt,
                 x.Assignment.Participants.Count(p => p.Attempts.Any(a => a.Status != AttemptStatus.Cancelled && !a.ExcludeFromGradebook)),
                 db.JoinCodes.Where(c => c.TargetType == JoinCodeTarget.Assignment && c.TargetId == x.Assignment.Id && c.IsActive).Select(c => c.Code).FirstOrDefault(),

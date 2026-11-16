@@ -25,7 +25,7 @@ public partial class AssignmentService
             && a.Status == AssignmentStatus.Open && (a.OpensAt == null || a.OpensAt <= now) && (a.DueAt == null || a.DueAt > now)
             && (a.Mode != AssignmentMode.Test || a.TestStartedAt != null && (a.TestEndsAt == null || a.TestEndsAt > now)))
             .OrderByDescending(a => a.CreatedAt).ThenByDescending(a => a.Id).Take(5)
-            .Select(a => new LecturerOpenAssignment(a.Id, a.Quiz == null ? "Thẻ ghi nhớ" : a.Quiz.Title, a.Classroom!.Name,
+            .Select(a => new LecturerOpenAssignment(a.Id, (a.Quiz != null ? a.Quiz.Title : a.PaperTitle ?? "Thẻ ghi nhớ"), a.Classroom!.Name,
                 a.Participants.Count(p => p.Attempts.Any(t => t.Status == AttemptStatus.InProgress && !t.ExcludeFromGradebook
                     && (t.DisconnectedAt == null || t.DisconnectedAt >= pausedBefore) && (t.DeadlineAt == null || t.DeadlineAt > now))),
                 a.Participants.Count(p => p.Attempts.Any(t => t.Status == AttemptStatus.Ended && !t.ExcludeFromGradebook)),

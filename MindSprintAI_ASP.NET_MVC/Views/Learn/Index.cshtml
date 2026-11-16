@@ -71,7 +71,7 @@
     var nextStatus = StatusOf(next);
     <a class="learn-next" asp-action="Assignment" asp-route-id="@next.Id">
         <span class="learn-next-tag">@(nextStatus == CompletionStatus.NotStarted ? "Bắt đầu làm" : "Làm tiếp")</span>
-        <span class="learn-next-title">@(next.Quiz?.Title ?? "Thẻ ghi nhớ")</span>
+        <span class="learn-next-title">@(next.Quiz?.Title ?? next.PaperTitle ?? "Thẻ ghi nhớ")</span>
         <span class="learn-next-meta">@next.Classroom?.Name · @DisplayText.Of(next.Mode)</span>
         <span class="learn-next-when @(Soon(next) ? "is-soon" : "")">@WhenText(next)@(Soon(next) ? " · sắp hết hạn" : "")</span>
         <span class="btn learn-next-go"><icon name="play" />@(nextStatus == CompletionStatus.NotStarted ? "Bắt đầu làm" : "Làm tiếp")</span>
@@ -92,7 +92,7 @@ else if (Model.Count > 0)
         var status = StatusOf(a);
         <a class="learn-card @(a.Mode == AssignmentMode.Test ? "is-test" : "") @extra" asp-action="Assignment" asp-route-id="@a.Id">
             <span class="learn-card-top"><span class="learn-mode">@DisplayText.Of(a.Mode)</span><span class="badge @(status == CompletionStatus.NotStarted ? "bg-warning" : "bg-info")">@DisplayText.Of(status)</span></span>
-            <span class="learn-card-title">@(a.Quiz?.Title ?? "Thẻ ghi nhớ")</span>
+            <span class="learn-card-title">@(a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ")</span>
             <span class="learn-card-class">@a.Classroom?.Name</span>
             <span class="learn-card-when @(Soon(a) ? "is-soon" : "")">@WhenText(a)</span>
             @if (extra == "is-overdue" && ViewData["SelfReviewAssignmentIds"] is HashSet<int> reviewIds && reviewIds.Contains(a.Id)) { <span class="d-review-available">Ôn lại được</span> }
@@ -133,7 +133,7 @@ else if (Model.Count > 0)
         <ul class="learn-done-list">
             @foreach (var a in done)
             {
-                <li><a asp-action="Assignment" asp-route-id="@a.Id"><span class="learn-done-title">@(a.Quiz?.Title ?? "Thẻ ghi nhớ")</span><span class="learn-card-class">@a.Classroom?.Name · @DisplayText.Of(a.Mode)</span><span class="badge bg-success">@DisplayText.Of(CompletionStatus.Completed)</span></a></li>
+                <li><a asp-action="Assignment" asp-route-id="@a.Id"><span class="learn-done-title">@(a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ")</span><span class="learn-card-class">@a.Classroom?.Name · @DisplayText.Of(a.Mode)</span><span class="badge bg-success">@DisplayText.Of(CompletionStatus.Completed)</span></a></li>
             }
         </ul>
     </details>

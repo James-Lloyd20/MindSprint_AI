@@ -13,8 +13,13 @@
         document.body.append(el);
         modal = { el, box: new bootstrap.Modal(el) };
         el.querySelector('.confirm-ok').addEventListener('click', () => {
-            const { form, submitter } = pending || {};
+            let { form, submitter } = pending || {};
             pending = null; modal.box.hide();
+            // Bảng tự làm mới (vd. bảng theo dõi bài) có thể thay form trong lúc hộp đang mở: gửi form mới cùng địa chỉ.
+            if (form && !form.isConnected) {
+                form = [...document.forms].find(f => f.action === form.action && f.method === form.method) || null;
+                submitter = submitter?.name ? [...(form?.elements || [])].find(b => b.name === submitter.name && b.value === submitter.value) : null;
+            }
             if (!form) return;
             form.dataset.confirmed = '1';
             // requestSubmit giữ giá trị nút đã bấm và chạy lại các trình xử lý submit khác (vd. play.js).

@@ -683,3 +683,14 @@ main a.fc-edit { display: inline-flex; align-items: center; gap: 4px; margin-lef
 .c-library .set-card-category { align-self: flex-start; padding: 2px 10px; border-radius: 999px; background: var(--bs-secondary-bg); color: var(--text-muted); font-size: .75rem; font-weight: 700; overflow-wrap: anywhere; }
 .fc-example { margin: -8px 0 20px; color: var(--text-muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 label:has(+ #avatar-file:focus-visible) { outline: 3px solid var(--bs-primary); outline-offset: 2px; }
+
+/* Bài làm theo đề tài liệu: đề PDF bên trái, bài làm bên phải; điện thoại xếp dọc (đề trước). */
+.paper-layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+.paper-frame { width: 100%; height: calc(100dvh - 220px); min-height: 420px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.paper-answer textarea.paper-text.form-control { min-height: 320px; resize: vertical; }   /* thắng quy tắc .form-control chung (38px) */
+.paper-files li { overflow-wrap: anywhere; }
+.paper-readonly { max-height: 60dvh; overflow: auto; padding: 12px; border: 1px solid var(--line); border-radius: 12px; overflow-wrap: anywhere; }
+@media (max-width: 991.98px) {
+  .paper-layout { grid-template-columns: minmax(0, 1fr); }
+  .paper-frame { height: 70dvh; }
+}

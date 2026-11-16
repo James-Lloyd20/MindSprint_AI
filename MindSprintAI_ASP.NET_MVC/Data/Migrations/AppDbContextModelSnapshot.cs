@@ -675,6 +675,21 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                     b.Property<DateTime?>("OpensAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("PaperFileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("PaperStoredName")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("PaperTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("PaperUploadedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<decimal?>("PassMark")
                         .HasPrecision(9, 4)
                         .HasColumnType("decimal(9,4)");
@@ -1922,6 +1937,77 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                     b.HasIndex("UserId", "ReadAt", "Id");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.PaperFile", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AttemptId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StoredName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttemptId");
+
+                    b.ToTable("PaperFiles");
+                });
+
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.PaperSubmission", b =>
+                {
+                    b.Property<long>("AttemptId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("GradedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GradedById")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("SavedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("Score")
+                        .HasPrecision(4, 2)
+                        .HasColumnType("decimal(4,2)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("AttemptId");
+
+                    b.ToTable("PaperSubmissions");
                 });
 
             modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.Participant", b =>
@@ -3194,6 +3280,28 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.PaperFile", b =>
+                {
+                    b.HasOne("MindSprintAI_ASP.NET_MVC.Data.Entities.PaperSubmission", "Submission")
+                        .WithMany("Files")
+                        .HasForeignKey("AttemptId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Submission");
+                });
+
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.PaperSubmission", b =>
+                {
+                    b.HasOne("MindSprintAI_ASP.NET_MVC.Data.Entities.Attempt", "Attempt")
+                        .WithOne()
+                        .HasForeignKey("MindSprintAI_ASP.NET_MVC.Data.Entities.PaperSubmission", "AttemptId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Attempt");
+                });
+
             modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.Participant", b =>
                 {
                     b.HasOne("MindSprintAI_ASP.NET_MVC.Data.Entities.Assignment", "Assignment")
@@ -3465,6 +3573,11 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                     b.Navigation("Notes");
 
                     b.Navigation("Sources");
+                });
+
+            modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.PaperSubmission", b =>
+                {
+                    b.Navigation("Files");
                 });
 
             modelBuilder.Entity("MindSprintAI_ASP.NET_MVC.Data.Entities.Participant", b =>

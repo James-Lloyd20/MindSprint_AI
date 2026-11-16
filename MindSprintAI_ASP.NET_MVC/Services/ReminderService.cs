@@ -51,7 +51,7 @@ public class ReminderService(AppDbContext db, TimeProvider clock, NotificationSe
                             && db.ClassMembers.Any(m => m.ClassroomId == a.ClassroomId && m.UserId == u.Id && m.Role == ClassRole.Student
                                 && m.Status == ClassMemberStatus.Active && (a.AudiencePolicy == AudiencePolicy.IncludeLateJoiners || m.JoinedAt <= a.CreatedAt))))
                     select new ReminderCandidate { UserId = u.Id, TargetId = a.Id,
-                        Text = "Bài \"" + (a.Quiz == null ? "Thẻ ghi nhớ" : a.Quiz.Title) + "\" sắp đến hạn nộp (còn dưới 24 giờ).", Url = "/Learn/Assignment/" + a.Id });
+                        Text = "Bài \"" + ((a.Quiz != null ? a.Quiz.Title : a.PaperTitle ?? "Thẻ ghi nhớ")) + "\" sắp đến hạn nộp (còn dưới 24 giờ).", Url = "/Learn/Assignment/" + a.Id });
             case ReminderKind.ClassApproval:
                 return from request in db.ClassMembers.Where(m => m.Status == ClassMemberStatus.PendingApproval && m.CreatedAt < yesterday)
                     from lecturer in lecturers.Where(m => m.ClassroomId == request.ClassroomId)
@@ -61,12 +61,12 @@ public class ReminderService(AppDbContext db, TimeProvider clock, NotificationSe
                 return from request in db.Participants.Where(p => p.ApprovalStatus == ApprovalStatus.Pending && p.CreatedAt < yesterday)
                     from lecturer in lecturers.Where(m => m.ClassroomId == request.Assignment.ClassroomId)
                     select new ReminderCandidate { UserId = lecturer.UserId, TargetId = request.Id,
-                        Text = "Bài \"" + (request.Assignment.Quiz == null ? "Thẻ ghi nhớ" : request.Assignment.Quiz.Title) + "\": có yêu cầu vào bài chờ duyệt quá 24 giờ.", Url = "/Assignments/Details/" + request.AssignmentId };
+                        Text = "Bài \"" + ((request.Assignment.Quiz != null ? request.Assignment.Quiz.Title : request.Assignment.PaperTitle ?? "Thẻ ghi nhớ")) + "\": có yêu cầu vào bài chờ duyệt quá 24 giờ.", Url = "/Assignments/Details/" + request.AssignmentId };
             case ReminderKind.Retake:
                 return from request in db.RetakeRequests.Where(r => r.Status == RetakeRequestStatus.Pending && r.CreatedAt < yesterday)
                     from lecturer in lecturers.Where(m => m.ClassroomId == request.Participant.Assignment.ClassroomId)
                     select new ReminderCandidate { UserId = lecturer.UserId, TargetId = request.Id,
-                        Text = "Bài \"" + (request.Participant.Assignment.Quiz == null ? "Thẻ ghi nhớ" : request.Participant.Assignment.Quiz.Title) + "\": có yêu cầu làm lại chờ duyệt quá 24 giờ.", Url = "/Assignments/Details/" + request.Participant.AssignmentId };
+                        Text = "Bài \"" + ((request.Participant.Assignment.Quiz != null ? request.Participant.Assignment.Quiz.Title : request.Participant.Assignment.PaperTitle ?? "Thẻ ghi nhớ")) + "\": có yêu cầu làm lại chờ duyệt quá 24 giờ.", Url = "/Assignments/Details/" + request.Participant.AssignmentId };
             case ReminderKind.Invitation:
                 return from invite in db.Invitations.Where(i => i.Status == InvitationStatus.Pending && i.CreatedAt < yesterday
                         && i.ExpiresAt > now && i.Classroom.DeletedAt == null)

@@ -5,7 +5,7 @@
 }
 <div class="card card-body mx-auto" style="max-width: 36rem" role="alertdialog" aria-labelledby="close-title" aria-describedby="close-message">
     <h1 id="close-title" class="h4">Đóng bài giao</h1>
-    <p id="close-message">Còn @ViewData["OpenAttempts"] học viên đang làm bài <b>@(Model.Quiz?.Title ?? "Thẻ ghi nhớ")</b>.@(extra > 0 ? $" Trong đó {extra} học viên được cộng thêm giờ riêng." : "")</p>
+    <p id="close-message">Còn @ViewData["OpenAttempts"] học viên đang làm bài <b>@(Model.Quiz?.Title ?? Model.PaperTitle ?? "Thẻ ghi nhớ")</b>.@(extra > 0 ? $" Trong đó {extra} học viên được cộng thêm giờ riêng." : "")</p>
     @* Đúng như AssignmentService: Đóng ngay kết thúc lượt dở như hết giờ; Đóng sau 15 phút chỉ rút hạn chung. *@
     <ul>
         <li><b>Đóng ngay:</b> bài đang làm được nộp luôn với các câu đã trả lời, câu chưa làm tính 0 điểm. Học viên thấy ghi chú "Kết thúc do giảng viên đóng bài".</li>

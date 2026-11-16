@@ -20,7 +20,10 @@
         <h1 class="mindsprint-title mb-2">@Model.Name</h1>
         <p class="learn-summary mb-0">@students.Count học viên · @assignments.Count bài đã giao</p>
     </div>
-    <a class="btn btn-primary" asp-controller="Assignments" asp-action="Create" asp-route-classroomId="@Model.Id"><icon name="send" />Giao bài</a>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary" asp-controller="Assignments" asp-action="Create" asp-route-classroomId="@Model.Id"><icon name="send" />Giao bài</a>
+        <a class="btn btn-secondary" asp-controller="Papers" asp-action="Create" asp-route-classroomId="@Model.Id"><icon name="file-text" />Giao bài theo đề</a>
+    </div>
 </header>
 
 @if (pending.Count > 0 || needing.Count > 0)
@@ -34,7 +37,7 @@
             {
                 @* Ghi kèm hạn để phân biệt các bài trùng tên; mỗi việc dẫn thẳng tới thẻ xử lý trong trang bài giao. *@
                 var end = a.Mode == AssignmentMode.Test ? a.TestEndsAt : a.DueAt;
-                <li><b>@(a.Quiz?.Title ?? "Thẻ ghi nhớ")</b> <span class="text-muted">(@DisplayText.Of(a.Mode)@(end is { } e ? $", hạn {VnTime.Format(e)}" : ""))</span>:
+                <li><b>@(a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ")</b> <span class="text-muted">(@DisplayText.Of(a.Mode)@(end is { } e ? $", hạn {VnTime.Format(e)}" : ""))</span>:
                     @foreach (var (part, i) in WorkOf(a).Parts().Select((p, i) => (p, i)))
                     {
                         @(i > 0 ? " · " : "")<a asp-controller="Assignments" asp-action="Details" asp-route-id="@a.Id" asp-fragment="@part.Fragment">@part.Text</a>
@@ -63,13 +66,13 @@
         <div class="join-code b-join-code" id="class-join-code">@ViewData["Code"]</div>
         <div class="b-actions">
             <button class="btn btn-outline-primary" type="button" id="copy-class-code"><icon name="copy" />Sao chép mã</button>
-            <a class="btn btn-outline-secondary" asp-action="Qr" asp-route-id="@Model.Id" target="_blank" rel="noopener"><icon name="qr-code" />Mã QR <span class="visually-hidden">(mở trang trình chiếu mới)</span></a>
+            @if (ViewData["Code"] is string) { <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#class-qr-popup"><icon name="qr-code" />Mã QR</button> }
         </div>
         <p class="b-copy-status small mb-0" id="class-copy-status" role="status" aria-live="polite"></p>
     </div>
     <aside class="sticky-note">
         <b>Đưa lớp vào bài</b>
-        Bấm <strong>Mã QR</strong> để mở trang trình chiếu. Chiếu lên bảng cho cả lớp quét mã, hoặc gửi mã vào lớp cho học viên.
+        Bấm <strong>Mã QR</strong> để hiện mã cho cả lớp quét (chiếu lên bảng), hoặc gửi mã vào lớp cho học viên.
     </aside>
 </section>
 
@@ -91,7 +94,7 @@
         {
             <a class="learn-card b-class-assignment @(a.Mode == AssignmentMode.Test ? "is-test" : "")" asp-controller="Assignments" asp-action="Details" asp-route-id="@a.Id">
                 <span class="learn-card-top"><span class="learn-mode">@DisplayText.Of(a.Mode)</span>@{ var expired = a.Status != AssignmentStatus.Closed && (a.Mode == AssignmentMode.Test ? a.TestEndsAt : a.DueAt) is { } end && end <= DateTime.UtcNow; }<span class="badge @(a.Status == AssignmentStatus.Closed || expired ? "bg-body-tertiary" : "bg-primary")">@(a.Status == AssignmentStatus.Closed ? "Đã đóng" : expired ? "Đã hết hạn" : "Đang mở")</span></span>
-                <span class="learn-card-title">@(a.Quiz?.Title ?? "Thẻ ghi nhớ")</span>
+                <span class="learn-card-title">@(a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ")</span>
                 <span class="learn-card-class">@DisplayText.Of(a.Form)</span>
                 <span class="learn-card-when"><icon name="clock" /> @(a.Mode == AssignmentMode.Test
                     ? (a.TestEndsAt == null ? "Chờ giảng viên bắt đầu" : "Kết thúc lúc " + VnTime.Format(a.TestEndsAt))
@@ -239,7 +242,15 @@
     </div>
 </section>
 </div>
+@if (ViewData["Code"] is string classCode)
+{
+    <partial name="_QrPopup" model="@(new QrPopupModel("class-qr-popup", "Mã QR vào lớp",
+        new JoinQrModel(classCode, Url.Action("Join", "Classrooms", new { code = classCode }, Context.Request.Scheme)!, Url.Action("Join", "Classrooms", null, Context.Request.Scheme)!),
+        Url.Action("Qr", new { id = Model.Id })!))" />
+}
 @section Scripts {
+    <script src="~/lib/qrcode-generator/qrcode.js"></script>
+    <script src="~/js/qr-popup.js" asp-append-version="true"></script>
     <script>
         (() => {
             const button = document.getElementById('copy-class-code');

@@ -50,7 +50,7 @@ public class TrashService(AppDbContext db, ClassroomService classrooms, TimeProv
         var reports = await db.Assignments.AsNoTracking().Include(a => a.Quiz).Where(a => a.ReportDeletedAt != null
             && db.ClassMembers.Any(m => m.ClassroomId == a.ClassroomId && m.UserId == userId && m.Classroom.DeletedAt == null
                 && m.Status == ClassMemberStatus.Active && (m.Role == ClassRole.MainLecturer || m.Role == ClassRole.AssistantLecturer))).ToListAsync();
-        result.AddRange(reports.Select(a => Item(TrashKind.Report, a.Id, a.Quiz?.Title ?? "Thẻ ghi nhớ", a.ReportDeletedAt!.Value, false)));
+        result.AddRange(reports.Select(a => Item(TrashKind.Report, a.Id, a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ", a.ReportDeletedAt!.Value, false)));
         var conversations = await db.AiConversations.AsNoTracking().Where(c => c.UserId == userId && c.DeletedAt != null
             && !db.Attempts.Any(a => a.Participant.UserId == userId && a.Participant.Assignment.Mode == AssignmentMode.Test
                 && a.Participant.Assignment.StudySetId == c.StudySetId && (a.Status == AttemptStatus.InProgress || a.Status == AttemptStatus.Paused)))

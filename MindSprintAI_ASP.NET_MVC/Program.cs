@@ -186,6 +186,8 @@ builder.Services.AddScoped<LecturerPromotionService>();
 builder.Services.AddHostedService<LecturerPromotionWorker>();
 builder.Services.AddScoped<AssignmentService>();
 builder.Services.AddScoped<AttemptService>();
+builder.Services.AddSingleton<PaperFileStore>();
+builder.Services.AddScoped<PaperTestService>();
 builder.Services.AddScoped<GradebookService>();
 builder.Services.AddScoped<RetakeService>();
 builder.Services.AddScoped<FlashcardService>();

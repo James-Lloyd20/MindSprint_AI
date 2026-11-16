@@ -167,6 +167,13 @@ public partial class AssignmentService(AppDbContext db, ClassroomService classro
         var a = await GetForLecturerAsync(assignmentId, userId);
         EnsureTest(a);
         await EnsureSessionEndedAsync(a);
+        // Bài làm theo đề: công bố cả lớp một lần nên phải chấm hết trước (người dùng chốt 16/11/2026).
+        if (a.Form == AssignmentForm.Document)
+        {
+            var ungraded = await db.Attempts.CountAsync(x => x.Participant.AssignmentId == assignmentId && x.Status == AttemptStatus.Ended
+                && x.Kind != AttemptKind.SelfReview && !x.ExcludeFromGradebook && x.MaxScore == 0);
+            if (ungraded > 0) throw new BusinessException($"Còn {ungraded} bài chưa chấm. Hãy chấm hết rồi mới công bố điểm.");
+        }
         a.ScoresPublishedAt ??= Now;
         var participants = await db.Participants.Include(p => p.Attempts)
             .Where(p => p.AssignmentId == assignmentId).ToListAsync();

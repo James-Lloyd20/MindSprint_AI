@@ -21,6 +21,12 @@ public class Assignment : IVersioned
     public Quiz? Quiz { get; set; }
     public int? StudySetId { get; set; }
 
+    // Bài làm theo đề (Form = Document): tên bài + đề GV tải lên (luôn lưu dạng PDF; Word được đổi sang PDF khi tải lên).
+    public string? PaperTitle { get; set; }
+    public string? PaperFileName { get; set; }      // tên tệp gốc GV tải lên (chỉ để hiển thị)
+    public string? PaperStoredName { get; set; }    // tên tệp PDF trong App_Data/assignment-files/{Id}/
+    public DateTime? PaperUploadedAt { get; set; }
+
     public AssignmentMode Mode { get; set; } = AssignmentMode.Practice;
     public AssignmentForm Form { get; set; } = AssignmentForm.QuizOnly;
     public RequiredParts RequiredParts { get; set; } = RequiredParts.Quiz;

@@ -47,6 +47,8 @@ document.addEventListener('submit', async event => {
     event.preventDefault();
     const button = event.submitter;
     await lightReady;
+    // lightReady thường đã xong: không chờ sang lượt sau thì requestSubmit chạy khi sự kiện submit này chưa kết thúc và bị trình duyệt bỏ qua.
+    await new Promise(resolve => setTimeout(resolve));
     if (form.dataset.machineFull === 'true') {
         try { form.elements.namedItem('signals').value = JSON.stringify(await full()); }
         catch { /* gửi thiếu thông số vẫn được */ }

@@ -52,10 +52,13 @@ public partial class AttemptService(AppDbContext db, TimeProvider clock, IEnumer
         var member = await AttemptLock.MemberForLearnerAsync(db, assignment.ClassroomId, userId);
         await AccountLockState.EnsureAllowedAsync(db, userId, Now);
         await AssignmentAccess.EnsureStartAsync(db, assignment, member, userId);
-        await db.Entry(assignment).Reference(a => a.Quiz).Query()
-            .Include(q => q!.Questions).ThenInclude(q => q.Options).LoadAsync();
-        await db.Entry(assignment).Reference(a => a.Quiz).Query()
-            .Include(q => q!.Questions).ThenInclude(q => q.Blanks).ThenInclude(b => b.Answers).LoadAsync();
+        if (assignment.QuizId != null) // bài làm theo đề (Form = Document) không có quiz
+        {
+            await db.Entry(assignment).Reference(a => a.Quiz).Query()
+                .Include(q => q!.Questions).ThenInclude(q => q.Options).LoadAsync();
+            await db.Entry(assignment).Reference(a => a.Quiz).Query()
+                .Include(q => q!.Questions).ThenInclude(q => q.Blanks).ThenInclude(b => b.Answers).LoadAsync();
+        }
         await EnsurePracticeAccessAsync(assignment, userId);
         var participant = await JoinParticipantAsync(assignment, userId);
         participant = await AttemptLock.ParticipantAsync(db, participant.Id);
@@ -144,7 +147,9 @@ public partial class AttemptService(AppDbContext db, TimeProvider clock, IEnumer
     {
         var selfReview = kind == AttemptKind.SelfReview;
         if (!selfReview) EnsureConsent(assignment, consent); // (F7b) cả lượt làm lại phải đi qua đây.
-        var questions = assignment.Quiz!.Questions.Where(q => q.DeletedAt == null).OrderBy(q => q.OrderIndex).ToArray();
+        // Bài làm theo đề: không có câu hỏi; MaxScore = 0 tới khi GV chấm (PaperTestService.GradeAsync).
+        var questions = assignment.Form == AssignmentForm.Document ? []
+            : assignment.Quiz!.Questions.Where(q => q.DeletedAt == null).OrderBy(q => q.OrderIndex).ToArray();
         if (assignment.ShuffleQuestions) RandomNumberGenerator.Shuffle(questions.AsSpan());
         var attempt = new Attempt
         {

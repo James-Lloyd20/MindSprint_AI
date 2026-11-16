@@ -133,7 +133,7 @@ public static class DisplayText
 
     public static string Of(AssignmentForm f) => f switch
     {
-        AssignmentForm.QuizOnly => "Chỉ quiz", AssignmentForm.FlashcardOnly => "Chỉ thẻ ghi nhớ", _ => "Kết hợp"
+        AssignmentForm.QuizOnly => "Chỉ quiz", AssignmentForm.FlashcardOnly => "Chỉ thẻ ghi nhớ", AssignmentForm.Document => "Bài làm theo đề", _ => "Kết hợp"
     };
 
     public static string Of(RequiredParts p) => p switch

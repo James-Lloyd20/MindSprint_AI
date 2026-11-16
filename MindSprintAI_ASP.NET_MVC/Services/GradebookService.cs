@@ -86,6 +86,8 @@ public partial class GradebookService(AppDbContext db, AssignmentService assignm
             return score != null && assignment.ScoreSelection == ScoreSelection.Average ? CriticalSelectionRules.Average(score, done, assignment) : score;
         }
         var latest = attempts.Where(a => a.Status != AttemptStatus.Cancelled && !a.ExcludeFromGradebook).OrderByDescending(a => a.AttemptNumber).FirstOrDefault();
+        // Bài làm theo đề chưa chấm (MaxScore = 0): chưa có điểm, không phải 0 điểm.
+        if (assignment.Form == AssignmentForm.Document && latest?.MaxScore == 0) return null;
         return latest?.Status == AttemptStatus.Ended ? CriticalSelectionRules.FromAttempt(latest) : null;
     }
 

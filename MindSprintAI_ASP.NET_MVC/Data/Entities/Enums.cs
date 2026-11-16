@@ -29,7 +29,7 @@ public enum BlankScoring { AllOrNothing = 1, PerBlank = 2 }
 
 public enum AssignmentMode { Practice = 1, Test = 2 }
 
-public enum AssignmentForm { QuizOnly = 1, FlashcardOnly = 2, Combined = 3 }
+public enum AssignmentForm { QuizOnly = 1, FlashcardOnly = 2, Combined = 3, Document = 4 }   // Document: bài làm theo đề tài liệu (GV tải đề, chấm tay)
 
 public enum RequiredParts { Quiz = 1, Flashcards = 2, Both = 3 }
 

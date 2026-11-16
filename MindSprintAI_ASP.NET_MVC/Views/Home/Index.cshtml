@@ -38,7 +38,7 @@
             }
             else
             {
-                @if (next != null) { <a class="btn btn-primary" asp-controller="Learn" asp-action="Assignment" asp-route-id="@next.Id"><icon name="play" />Làm bài: @(next.Quiz?.Title ?? "Thẻ ghi nhớ")</a> }
+                @if (next != null) { <a class="btn btn-primary" asp-controller="Learn" asp-action="Assignment" asp-route-id="@next.Id"><icon name="play" />Làm bài: @(next.Quiz?.Title ?? next.PaperTitle ?? "Thẻ ghi nhớ")</a> }
                 else { <a class="btn btn-primary" asp-controller="Vocab" asp-action="Practice"><icon name="play" />Bắt đầu học 15 phút</a> }
                 <a class="btn btn-secondary" href="@Url.Action("Index", "StudySets")#tao-bo-hoc"><icon name="plus" />Tạo bộ học</a>
             }
@@ -123,7 +123,7 @@
                             var deadline = a.Mode == AssignmentMode.Test ? a.TestEndsAt : a.DueAt;
                             <a class="home-card" asp-controller="Learn" asp-action="Assignment" asp-route-id="@a.Id">
                                 <span class="home-card-tag"><span class="section-icon"><icon name="list-checks" /></span>@(a.Classroom?.Name ?? "Bài làm")</span>
-                                <strong>@(a.Quiz?.Title ?? "Thẻ ghi nhớ")</strong>
+                                <strong>@(a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ")</strong>
                                 <span class="home-card-meta"><span>@(deadline == null ? "Không có hạn" : "Hạn " + VnTime.Format(deadline))</span><b>@DisplayText.Of(a.Mode)</b></span>
                             </a>
                         }

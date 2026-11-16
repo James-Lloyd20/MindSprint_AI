@@ -25,6 +25,12 @@ install -d -m 755 "$APP"
 install -d -m 700 -o mindsprint -g mindsprint "$APP/App_Data"
 install -d -m 750 -o mindsprint -g mindsprint /var/log/mindsprint
 install -d -m 750 -o root -g mindsprint "$CONF"   # web đọc được dp.pfx; các file .env chỉ root đọc
+# Bài làm theo đề: đề Word được đổi sang PDF bằng LibreOffice (không giao diện). Phông Liberation/Carlito/Caladea
+# đo chữ giống Times New Roman/Arial/Calibri/Cambria nên đề Word giữ đúng bố cục.
+if ! command -v soffice >/dev/null 2>&1; then
+  apt-get update -qq
+  apt-get install -y --no-install-recommends libreoffice-writer-nogui fonts-liberation2 fonts-crosextra-carlito fonts-crosextra-caladea fonts-dejavu-core
+fi
 
 echo "== 2/8 Chép bản build (web chỉ đọc code, chỉ ghi vào App_Data)"
 systemctl stop mindsprint 2>/dev/null || true
@@ -130,7 +136,7 @@ server {
     # Địa chỉ thật của khách: cloudflared gửi trong CF-Connecting-IP; chỉ tin khi đến từ chính máy này.
     set_real_ip_from 127.0.0.1;
     real_ip_header CF-Connecting-IP;
-    client_max_body_size 13m;   # app nhận tối đa 12 MB
+    client_max_body_size 25m;   # tệp đề/bài làm theo đề tối đa 20 MB (các form khác app tự giới hạn 12 MB)
     location / {
         proxy_pass http://127.0.0.1:$PORT;
         proxy_http_version 1.1;

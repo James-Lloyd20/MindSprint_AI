@@ -108,7 +108,7 @@ public partial class AssignmentService
         var users = members.Where(m => IsAssignedTo(a, m)).Select(m => m.UserId).ToArray();
         // Cùng khóa với worker: hạn mới cần một lần nhắc mới, không thêm cột.
         await db.Reminders.Where(r => r.Kind == ReminderKind.Due && r.TargetId == id).ExecuteDeleteAsync();
-        var text = $"Bài \"{a.Quiz?.Title ?? "Thẻ ghi nhớ"}\" đã được mở lại để ôn tập. "
+        var text = $"Bài \"{a.Quiz?.Title ?? a.PaperTitle ?? "Thẻ ghi nhớ"}\" đã được mở lại để ôn tập. "
             + (dueAt == null ? "Không có hạn." : $"Hạn {VnTime.Format(dueAt)} (giờ Việt Nam).");
         foreach (var user in users)
             await Notifications.AddAsync(user, NotificationType.ExtraMinutes, new(text, $"/Learn/Assignment/{id}", AssignmentId: id));
