@@ -219,7 +219,9 @@ public sealed class GeminiClient(HttpClient http, IConfiguration configuration)
     // thì thử lần lượt model sau. Lượt miễn phí của Google tính riêng từng model nên model dự phòng thường vẫn còn lượt.
     // shortcut: không "tạm nghỉ" model như nhóm (key mỗi người khác nhau, 429 của người này không nói gì về key người khác);
     // cần thì thêm bộ nhớ tạm theo key.
-    public static readonly string[] DefaultFallbackModels = ["gemini-flash-latest", "gemini-flash-lite-latest"];
+    // Thử thật 16/11/2026 (model chính hết lượt): gemini-flash-lite-latest trả lời sau 1,8 giây; gemini-flash-latest (nhóm có dùng)
+    // treo quá 400 giây nên bỏ — model dự phòng treo thì người dùng chờ hết giờ mới thấy lỗi.
+    public static readonly string[] DefaultFallbackModels = ["gemini-flash-lite-latest"];
     private List<string> Models()
     {
         var fallbacks = configuration.GetSection("Gemini:FallbackModels").Get<string[]>() ?? DefaultFallbackModels;

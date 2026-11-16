@@ -181,7 +181,7 @@
 ### 2026-11-15 tối (2) — rà sâu lần 4 (từng cột DB, từng service nhóm, NFR, CI/CD, giao diện) + bù chỗ thiếu
 - Chi tiết + mục cố ý không chuyển: `docs/DOI_CHIEU_CHUC_NANG.md` mục "Rà lần 4"; trang bằng chứng `docs/bang-chung-chuyen-doi.html` đã thêm dòng.
 - Migration `DanhMucVaViDu` (chỉ thêm cột, cho phép trống): `StudySets.Category` (≤ 60), `Flashcards.Example` (≤ 2000).
-- `GeminiClient`: mọi lệnh sinh nội dung đi qua `GenerateContentAsync` → model chính rồi `Gemini:FallbackModels` (mặc định `gemini-flash-latest`, `gemini-flash-lite-latest`) khi 429/404/500/503. Kiểm key (countTokens) chỉ dùng model chính.
+- `GeminiClient`: mọi lệnh sinh nội dung đi qua `GenerateContentAsync` → model chính rồi `Gemini:FallbackModels` (mặc định `gemini-flash-lite-latest`; đã bỏ `gemini-flash-latest` vì thử thật 16/11 nó treo quá 400 giây) khi 429/404/500/503. Kiểm key (countTokens) chỉ dùng model chính.
 - `NotebookAiService.CheckOutput` (NFR-14), `OfficeText` (DOCX/PPTX/XLSX, dùng cho tải tệp + đường link), RSS/XML trong `NotebookUrlReader`.
 - Ảnh đại diện tự tải lên: `AvatarSource.Upload` (giá trị enum mới, không cần migration), tệp `App_Data/avatars/{id}.img`, chỉ chủ tài khoản đọc qua `Account/AvatarImage`; xóa tài khoản / "Dùng ảnh mặc định" xóa tệp; đăng nhập Google không đè.
 - `/healthz`, `/readyz`, header `nosniff` + `Referrer-Policy` trong `Program.cs`; `.github/workflows/ci.yml` (chưa chạy trên GitHub lần nào).
