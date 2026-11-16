@@ -187,3 +187,10 @@
 - `/healthz`, `/readyz`, header `nosniff` + `Referrer-Policy` trong `Program.cs`; `.github/workflows/ci.yml` (chưa chạy trên GitHub lần nào).
 - Từ vựng: 2572 thẻ (thêm `vocab_seed.json` backend nhóm). Chuông báo thêm kiểu `voice` (đọc to bằng `speechSynthesis`). Điểm yếu thêm `Suggestion`.
 - Test mới: `RaSoatLan4Tests.cs`.
+
+### 2026-11-16 — triển khai mindsprint.rekal.id.vn + áp ý các issue #108/#110/#115 của nhóm
+- Server cá nhân (Debian, chung máy với Rekal): `deploy/setup-mindsprint.sh` (systemd `mindsprint` 127.0.0.1:5002, nginx 127.0.0.1:8082, Cloudflare Tunnel, DB `MindSprintAI` + login `mindsprint_app` trên container `rekal-sql`). efbundle phải build bằng `--target-runtime linux-x64` (không phải `--runtime`).
+- Thanh bên: cuộn được khi màn hình thấp; menu xổ `position: fixed` theo vị trí nút (`js/site.js`); nút thu gọn nổi cạnh mép ở cả hai trạng thái; logo thu gọn chỉ biểu tượng.
+- #110 của nhóm → `wwwroot/sw.js` cache `mindsprint-static-v2`: tệp có `?v=` lấy đệm trước, tệp không có `?v=` (`/lib`, `/img`) trả đệm rồi tải bản mới ngầm (thử bằng trình duyệt: bản đệm "cũ" được thay ở lần tải sau).
+- #108 của nhóm → 404 khi mở trang hiện trang "Không tìm thấy trang này" (`ErrorPage.NotFoundHtml`, `UseStatusCodePages`); tệp tĩnh/fetch/JSON giữ 404 trơn. Test `Tang8ErrorPageTests`.
+- #115 của nhóm → `deploy/collect-diagnostics.sh` (đã chạy `--self-test` trên server: 5/5 bí mật giả bị che).

@@ -243,6 +243,9 @@ app.UseMiddleware<AuditScopeMiddleware>();
 // (NK1) Viết trang lỗi trực tiếp, không cần cơ sở dữ liệu (xem Services/ErrorPage.cs).
 app.UseExceptionHandler(new ExceptionHandlerOptions { ExceptionHandler = ErrorPage.WriteAsync, SuppressDiagnosticsCallback = _ => true });
 app.UseMiddleware<RequestExceptionCaptureMiddleware>();
+// 404 khi mở trang -> trang "Không tìm thấy trang" (ErrorPage.WantsNotFoundPage); tệp tĩnh, fetch/JSON giữ 404 trơn.
+app.UseStatusCodePages(status => ErrorPage.WantsNotFoundPage(status.HttpContext)
+    ? ErrorPage.WriteNotFoundAsync(status.HttpContext) : Task.CompletedTask);
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

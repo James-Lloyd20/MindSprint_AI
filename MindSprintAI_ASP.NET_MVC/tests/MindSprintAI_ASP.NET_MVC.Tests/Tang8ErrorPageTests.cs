@@ -22,4 +22,28 @@ public class Tang8ErrorPageTests
         Assert.Contains("gửi mã tra cứu lỗi ở trên cho quản trị viên", html);
         Assert.False(PlainLanguageAudit.HasJargon(html));
     }
+
+    // 404 khi mở trang: có trang báo (không DB/DI); tệp tĩnh, fetch/JSON, POST giữ 404 trơn.
+    [Theory]
+    [InlineData("GET", "/khong-co", "text/html,application/xhtml+xml", true)]
+    [InlineData("GET", "/khong-co", "application/json", false)]
+    [InlineData("GET", "/khong-co", "*/*", false)]
+    [InlineData("POST", "/khong-co", "text/html", false)]
+    [InlineData("GET", "/css/khong-co.css", "text/html", false)]
+    [InlineData("GET", "/lib/a/b.js", "text/html", false)]
+    public async Task TrangKhongTimThayChiChoTrinhDuyetMoTrang(string method, string path, string accept, bool page)
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Method = method; context.Request.Path = path; context.Request.Headers.Accept = accept;
+        context.Response.StatusCode = 404;
+        context.Response.Body = new MemoryStream();
+        Assert.Equal(page, ErrorPage.WantsNotFoundPage(context));
+        await ErrorPage.WriteNotFoundAsync(context);
+        context.Response.Body.Position = 0;
+        var html = await new StreamReader(context.Response.Body).ReadToEndAsync();
+        Assert.Equal(404, context.Response.StatusCode);
+        Assert.Contains("Không tìm thấy trang này.", html);
+        Assert.StartsWith("text/html", context.Response.ContentType);
+        Assert.False(PlainLanguageAudit.HasJargon(html));
+    }
 }
