@@ -70,6 +70,20 @@ public class DuLieuMauLopTests : IDisposable
         var papers = await h.Db.PaperSubmissions.Where(s => s.Attempt.Participant.AssignmentId == paper.Id).ToListAsync();
         Assert.Contains(papers, s => s.Score != null);
         Assert.Contains(papers, s => s.Score == null);   // còn bài chưa chấm
+        // Trợ lý AI có trích dẫn đúng văn bản nguồn; sổ tay AI; thông báo cho học viên (có đọc, có chưa đọc).
+        var demoIds = await h.Db.Users.Where(u => u.Email!.EndsWith("@" + ClassDemoSeedService.Domain)).Select(u => u.Id).ToListAsync();
+        var chats = await h.Db.AiConversations.Include(c => c.Messages).ThenInclude(m => m.Citations).Where(c => demoIds.Contains(c.UserId)).ToListAsync();
+        Assert.True(chats.Count >= 15, chats.Count + " hội thoại");
+        Assert.Contains(chats, c => c.QuestionId != null);
+        var sources = await h.Db.SourceTexts.Where(s => chats.Select(c => c.StudySetId).Contains(s.StudySetId)).ToDictionaryAsync(s => s.StudySetId, s => s.Content);
+        Assert.All(chats.SelectMany(c => c.Messages.Where(m => m.Role == "assistant").SelectMany(m => m.Citations).Select(x => (c.StudySetId, x))),
+            p => Assert.Equal(p.x.ExcerptText, sources[p.StudySetId][p.x.StartOffset..p.x.EndOffset]));
+        Assert.True(await h.Db.Notebooks.CountAsync(n => demoIds.Contains(n.UserId) && n.Sources.Any() && n.Notes.Any()) >= 8);
+        var notices = await h.Db.Notifications.Where(n => demoIds.Contains(n.UserId)).ToListAsync();
+        Assert.Contains(notices, n => n.Type == NotificationType.Reminder && n.ReadAt != null);
+        Assert.Contains(notices, n => n.Type == NotificationType.Reminder && n.ReadAt == null);
+        Assert.Contains(notices, n => n.Type == NotificationType.Retake);
+        Assert.Contains(notices, n => n.Type == NotificationType.ExtraMinutes);
         // Mọi thứ diễn ra trong quá khứ, không có gì "ở tương lai".
         Assert.True(await h.Db.Attempts.Where(x => list.Select(a => a.Id).Contains(x.Participant.AssignmentId)).AllAsync(x => x.StartedAt <= h.Clock.UtcNow));
 

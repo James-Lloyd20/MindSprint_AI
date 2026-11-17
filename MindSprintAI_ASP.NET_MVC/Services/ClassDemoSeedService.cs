@@ -92,6 +92,7 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
         var web = await ImportAsync(SetPrefix + "Lập trình Web với ASP.NET Core MVC", WebCards, WebQuestions, lecturerId);
         var sql = await ImportAsync(SetPrefix + "Cơ sở dữ liệu — SQL căn bản", SqlCards, SqlQuestions, lecturerId);
         var eng = await ImportAsync(SetPrefix + "Từ vựng tiếng Anh chuyên ngành CNTT", EngCards, EngQuestions, lecturerId);
+        await SourceAsync(web, WebSource); await SourceAsync(sql, SqlSource); await SourceAsync(eng, EngSource);
 
         // Người trong từng lớp. Lớp 1: 29 người từ đầu, 1 người vào muộn (ngày 12), 1 người rời lớp (ngày 15).
         var c1Base = learners.Take(29).ToList();
@@ -235,11 +236,31 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
             Practice(() => e2, c3All, 11, 18, maxAttempts: 3);
         });
 
+        // Trợ lý AI (ở các bài ôn tập), Sổ tay AI và thông báo.
+        AiChats(() => a1, web, WebSource, WebChats, c1Base, 1, 6, 10);
+        AiChats(() => a4, web, WebSource, WebChats, c1Base.Where(l => l != leaver).ToList(), 10, 17, 6);
+        AiChats(() => b1, sql, SqlSource, SqlChats, c2Active, 3, 9, 5);
+        AiChats(() => e2, eng, EngSource, EngChats, c3All, 11, 18, 4);
+        Notebooks(learners.Take(30).ToList(), 10);
+        DueReminders(() => a1, "Quiz — " + SetPrefix + "Lập trình Web với ASP.NET Core MVC", T(6, 16), c1Base);
+        DueReminders(() => a2, "Thẻ ghi nhớ", T(8, 16), c1Base);
+        DueReminders(() => a4, "Quiz — " + SetPrefix + "Lập trình Web với ASP.NET Core MVC", T(17, 16), c1Base.Where(l => l != leaver).ToList());
+        DueReminders(() => b1, "Quiz — " + SetPrefix + "Cơ sở dữ liệu — SQL căn bản", T(9, 16), c2Active);
+        DueReminders(() => e2, "Quiz — " + SetPrefix + "Từ vựng tiếng Anh chuyên ngành CNTT", T(18, 16), c3All);
+        CardReminders(c3All, 5, 20);
+        On(T(2, 15), async () =>
+        {
+            await new NotificationService(db, clock, new NullLearnNotifier()).AddAsync(lecturerId, NotificationType.Reminder,
+                new("Lớp \"Cơ sở dữ liệu — Lớp chiều thứ Năm" + ClassSuffix + "\": có yêu cầu vào lớp chờ duyệt quá 24 giờ.", $"/Classrooms/Details/{c2}", ClassroomId: c2));
+            await db.SaveChangesAsync();
+        });
+
         // Giảng viên tự ôn bộ thẻ của mình ~10 ngày gần đây (trang chủ có chuỗi học, Tổng quan có số liệu).
         for (var day = 10; day <= 20; day++)
             if (day is not (13 or 16)) On(T(day, 21, rng.Next(0, 40)), () => SelfStudyAsync(lecturerId, web));
 
         await RunQueueAsync();
+        await MarkOldNotificationsReadAsync(learners, lecturerId);
         // Dữ liệu cá nhân của giảng viên (bộ học riêng, sổ tay, công việc, lịch học) nếu chưa có bộ demo đó; học viên mẫu có công việc + giờ học.
         if (personal != null && !await db.StudySets.AnyAsync(s => s.OwnerId == lecturerId && s.Title == DemoSeedService.SetTitle && s.DeletedAt == null))
             await personal.SeedAsync(lecturerId);
@@ -493,6 +514,217 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
             await Flashcards.RateAsync(web.SetId, null, card, rng.NextDouble() < 0.8 ? FlashcardRating.Remembered : FlashcardRating.NotRemembered, lecturerId);
         }
     }
+
+    // ---------- Trợ lý AI, Sổ tay AI, thông báo (dữ liệu demo, người dùng đồng ý tự viết câu trả lời AI 17/11) ----------
+    // Văn bản nguồn của bộ học: trợ lý AI chỉ trả lời dựa trên văn bản này (bộ học không có thì trợ lý báo "chưa có văn bản nguồn").
+    private async Task SourceAsync(SetInfo set, string content)
+    {
+        db.SourceTexts.Add(new SourceText { StudySetId = set.SetId, Content = content });
+        await db.SaveChangesAsync();
+    }
+
+    private sealed record Chat(int? Question, (string Q, string A, string Quote)[] Turns);
+
+    // Hội thoại với trợ lý AI như khi học viên bấm "Hỏi trợ lý" trong bài ôn tập: câu trả lời có trích dẫn đúng đoạn văn bản nguồn,
+    // một số hội thoại gắn với một câu trong quiz (GV thấy thống kê "số lượt hỏi theo câu").
+    private void AiChats(Func<Assignment> assignment, SetInfo set, string source, Chat[] pool, List<Learner> people, int fromDay, int toDay, int count)
+    {
+        foreach (var l in people.OrderBy(_ => rng.Next()).Take(count))
+        {
+            var chats = pool.OrderBy(_ => rng.Next()).Take(1 + (rng.NextDouble() < 0.35 ? 1 : 0)).ToList();
+            On(T(fromDay + rng.Next(0, Math.Max(1, toDay - fromDay)), 19 + rng.Next(0, 4), rng.Next(0, 60)), async () =>
+            {
+                var a = assignment();
+                var questionIds = await db.Questions.Where(q => q.QuizId == set.QuizId).OrderBy(q => q.OrderIndex).Select(q => q.Id).ToListAsync();
+                foreach (var chat in chats)
+                {
+                    int? questionId = chat.Question is { } i ? questionIds[i] : null;
+                    var conversation = new AiConversation { UserId = l.Id, StudySetId = set.SetId, AssignmentId = a.Id, QuestionId = questionId,
+                        Title = chat.Turns[0].Q[..Math.Min(chat.Turns[0].Q.Length, 120)], CreatedAt = clock.UtcNow };
+                    foreach (var (q, answer, quote) in chat.Turns.Take(1 + rng.Next(0, chat.Turns.Length)))
+                    {
+                        var start = source.IndexOf(quote, StringComparison.Ordinal);
+                        if (start < 0) throw new InvalidOperationException("Trích dẫn mẫu không có trong văn bản nguồn: " + quote);
+                        conversation.Messages.Add(new() { Role = "user", Content = q, QuestionId = questionId, SourceVersion = 1, CreatedAt = clock.UtcNow });
+                        Later(0.1 + rng.NextDouble() * 0.3);
+                        conversation.Messages.Add(new() { Role = "assistant", Content = answer, QuestionId = questionId, SourceVersion = 1, CreatedAt = clock.UtcNow,
+                            Citations = [new() { ExcerptText = quote, StartOffset = start, EndOffset = start + quote.Length }] });
+                        Later(1 + rng.NextDouble() * 3);
+                    }
+                    db.AiConversations.Add(conversation);
+                    Later(5);
+                }
+                await db.SaveChangesAsync();
+            });
+        }
+    }
+
+    // Sổ tay AI riêng của học viên: tài liệu dán vào + ghi chú (kể cả ghi chú lưu từ câu trả lời của Sổ tay AI).
+    // Phần hỏi–đáp trong sổ tay chỉ lưu ở trình duyệt người dùng nên không tạo sẵn được.
+    private void Notebooks(List<Learner> people, int count)
+    {
+        foreach (var l in people.OrderBy(_ => rng.Next()).Take(count))
+        {
+            var sample = NotebookSamples[rng.Next(NotebookSamples.Length)];
+            On(T(4 + rng.Next(0, 15), 20 + rng.Next(0, 3), rng.Next(0, 60)), async () =>
+            {
+                var notebook = new Notebook { UserId = l.Id, Title = sample.Title, CreatedAt = clock.UtcNow };
+                notebook.Sources.Add(new() { Title = sample.SourceTitle, Kind = NotebookSourceKind.Text, Content = sample.Source, CreatedAt = clock.UtcNow });
+                foreach (var (title, content) in sample.Notes.Take(1 + rng.Next(0, sample.Notes.Length)))
+                {
+                    Later(2 + rng.Next(0, 20));
+                    notebook.Notes.Add(new() { Title = title, Content = content, CreatedAt = clock.UtcNow });
+                }
+                db.Notebooks.Add(notebook);
+                await db.SaveChangesAsync();
+            });
+        }
+    }
+
+    // Thông báo đúng loại hệ thống tự gửi: bài sắp đến hạn (bạn chưa xong lúc còn 20 giờ), thẻ đến hạn ôn; thông báo cũ phần lớn đã đọc.
+    private void DueReminders(Func<Assignment> assignment, string title, DateTime due, List<Learner> people)
+    {
+        On(due.AddHours(-20), async () =>
+        {
+            var a = assignment();
+            var done = await db.Participants.Where(p => p.AssignmentId == a.Id && p.CompletionStatus == CompletionStatus.Completed)
+                .Select(p => p.UserId).ToListAsync();
+            var notices = new NotificationService(db, clock, new NullLearnNotifier());
+            foreach (var l in people.Where(l => !done.Contains(l.Id)))
+                await notices.AddAsync(l.Id, NotificationType.Reminder, new($"Bài \"{title}\" sắp đến hạn nộp (còn dưới 24 giờ).", $"/Learn/Assignment/{a.Id}", AssignmentId: a.Id));
+            await db.SaveChangesAsync();
+        });
+    }
+
+    private void CardReminders(List<Learner> people, int fromDay, int toDay)
+    {
+        for (var day = fromDay; day <= toDay; day += 2)
+            foreach (var l in people.Where(_ => rng.NextDouble() < 0.5))
+                On(T(day, 7), async () =>
+                {
+                    await new NotificationService(db, clock, new NullLearnNotifier()).AddAsync(l.Id, NotificationType.Reminder,
+                        new($"Hôm nay bạn có {3 + rng.Next(0, 9)} thẻ đến hạn ôn", "/StudySets"));
+                    await db.SaveChangesAsync();
+                });
+    }
+
+    // Thông báo trước hôm qua: người chăm chỉ đã đọc gần hết, người ít vào thì còn nhiều thông báo chưa đọc.
+    private async Task MarkOldNotificationsReadAsync(List<Learner> learners, string lecturerId)
+    {
+        var ids = learners.Select(l => l.Id).Append(lecturerId).ToList();
+        var rows = await db.Notifications.Where(n => ids.Contains(n.UserId) && n.ReadAt == null && n.CreatedAt < realNow.AddDays(-1)).ToListAsync();
+        foreach (var n in rows)
+        {
+            var diligence = learners.FirstOrDefault(l => l.Id == n.UserId)?.Diligence ?? 0.95;
+            if (rng.NextDouble() < diligence) n.ReadAt = n.CreatedAt.AddHours(1 + rng.Next(0, 20));
+        }
+        await db.SaveChangesAsync();
+    }
+
+    private const string WebSource =
+        "Bài 1. Mô hình MVC trong ASP.NET Core\n"
+        + "MVC chia ứng dụng thành ba phần. Model giữ dữ liệu và quy tắc nghiệp vụ. View chỉ lo hiển thị giao diện. Controller nhận yêu cầu từ trình duyệt, gọi Model xử lý rồi chọn View để trả về.\n"
+        + "Nhờ tách như vậy, có thể sửa giao diện mà không đụng tới phần xử lý, và kiểm thử Controller riêng.\n\n"
+        + "Bài 2. Razor và Tag Helper\n"
+        + "Tệp giao diện Razor có đuôi .cshtml. Ký tự @ chuyển từ HTML sang C#. Tag Helper như asp-action, asp-controller tạo đường dẫn đúng với cấu hình định tuyến; asp-for gắn ô nhập với thuộc tính của Model để tên trường và kiểm tra dữ liệu luôn khớp.\n\n"
+        + "Bài 3. Dependency Injection\n"
+        + "Service được đăng ký một lần trong Program.cs rồi hệ thống tự truyền vào constructor của Controller. Có ba vòng đời: Singleton dùng chung suốt thời gian chạy ứng dụng, Scoped tạo mới cho mỗi yêu cầu, Transient tạo mới mỗi lần được yêu cầu.\n\n"
+        + "Bài 4. Entity Framework Core và migration\n"
+        + "Entity Framework Core là ORM: ánh xạ lớp C# thành bảng. Khi đổi Model, chạy lệnh dotnet ef migrations add để sinh migration, rồi dotnet ef database update để áp thay đổi lên cơ sở dữ liệu.\n\n"
+        + "Bài 5. Chống giả mạo yêu cầu\n"
+        + "Form gửi bằng POST kèm một mã ẩn gọi là anti-forgery token. Máy chủ chỉ nhận yêu cầu có mã khớp, nhờ đó trang web khác không thể giả danh người dùng để gửi form (tấn công CSRF). Sau khi xử lý xong POST, nên trả RedirectToAction để người dùng tải lại trang không gửi form lần nữa.";
+
+    private const string SqlSource =
+        "Chương 1. Khóa và quan hệ\n"
+        + "Khóa chính xác định duy nhất mỗi dòng và không được NULL. Khóa ngoại tham chiếu khóa chính của bảng khác để giữ toàn vẹn dữ liệu.\n\n"
+        + "Chương 2. Truy vấn\n"
+        + "WHERE lọc từng dòng trước khi gom nhóm. GROUP BY gom các dòng cùng giá trị để tính COUNT, SUM, AVG. HAVING lọc nhóm sau khi đã gom. LEFT JOIN giữ mọi dòng của bảng bên trái kể cả khi không có dòng khớp bên phải.\n\n"
+        + "Chương 3. Giao dịch\n"
+        + "Transaction gom nhiều lệnh thành một khối: hoặc tất cả thành công với COMMIT, hoặc hủy toàn bộ với ROLLBACK, nên không bao giờ chỉ trừ tiền tài khoản này mà quên cộng cho tài khoản kia.\n\n"
+        + "Chương 4. Chuẩn hóa\n"
+        + "Dạng chuẩn 3 yêu cầu mọi cột không khóa chỉ phụ thuộc vào khóa chính, không phụ thuộc bắc cầu qua cột khác. Chỉ mục giúp tìm dòng nhanh hơn nhưng làm thao tác ghi chậm đi một chút.";
+
+    private const string EngSource =
+        "Unit 1. Working with code\n"
+        + "A developer writes code, then compiles it. When the program does not work as expected, there is a bug, and the developer has to debug it. Code is stored in a repository so the whole team can work on it.\n\n"
+        + "Unit 2. Running a system\n"
+        + "To deploy an application means to put it on a server so users can access it. Latency is the delay before data starts to arrive; bandwidth is how much data can be sent per second. Scalability is the ability of a system to handle more users.";
+
+    private static readonly Chat[] WebChats =
+    [
+        new(0, [("Em vẫn chưa hiểu Controller khác Model ở chỗ nào ạ?",
+            "Controller là phần nhận yêu cầu từ trình duyệt và điều phối: nó gọi Model để xử lý dữ liệu rồi chọn View để trả về. Model thì giữ dữ liệu và quy tắc nghiệp vụ, không biết gì về trình duyệt.",
+            "Controller nhận yêu cầu từ trình duyệt, gọi Model xử lý rồi chọn View để trả về."),
+            ("Vậy View có được gọi thẳng Model không?",
+            "View chỉ lo hiển thị dữ liệu được Controller truyền sang, không tự xử lý nghiệp vụ. Tách như vậy để sửa giao diện không ảnh hưởng phần xử lý.",
+            "View chỉ lo hiển thị giao diện.")]),
+        new(4, [("Singleton với Scoped khác nhau thế nào, khi nào dùng cái nào?",
+            "Singleton tạo một lần và dùng chung suốt thời gian ứng dụng chạy; Scoped tạo mới cho mỗi yêu cầu. Thứ gắn với một yêu cầu như DbContext nên là Scoped; thứ dùng chung, không giữ trạng thái riêng của người dùng thì có thể là Singleton.",
+            "Singleton dùng chung suốt thời gian chạy ứng dụng, Scoped tạo mới cho mỗi yêu cầu")]),
+        new(3, [("Em đổi Model rồi mà database chưa có cột mới, em thiếu bước nào ạ?",
+            "Sau khi đổi Model cần sinh migration bằng dotnet ef migrations add, rồi áp lên cơ sở dữ liệu bằng dotnet ef database update. Bạn có thể mới làm bước đầu.",
+            "chạy lệnh dotnet ef migrations add để sinh migration, rồi dotnet ef database update để áp thay đổi lên cơ sở dữ liệu")]),
+        new(5, [("Anti-forgery token dùng để làm gì vậy ạ?",
+            "Đó là mã ẩn gửi kèm form POST. Máy chủ chỉ nhận yêu cầu có mã khớp, nên trang web khác không giả danh bạn để gửi form được. Kiểu tấn công này gọi là CSRF.",
+            "Máy chủ chỉ nhận yêu cầu có mã khớp, nhờ đó trang web khác không thể giả danh người dùng để gửi form (tấn công CSRF)."),
+            ("Thế sao sau khi lưu lại phải RedirectToAction ạ?",
+            "Để khi người dùng bấm tải lại trang, trình duyệt không gửi lại form lần nữa (tránh lưu trùng).",
+            "nên trả RedirectToAction để người dùng tải lại trang không gửi form lần nữa")]),
+        new(2, [("asp-action với asp-for khác nhau sao ạ?",
+            "asp-action tạo đường dẫn tới một action đúng cấu hình định tuyến. asp-for thì gắn ô nhập với một thuộc tính của Model để tên trường và kiểm tra dữ liệu luôn khớp.",
+            "asp-for gắn ô nhập với thuộc tính của Model để tên trường và kiểm tra dữ liệu luôn khớp")]),
+        new(null, [("Tóm tắt giúp em bài Razor trong 3 ý được không?",
+            "1) Tệp giao diện Razor có đuôi .cshtml. 2) Ký tự @ chuyển từ HTML sang C#. 3) Tag Helper như asp-action, asp-for giúp sinh HTML đúng đường dẫn và tên trường.",
+            "Tệp giao diện Razor có đuôi .cshtml. Ký tự @ chuyển từ HTML sang C#.")])
+    ];
+
+    private static readonly Chat[] SqlChats =
+    [
+        new(0, [("WHERE và HAVING khác nhau thế nào ạ?",
+            "WHERE lọc từng dòng trước khi gom nhóm; HAVING lọc các nhóm sau khi đã GROUP BY. Ví dụ lọc lớp có trên 30 học viên thì dùng HAVING COUNT(*) > 30.",
+            "WHERE lọc từng dòng trước khi gom nhóm.")]),
+        new(1, [("LEFT JOIN thì dòng không khớp sẽ ra sao ạ?",
+            "LEFT JOIN giữ mọi dòng của bảng bên trái; dòng không có bản ghi khớp bên phải vẫn hiện, các cột của bảng phải nhận giá trị NULL.",
+            "LEFT JOIN giữ mọi dòng của bảng bên trái kể cả khi không có dòng khớp bên phải.")]),
+        new(4, [("Vì sao chuyển tiền phải dùng transaction ạ?",
+            "Vì cần trừ tài khoản này và cộng tài khoản kia cùng thành công. Transaction đảm bảo hoặc tất cả được COMMIT, hoặc hủy toàn bộ bằng ROLLBACK.",
+            "nên không bao giờ chỉ trừ tiền tài khoản này mà quên cộng cho tài khoản kia")]),
+        new(null, [("Dạng chuẩn 3 nói dễ hiểu là gì ạ?",
+            "Mỗi cột không phải khóa chỉ được phụ thuộc trực tiếp vào khóa chính, không đi vòng qua một cột khác. Nếu có, tách cột đó ra bảng riêng.",
+            "Dạng chuẩn 3 yêu cầu mọi cột không khóa chỉ phụ thuộc vào khóa chính, không phụ thuộc bắc cầu qua cột khác.")])
+    ];
+
+    private static readonly Chat[] EngChats =
+    [
+        new(0, [("\"deploy\" dịch sát nghĩa là gì ạ?",
+            "\"Deploy\" là triển khai: đưa ứng dụng lên máy phục vụ để người dùng truy cập được.",
+            "To deploy an application means to put it on a server so users can access it.")]),
+        new(1, [("latency với bandwidth khác nhau thế nào ạ?",
+            "Latency (độ trễ) là khoảng chờ trước khi dữ liệu bắt đầu tới; bandwidth (băng thông) là lượng dữ liệu gửi được mỗi giây.",
+            "Latency is the delay before data starts to arrive; bandwidth is how much data can be sent per second.")]),
+        new(3, [("debug và bug liên quan gì nhau ạ?",
+            "Bug là lỗi khiến chương trình chạy sai; debug là việc tìm và sửa lỗi đó.",
+            "there is a bug, and the developer has to debug it")])
+    ];
+
+    private static readonly (string Title, string SourceTitle, string Source, (string Title, string Content)[] Notes)[] NotebookSamples =
+    [
+        ("Ôn thi Lập trình Web", "Ghi chép buổi 3 — MVC và Razor",
+            "Buổi 3: thầy cô giải thích luồng một yêu cầu: trình duyệt gửi yêu cầu → định tuyến chọn Controller và action → action lấy dữ liệu từ Model → trả View. "
+            + "Razor dùng @ để chèn C#. Tag Helper asp-action tạo link, asp-for gắn ô nhập với thuộc tính Model. Bài tập về nhà: làm trang danh sách sách có tìm kiếm.",
+            [("Cần nhớ", "Controller điều phối · Model giữ dữ liệu · View hiển thị"),
+             ("Lưu từ Sổ tay AI", "Sau khi POST thành công nên RedirectToAction để tải lại trang không gửi form lần nữa."),
+             ("Câu hay sai", "Nhầm Scoped với Transient: Scoped là mỗi yêu cầu một bản.")]),
+        ("Cơ sở dữ liệu — tự học", "Tóm tắt chương 2: Truy vấn",
+            "SELECT chọn cột, FROM chọn bảng, WHERE lọc dòng, GROUP BY gom nhóm, HAVING lọc nhóm, ORDER BY sắp xếp. Thứ tự thực hiện thật: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. "
+            + "LEFT JOIN giữ dòng bảng trái. COUNT(*) đếm cả dòng có NULL, COUNT(cột) thì không.",
+            [("Mẹo", "Lọc trước khi gom thì dùng WHERE, lọc kết quả gom thì dùng HAVING."),
+             ("Lưu từ Sổ tay AI", "Transaction: COMMIT khi tất cả thành công, ROLLBACK khi có một lệnh lỗi.")]),
+        ("Từ vựng CNTT mỗi ngày", "Danh sách từ tuần 2",
+            "deploy — triển khai; latency — độ trễ; bandwidth — băng thông; repository — kho mã nguồn; scalability — khả năng mở rộng; requirement — yêu cầu.",
+            [("Cách nhớ", "latency = \"late\" → chậm trễ"),
+             ("Câu ví dụ", "We deploy the new version every Friday.")])
+    ];
 
     // ---------- Xóa dữ liệu mẫu ----------
     // Xóa như người dùng tự xóa: lớp và bộ học vào trạng thái đã xóa, tài khoản mẫu bị xóa (ẩn danh + khóa) bằng đúng luồng quản trị.
