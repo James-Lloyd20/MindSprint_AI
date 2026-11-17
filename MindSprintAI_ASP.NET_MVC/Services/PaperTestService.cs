@@ -101,7 +101,9 @@ public sealed class PaperTestService(AppDbContext db, AssignmentService assignme
     // Lưu bài viết (tự lưu nháp mỗi vài giây và lúc nộp). Đi qua đúng các kiểm tra của lượt làm: chủ lượt, thiết bị, còn giờ.
     public async Task<DateTime> SaveTextAsync(long attemptId, string? text, string userId)
     {
-        text ??= "";
+        // Trình duyệt đếm xuống dòng là 1 ký tự (maxlength) nhưng gửi lên thành \r\n: quy về \n trước khi đếm, không thì
+        // bài dài nhiều dòng qua được ô viết mà bị từ chối mãi (lỗi trên server 16/11).
+        text = (text ?? "").ReplaceLineEndings("\n");
         if (text.Length > MaxText) throw new BusinessException($"Bài viết tối đa {MaxText:N0} ký tự.");
         await using var tx = await db.Database.BeginTransactionAsync();
         var (_, submission) = await OpenForWriteAsync(attemptId, userId);

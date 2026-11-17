@@ -84,7 +84,18 @@
         }
     }
     document.addEventListener('visibilitychange', () => document.hidden ? leave(1) : back());
-    window.addEventListener('blur', () => leave(2));
+    // Bấm/cuộn trong khung đề PDF (iframe ngay trong trang, bài làm theo đề) cũng làm cửa sổ "blur" dù học viên vẫn ở trang:
+    // không tính là rời. Trong lúc con trỏ ở khung đề thì hỏi document.hasFocus() (true cả khi khung con đang giữ con trỏ)
+    // để vẫn bắt được việc chuyển sang ứng dụng khác và lúc quay lại.
+    let frameWatch = null;
+    window.addEventListener('blur', () => setTimeout(() => {
+        if (document.activeElement?.tagName !== 'IFRAME') { leave(2); return; }
+        clearInterval(frameWatch);
+        frameWatch = setInterval(() => {
+            if (document.activeElement?.tagName !== 'IFRAME') { clearInterval(frameWatch); return; }
+            if (!document.hasFocus()) leave(2); else back();
+        }, 500);
+    }, 0));
     window.addEventListener('focus', back);
     window.addEventListener('offline', () => setOffline(true));
     window.addEventListener('online', () => send(away ? 'heartbeat' : 'end')); // thử ngay, chỉ mở đề khi máy chủ nhận được.

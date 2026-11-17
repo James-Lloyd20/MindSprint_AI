@@ -124,6 +124,13 @@ public class BaiLamTheoDeDbTests : IDisposable
         await c.Papers.SaveTextAsync(attempt.Id, "Câu 1: MVC gồm Model, View, Controller.", c.S.Student);
         await c.Papers.SaveTextAsync(attempt.Id, "Bản sửa", c.S.Student);
         await Assert.ThrowsAsync<BusinessException>(() => c.Papers.SaveTextAsync(attempt.Id, new string('a', PaperTestService.MaxText + 1), c.S.Student));
+        // Lỗi trên server 16/11: trình duyệt đếm xuống dòng là 1 (maxlength) nhưng gửi \r\n. 1000 dòng × 99 ký tự: gửi lên 100.998, đếm đúng 99.999.
+        var manyLines = string.Join("\r\n", Enumerable.Repeat(new string('a', 99), 1000));
+        Assert.True(manyLines.Length > PaperTestService.MaxText);
+        await c.Papers.SaveTextAsync(attempt.Id, manyLines, c.S.Student);
+        h.Db.ChangeTracker.Clear();
+        Assert.Equal(99_999, (await c.Papers.GetSubmissionAsync(attempt.Id)).Text.Length);
+        await c.Papers.SaveTextAsync(attempt.Id, "Bản sửa", c.S.Student);
 
         // Người khác không ghi vào lượt của học viên.
         await Assert.ThrowsAnyAsync<Exception>(() => c.Papers.SaveTextAsync(attempt.Id, "x", c.S.Lecturer));

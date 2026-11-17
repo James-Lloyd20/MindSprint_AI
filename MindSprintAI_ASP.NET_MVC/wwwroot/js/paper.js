@@ -13,16 +13,20 @@
         body.append('__RequestVerificationToken', token);
         const response = await fetch(url, { method: 'POST', body, headers: { Accept: 'application/json', 'X-Requested-With': 'fetch' } });
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.error || 'Chưa lưu được. Hãy kiểm tra mạng rồi thử lại.');
+        if (!response.ok) throw Object.assign(new Error(data.error || 'Chưa lưu được. Hãy kiểm tra mạng rồi thử lại.'), { rejected: !!data.error });
         return data;
     };
 
     // Tự lưu: 2 giây sau lần gõ cuối, khi rời ô viết và trước khi nộp. Chỉ gửi khi nội dung đổi.
-    let saved = text.value, timer = null, saving = null;
+    // Mỗi lúc chỉ một lần gửi; nội dung máy chủ đã từ chối (vd. quá dài) không gửi lại cho tới khi học viên sửa
+    // (trên server 16/11 một lỗi lưu đã thành gần 300 lần gửi liên tục).
+    let saved = text.value, timer = null, saving = null, rejected = null;
     const save = async () => {
         clearTimeout(timer);
+        if (saving) { await saving.catch(() => {}); return save(); }
         if (text.value === saved) return true;
         const value = text.value;
+        if (value === rejected) return false;
         status.textContent = 'Đang lưu…';
         saving = post(root.dataset.saveUrl, toForm({ text: value }));
         try {
@@ -31,6 +35,7 @@
             status.textContent = 'Đã lưu lúc ' + data.savedAt;
             return true;
         } catch (e) {
+            if (e.rejected) rejected = value;
             status.textContent = e.message;
             return false;
         } finally { saving = null; }
