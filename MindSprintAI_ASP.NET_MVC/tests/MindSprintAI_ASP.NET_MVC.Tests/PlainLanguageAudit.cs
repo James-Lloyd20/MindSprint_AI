@@ -75,7 +75,7 @@ internal static class PlainLanguageAudit
                 // chỉ bỏ qua đúng các mảng nội dung trong ClassDemoSeedService (17/11/2026), thông báo trong service này vẫn bị kiểm.
                 if (Path.GetFileName(path) == "ClassDemoSeedService.cs" && node.Ancestors().OfType<FieldDeclarationSyntax>()
                     .Any(field => field.Declaration.Variables.Any(v => v.Identifier.ValueText is "WebCards" or "WebQuestions" or "SqlCards" or "SqlQuestions" or "EngCards" or "EngQuestions"
-                        or "WebSource" or "SqlSource" or "EngSource" or "WebChats" or "SqlChats" or "EngChats" or "NotebookSamples"))) continue;
+                        or "WebSource" or "SqlSource" or "EngSource" or "WebChats" or "SqlChats" or "EngChats" or "NotebookSamples" or "OopCards" or "OopQuestions"))) continue;
                 // Internal structured Gemini instructions are not shown to users.
                 if (Path.GetFileName(path) == "GeminiClient.cs" && node.Ancestors().OfType<AnonymousObjectMemberDeclaratorSyntax>()
                     .Any(member => member.NameEquals?.Name.Identifier.ValueText == "systemInstruction")) continue;

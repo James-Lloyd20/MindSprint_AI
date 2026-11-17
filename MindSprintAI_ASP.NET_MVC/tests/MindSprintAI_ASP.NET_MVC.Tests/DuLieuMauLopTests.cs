@@ -45,7 +45,7 @@ public class DuLieuMauLopTests : IDisposable
         var demo = new ClassDemoSeedService(h.Db, users, [new ChoiceGrader()], store, new NoEmail(), links, env, h.Clock);
 
         var r = await demo.SeedAsync(lecturer);
-        Assert.Equal((36, 3), (r.Students, r.Classes));
+        Assert.Equal((36, 4), (r.Students, r.Classes));
         Assert.True(r.Assignments >= 12 && r.Attempts > 150, $"{r.Assignments} bài, {r.Attempts} lượt");
         Assert.True(File.Exists(Path.Combine(root, "App_Data", ClassDemoSeedService.AccountsFile)));
         h.Db.ChangeTracker.Clear();
@@ -70,6 +70,14 @@ public class DuLieuMauLopTests : IDisposable
         var papers = await h.Db.PaperSubmissions.Where(s => s.Attempt.Participant.AssignmentId == paper.Id).ToListAsync();
         Assert.Contains(papers, s => s.Score != null);
         Assert.Contains(papers, s => s.Score == null);   // còn bài chưa chấm
+        // Giảng viên mẫu: gv01 là giảng viên phụ lớp Lập trình Web (đã nhận lời, chấm một phần bài theo đề); gv02 có lớp riêng, đang đề nghị chuyển lớp.
+        var gv01 = (await users.FindByEmailAsync("gv01@" + ClassDemoSeedService.Domain))!.Id;
+        var gv02 = (await users.FindByEmailAsync("gv02@" + ClassDemoSeedService.Domain))!.Id;
+        Assert.True(await h.Db.ClassMembers.AnyAsync(m => m.UserId == gv01 && m.Role == ClassRole.AssistantLecturer && m.Status == ClassMemberStatus.Active));
+        Assert.Contains(papers, s => s.GradedById == gv01);
+        var c4 = await h.Db.ClassMembers.Where(m => m.UserId == gv02 && m.Role == ClassRole.MainLecturer).Select(m => m.ClassroomId).SingleAsync();
+        Assert.True(await h.Db.ClassMembers.CountAsync(m => m.ClassroomId == c4 && m.Role == ClassRole.Student) == 8);
+        Assert.True(await h.Db.Invitations.AnyAsync(i => i.ClassroomId == c4 && i.Kind == InvitationKind.Transfer && i.Status == InvitationStatus.Pending));
         // Trợ lý AI có trích dẫn đúng văn bản nguồn; sổ tay AI; thông báo cho học viên (có đọc, có chưa đọc).
         var demoIds = await h.Db.Users.Where(u => u.Email!.EndsWith("@" + ClassDemoSeedService.Domain)).Select(u => u.Id).ToListAsync();
         var chats = await h.Db.AiConversations.Include(c => c.Messages).ThenInclude(m => m.Citations).Where(c => demoIds.Contains(c.UserId)).ToListAsync();
@@ -99,7 +107,8 @@ public class DuLieuMauLopTests : IDisposable
         await h.Db.SaveChangesAsync();
         var deletion = new AccountDeletionService(h.Db, users, new NoEmail(), SecurityRound1Fixtures.Emails(h, users, new NoEmail(), links), h.Clock);
         var removed = await demo.RemoveAsync(lecturer, deletion, h.Classrooms, h.Assignments, h.Library);
-        Assert.Equal(36, removed);
+        Assert.Equal(38, removed);   // 36 học viên + 2 giảng viên mẫu
+        Assert.False(await h.Db.Classrooms.AnyAsync(c => c.Id == c4 && c.DeletedAt == null));
         h.Db.ChangeTracker.Clear();
         Assert.False(await demo.ExistsAsync(lecturer));
         Assert.False(await h.Db.Users.AnyAsync(u => u.Email != null && u.Email.EndsWith("@" + ClassDemoSeedService.Domain)));

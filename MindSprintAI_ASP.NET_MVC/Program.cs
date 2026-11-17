@@ -297,8 +297,8 @@ if (args is [("--seed-class-demo" or "--remove-class-demo") and var demoCommand,
         ?? throw new InvalidOperationException("Không tìm thấy tài khoản " + demoEmail);
     var demo = sp.GetRequiredService<ClassDemoSeedService>();
     if (demoCommand == "--remove-class-demo")
-        Console.WriteLine($"Đã xóa dữ liệu mẫu ({await demo.RemoveAsync(owner.Id, sp.GetRequiredService<AccountDeletionService>(), sp.GetRequiredService<ClassroomService>(),
-            sp.GetRequiredService<AssignmentService>(), sp.GetRequiredService<StudyLibraryService>())} tài khoản học viên mẫu).");
+        Console.WriteLine($"Đã xóa dữ liệu mẫu (tài khoản mẫu: {await demo.RemoveAsync(owner.Id, sp.GetRequiredService<AccountDeletionService>(), sp.GetRequiredService<ClassroomService>(),
+            sp.GetRequiredService<AssignmentService>(), sp.GetRequiredService<StudyLibraryService>())}).");
     else
     {
         var r = await demo.SeedAsync(owner.Id);

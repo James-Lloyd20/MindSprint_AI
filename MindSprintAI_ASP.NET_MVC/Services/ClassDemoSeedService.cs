@@ -32,6 +32,8 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
     }
 
     private sealed class SeedDevice : ILearnDevice { public string Id { get; set; } = "demo"; }
+    private sealed class NoEmail : IEmailSender { public Task SendAsync(string to, string subject, string htmlBody) => Task.CompletedTask; }
+    private InvitationService Invitations => new(db, clock, new NotificationService(db, clock, new NullLearnNotifier()), new NoEmail(), links);
 
     private sealed record Learner(string Id, string Name, double Skill, double Diligence, int Speed);
 
@@ -44,7 +46,7 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
     private JoinCodeService Codes => new(db, clock);
     private StudyLibraryService Library => new(db, clock, new NullLearnNotifier());
     private ClassroomService Classrooms => new(db, Codes, clock, new NullLearnNotifier(),
-        new InvitationService(db, clock, new NotificationService(db, clock, new NullLearnNotifier()), email, links));
+        Invitations);
     private AssignmentService Assignments => new(db, Classrooms, Codes, clock, new NullLearnNotifier());
     private AttemptService Attempts => new(db, clock, graders, device, new NullLearnNotifier(), new LearnConnectionTracker());
     private FlashcardService Flashcards => new(db, Library, clock, new NullLearnNotifier());
@@ -88,6 +90,10 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
 
         var password = "Mau-" + Convert.ToHexString(RandomNumberGenerator.GetBytes(5)) + "a!9";
         var learners = await CreateLearnersAsync(password);
+        // Giảng viên mẫu (người dùng đồng ý 17/11): gv01 làm giảng viên phụ lớp Lập trình Web; gv02 có lớp riêng và đang đề nghị
+        // chuyển lớp cho người bấm. Đăng nhập bằng cùng mật khẩu chung.
+        var assistant = await CreateUserAsync("gv01", "Trần Minh Khoa", UserMode.Lecturer, password);
+        var colleague = await CreateUserAsync("gv02", "Nguyễn Thị Hồng", UserMode.Lecturer, password);
         clock.UtcNow = T(0, 7);
         var web = await ImportAsync(SetPrefix + "Lập trình Web với ASP.NET Core MVC", WebCards, WebQuestions, lecturerId);
         var sql = await ImportAsync(SetPrefix + "Cơ sở dữ liệu — SQL căn bản", SqlCards, SqlQuestions, lecturerId);
@@ -136,6 +142,34 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
             await db.SaveChangesAsync();
         });
         On(T(12, 20), () => Classrooms.JoinByCodeAsync(c1Code, late.Id));
+        On(T(3, 10), () => Classrooms.AddAssistantAsync(c1, $"gv01@{Domain}", lecturerId));
+        On(T(3, 21), async () =>
+        {
+            var invite = await db.Invitations.SingleAsync(i => i.ClassroomId == c1 && i.NormalizedEmail == InvitationService.Normalize($"gv01@{Domain}")
+                && i.Status == InvitationStatus.Pending);
+            await Invitations.DecideAssistantAsync(invite.Id, true, assistant);
+        });
+        // Lớp riêng của gv02: 8 học viên, 1 bài ôn tập từ bộ học của gv02; ngày 18 gv02 đề nghị chuyển lớp cho người bấm (gv02 ở lại làm GV phụ).
+        var oopPeople = learners.Skip(20).Take(8).ToList();
+        int c4 = 0;
+        On(T(0, 13), async () =>
+        {
+            var oop = await ImportAsync(SetPrefix + "Lập trình hướng đối tượng", OopCards, OopQuestions, colleague);
+            c4 = (await Classrooms.CreateAsync("Lập trình hướng đối tượng — Nhóm 2" + ClassSuffix, ClassJoinPolicy.Immediate, colleague)).Id;
+            var code = (await Codes.GetActiveAsync(JoinCodeTarget.Classroom, c4))!.Code;
+            foreach (var l in oopPeople) On(T(0, 14, rng.Next(0, 240)), () => Classrooms.JoinByCodeAsync(code, l.Id));
+            On(T(4, 8), async () =>
+            {
+                var f1 = await Assignments.CreatePracticeAsync(c4, oop.QuizId, new PracticeSettings(null, T(11, 16), 2), colleague); count++;
+                Practice(() => f1, oopPeople, 4, 11, maxAttempts: 2);
+            });
+        });
+        On(T(18, 16), async () =>
+        {
+            var me = await db.Users.Where(u => u.Id == lecturerId).Select(u => u.Email).SingleAsync();
+            if (me != null) await new ClassTransferService(db, Classrooms, new StudySetCloneService(db, clock),
+                new NotificationService(db, clock, new NullLearnNotifier()), clock, Invitations).OfferAsync(c4, me, true, colleague);
+        });
         On(T(15, 21), () => Classrooms.LeaveAsync(c1, leaver.Id, confirmed: true));
 
         // ===== Lớp 1: Lập trình Web =====
@@ -195,7 +229,7 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
                 Upload(ExamPdf, "de-bai-tap-lon.pdf"), lecturerId); count++;
         });
         On(T(16, 9), async () => { await Assignments.StartTestAsync(a6.Id, lecturerId); await PaperSessionAsync(a6, c1End, submitted); });
-        On(T(17, 20), () => GradePapersAsync(submitted, c1End, lecturerId));
+        On(T(17, 20), () => GradePapersAsync(submitted, c1End, lecturerId, assistant));
         // Bài ôn tập đang mở (hạn 3 ngày nữa): một phần đã làm, vài người làm dở; kiểm tra cuối kỳ đã lên lịch, chưa mở.
         On(T(19, 7), async () =>
         {
@@ -270,8 +304,9 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
         Directory.CreateDirectory(dir);
         await File.WriteAllTextAsync(Path.Combine(dir, AccountsFile),
             $"# Tài khoản học viên mẫu (tạo {VnTime.Format(realNow)}). Mật khẩu chung: {password}\n"
+            + $"gv01@{Domain}  Trần Minh Khoa (giảng viên phụ lớp Lập trình Web)\ngv02@{Domain}  Nguyễn Thị Hồng (giảng viên lớp Lập trình hướng đối tượng, đang đề nghị chuyển lớp cho bạn)\n"
             + string.Join("\n", learners.Select((l, i) => $"hv{i + 1:00}@{Domain}  {l.Name}")) + "\n");
-        return new(learners.Count, 3, count, attemptCount, password);
+        return new(learners.Count, 4, count, attemptCount, password);   // 3 lớp của người bấm + 1 lớp của giảng viên mẫu gv02
     }
 
     // ---------- Người và nội dung ----------
@@ -283,6 +318,18 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
         "Đinh Thị Thảo", "Tô Hữu Thiện", "Quách Thị Thu", "Lâm Văn Toàn", "Hà Thị Trang", "Cao Minh Trí", "Đoàn Thị Tuyết",
         "Thái Văn Tùng", "La Thị Uyên", "Mạc Văn Việt", "Ông Thị Xuân", "Nghiêm Hải Yến", "Khúc Văn Bảo", "Lục Thị Cúc", "Văn Đình Đạt"
     ];
+
+    private async Task<string> CreateUserAsync(string handle, string name, UserMode mode, string password)
+    {
+        var user = new ApplicationUser
+        {
+            UserName = $"{handle}@{Domain}", Email = $"{handle}@{Domain}", EmailConfirmed = true, DisplayName = name, CurrentMode = mode,
+            CreatedAt = day0.AddDays(-rng.Next(30, 90)), PolicyAcceptedAt = day0.AddDays(-1), PolicyVersion = LegalPolicy.CurrentVersion, EmailRemindersEnabled = false
+        };
+        var result = await users.CreateAsync(user, password);
+        if (!result.Succeeded) throw new BusinessException("Không tạo được tài khoản mẫu: " + string.Join(" ", result.Errors.Select(e => e.Description)));
+        return user.Id;
+    }
 
     private async Task<List<Learner>> CreateLearnersAsync(string password)
     {
@@ -467,7 +514,7 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
     }
 
     // Chấm tay khoảng 80% bài, phần còn lại để giảng viên thấy "chưa chấm" (nên chưa công bố được).
-    private async Task GradePapersAsync(List<long> submitted, List<Learner> people, string lecturerId)
+    private async Task GradePapersAsync(List<long> submitted, List<Learner> people, string lecturerId, string? grader = null)
     {
         foreach (var id in submitted.Where((_, i) => i % 5 != 4))
         {
@@ -475,7 +522,8 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
             var learner = await db.Attempts.Where(x => x.Id == id).Select(x => x.Participant.UserId).SingleAsync();
             var skill = people.Single(p => p.Id == learner).Skill;
             var score = Math.Round((decimal)Math.Clamp(skill * 10 + (rng.NextDouble() - 0.5) * 2, 3, 10) * 4) / 4;   // bước 0,25
-            await Papers.GradeAsync(id, score, score >= 8 ? "Thiết kế rõ ràng, chuẩn hóa tốt." : score >= 6 ? "Đạt yêu cầu, cần giải thích rõ lý do tách bảng." : "Còn thiếu ERD và phần chuẩn hóa.", lecturerId);
+            await Papers.GradeAsync(id, score, score >= 8 ? "Thiết kế rõ ràng, chuẩn hóa tốt." : score >= 6 ? "Đạt yêu cầu, cần giải thích rõ lý do tách bảng." : "Còn thiếu ERD và phần chuẩn hóa.",
+                grader != null && id % 3 == 0 ? grader : lecturerId);   // giảng viên phụ chấm khoảng 1/3
         }
     }
 
@@ -730,12 +778,24 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
     // Xóa như người dùng tự xóa: lớp và bộ học vào trạng thái đã xóa, tài khoản mẫu bị xóa (ẩn danh + khóa) bằng đúng luồng quản trị.
     public async Task<int> RemoveAsync(string lecturerId, AccountDeletionService deletion, ClassroomService classrooms, AssignmentService assignments, StudyLibraryService library)
     {
-        var classIds = await db.ClassMembers.Where(m => m.UserId == lecturerId && m.Role == ClassRole.MainLecturer
-            && m.Classroom.DeletedAt == null && m.Classroom.Name.EndsWith(ClassSuffix)).Select(m => m.ClassroomId).ToListAsync();
+        // Lớp mẫu của người bấm và của giảng viên mẫu (gv02); xóa lớp phải do chính giảng viên chính của lớp đó.
+        var mains = await db.ClassMembers.Where(m => m.Role == ClassRole.MainLecturer && m.Status == ClassMemberStatus.Active
+                && m.Classroom.DeletedAt == null && m.Classroom.Name.EndsWith(ClassSuffix)
+                && (m.UserId == lecturerId || (m.User.Email != null && m.User.Email.EndsWith("@" + Domain))))
+            .Select(m => new { m.ClassroomId, m.UserId }).ToListAsync();
+        var classIds = mains.Select(m => m.ClassroomId).ToList();
+        // Đề nghị chuyển lớp mẫu còn chờ thì hủy trước.
+        foreach (var t in await db.ClassTransfers.Where(t => classIds.Contains(t.ClassroomId) && t.Status == ClassTransferStatus.Pending).ToListAsync()) t.Status = ClassTransferStatus.Cancelled;
+        foreach (var i in await db.Invitations.Where(i => classIds.Contains(i.ClassroomId) && i.Status == InvitationStatus.Pending).ToListAsync()) i.Status = InvitationStatus.Revoked;
+        await db.SaveChangesAsync();
         // Lớp còn bài mở thì không xóa được (luật bảo vệ dữ liệu thật): đóng ngay các bài mẫu trước, lượt đang làm được nộp như khi GV bấm Đóng ngay.
         var open = await db.Assignments.Where(a => a.ClassroomId != null && classIds.Contains(a.ClassroomId.Value) && a.Status != AssignmentStatus.Closed).Select(a => a.Id).ToListAsync();
-        foreach (var id in open) await assignments.CloseNowAsync(id, lecturerId);
-        foreach (var id in classIds) await classrooms.DeleteAsync(id, lecturerId);
+        foreach (var id in open)
+        {
+            var owner = mains.Single(m => m.ClassroomId == db.Assignments.Where(a => a.Id == id).Select(a => a.ClassroomId).Single()).UserId;
+            await assignments.CloseNowAsync(id, owner);
+        }
+        foreach (var m in mains) await classrooms.DeleteAsync(m.ClassroomId, m.UserId);
         var demoUsers = await db.Users.Where(u => u.Email != null && u.Email.EndsWith("@" + Domain)).Select(u => u.Id).ToListAsync();
         foreach (var id in demoUsers) await deletion.DeleteByAdminAsync(id, "Xóa dữ liệu mẫu lớp học", lecturerId);
         var sets = await db.StudySets.Where(s => s.OwnerId == lecturerId && s.DeletedAt == null && s.Title.StartsWith(SetPrefix)).Select(s => s.Id).ToListAsync();
@@ -773,6 +833,23 @@ public sealed class ClassDemoSeedService(AppDbContext db, UserManager<Applicatio
         ("Thuộc tính nào đánh dấu action chỉ nhận POST?", ["[HttpGet]", "[HttpPost]", "[Route]", "[Authorize]"], [2]),
         ("EF Core thuộc loại công cụ nào?", ["ORM", "Template engine", "Web server", "Trình biên dịch"], [1]),
         ("Những tệp nào thường nằm trong thư mục wwwroot?", ["CSS", "JavaScript", "Hình ảnh", "Controller"], [1, 2, 3])
+    ];
+    private static readonly (string, string)[] OopCards =
+    [
+        ("Lớp (class)", "Bản thiết kế mô tả dữ liệu và hành vi chung của các đối tượng cùng loại."),
+        ("Đối tượng (object)", "Một thể hiện cụ thể được tạo từ lớp."),
+        ("Đóng gói", "Giấu dữ liệu bên trong, chỉ cho truy cập qua phương thức/thuộc tính công khai."),
+        ("Kế thừa", "Lớp con dùng lại và mở rộng dữ liệu, hành vi của lớp cha."),
+        ("Đa hình", "Cùng một lời gọi nhưng mỗi lớp con xử lý theo cách riêng (override)."),
+        ("Interface", "Bản cam kết các phương thức mà lớp phải cài đặt, không chứa dữ liệu.")
+    ];
+    private static readonly (string, string[], int[])[] OopQuestions =
+    [
+        ("Tính chất nào cho phép lớp con dùng lại mã của lớp cha?", ["Đóng gói", "Kế thừa", "Đa hình", "Trừu tượng"], [2]),
+        ("Từ khóa C# nào ghi đè phương thức virtual của lớp cha?", ["new", "override", "base", "sealed"], [2]),
+        ("Phạm vi truy cập nào chỉ dùng được trong chính lớp đó?", ["public", "private", "protected", "internal"], [2]),
+        ("Một lớp C# có thể kế thừa bao nhiêu lớp cha?", ["Một", "Hai", "Không giới hạn", "Không kế thừa được"], [1]),
+        ("Những gì là 4 tính chất của lập trình hướng đối tượng?", ["Đóng gói", "Kế thừa", "Đa hình", "Biên dịch"], [1, 2, 3])
     ];
     private static readonly (string, string)[] SqlCards =
     [

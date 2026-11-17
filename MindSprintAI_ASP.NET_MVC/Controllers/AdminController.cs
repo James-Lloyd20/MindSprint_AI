@@ -39,7 +39,7 @@ public class AdminController(AdminService admin, AccountLockService locks, Conte
         var started = jobs.TryStart("Tạo dữ liệu mẫu", UserId, async sp =>
         {
             var r = await sp.GetRequiredService<ClassDemoSeedService>().SeedAsync(UserId);
-            return ($"Đã tạo {r.Students} học viên mẫu, {r.Classes} lớp, {r.Assignments} bài giao, {r.Attempts} lượt làm. Vào Lớp tôi dạy để xem.", r.Password);
+            return ($"Đã tạo {r.Students} học viên mẫu, 2 giảng viên mẫu, {r.Classes} lớp, {r.Assignments} bài giao, {r.Attempts} lượt làm. Vào Lớp tôi dạy để xem.", r.Password);
         });
         Success(started ? "Đang tạo dữ liệu mẫu (khoảng 1–2 phút). Tải lại trang này để xem kết quả." : "Đang có một việc dữ liệu mẫu chạy, hãy chờ xong.");
         return RedirectToAction(nameof(Index));
