@@ -1,4 +1,9 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.Extensions.DependencyInjection;
+using MindSprintAI_ASP.NET_MVC.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -31,22 +36,70 @@ public class DuLieuMauLopTests : IDisposable
     }
 
     private sealed class NoEmail : IEmailSender { public Task SendAsync(string to, string subject, string htmlBody) => Task.CompletedTask; }
+    private sealed class NoTempData : ITempDataProvider
+    {
+        public IDictionary<string, object> LoadTempData(HttpContext context) => new Dictionary<string, object>();
+        public void SaveTempData(HttpContext context, IDictionary<string, object> values) { }
+    }
+
+    // Việc nền chỉ được tạo phạm vi dịch vụ khi test mở cổng: bảo đảm nó chạy SAU khi yêu cầu web đã kết thúc (như trên server),
+    // không phụ thuộc may rủi thứ tự luồng.
+    private sealed class GateScopeFactory(IServiceScopeFactory inner) : IServiceScopeFactory
+    {
+        public readonly ManualResetEventSlim Gate = new(false);
+        public IServiceScope CreateScope() { Gate.Wait(TimeSpan.FromMinutes(1)); return inner.CreateScope(); }
+    }
+
+    private static UserManager<ApplicationUser> Users(Data.AppDbContext db) => new(new UserStore<ApplicationUser>(db), Options.Create(new IdentityOptions()),
+        new PasswordHasher<ApplicationUser>(), [], [], new UpperInvariantLookupNormalizer(), new IdentityErrorDescriber(), null!, NullLogger<UserManager<ApplicationUser>>.Instance);
+
+    // Bấm nút ở trang Quản trị như thật: gọi action, rồi KẾT THÚC yêu cầu web (Uninitialize) trước khi việc chạy nền đọc tới —
+    // đúng tình huống gây lỗi trên server 17/11 (việc nền đọc User của yêu cầu đã kết thúc). Chờ việc nền xong rồi trả trạng thái.
+    private static async Task<DemoJobRunner.Status> ClickAsync(DemoJobRunner jobs, GateScopeFactory gate, string userId, Func<AdminController, IActionResult> action)
+    {
+        var http = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, userId)], "test")) };
+        var controller = new AdminController(null!, null!, null!, null!, null!)
+            { ControllerContext = new() { HttpContext = http }, TempData = new TempDataDictionary(http, new NoTempData()) };
+        gate.Gate.Reset();
+        Assert.IsType<RedirectToActionResult>(action(controller));
+        http.Uninitialize();
+        gate.Gate.Set();
+        var deadline = DateTime.UtcNow.AddMinutes(5);
+        while (jobs.Current is { Running: true } && DateTime.UtcNow < deadline) await Task.Delay(500);
+        var status = jobs.Current!;
+        Assert.False(status.Running, "Việc nền chưa xong sau 5 phút");
+        Assert.False(status.Failed, status.Message);
+        return status;
+    }
 
     [Fact]
     public async Task TaoDuLieuMau_DuCacTruongHop_RoiXoaSach()
     {
         using var h = new Harness();
         var lecturer = await h.UserAsync("Giảng viên thử");
-        using var users = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(h.Db), Options.Create(new IdentityOptions()),
-            new PasswordHasher<ApplicationUser>(), [], [], new UpperInvariantLookupNormalizer(), new IdentityErrorDescriber(), null!, NullLogger<UserManager<ApplicationUser>>.Instance);
+        using var users = Users(h.Db);
         var env = new Env(root);
         var links = new EmailLinks(new ConfigurationBuilder().Build(), new HttpContextAccessor());
         var store = new PaperFileStore(env, new ConfigurationBuilder().Build(), NullLogger<PaperFileStore>.Instance);
         var demo = new ClassDemoSeedService(h.Db, users, [new ChoiceGrader()], store, new NoEmail(), links, env, h.Clock);
+        // Dịch vụ cho việc chạy nền: mỗi phạm vi một DbContext riêng như một yêu cầu thật.
+        var services = new ServiceCollection();
+        services.AddScoped(_ => new Harness());
+        services.AddScoped(sp => Users(sp.GetRequiredService<Harness>().Db));
+        services.AddScoped(sp => new ClassDemoSeedService(sp.GetRequiredService<Harness>().Db, sp.GetRequiredService<UserManager<ApplicationUser>>(),
+            [new ChoiceGrader()], store, new NoEmail(), links, env, h.Clock));
+        services.AddScoped(sp => { var hh = sp.GetRequiredService<Harness>(); var um = sp.GetRequiredService<UserManager<ApplicationUser>>();
+            return new AccountDeletionService(hh.Db, um, new NoEmail(), SecurityRound1Fixtures.Emails(hh, um, new NoEmail(), links), h.Clock); });
+        services.AddScoped(sp => sp.GetRequiredService<Harness>().Classrooms);
+        services.AddScoped(sp => sp.GetRequiredService<Harness>().Assignments);
+        services.AddScoped(sp => sp.GetRequiredService<Harness>().Library);
+        await using var provider = services.BuildServiceProvider();
+        var gate = new GateScopeFactory(provider.GetRequiredService<IServiceScopeFactory>());
+        var jobs = new DemoJobRunner(gate, NullLogger<DemoJobRunner>.Instance);
 
-        var r = await demo.SeedAsync(lecturer);
-        Assert.Equal((36, 4), (r.Students, r.Classes));
-        Assert.True(r.Assignments >= 12 && r.Attempts > 150, $"{r.Assignments} bài, {r.Attempts} lượt");
+        var seeded = await ClickAsync(jobs, gate, lecturer, c => c.SeedClassDemo(jobs));
+        Assert.Contains("36 học viên mẫu, 2 giảng viên mẫu, 4 lớp", seeded.Message);
+        Assert.NotNull(seeded.Password);
         Assert.True(File.Exists(Path.Combine(root, "App_Data", ClassDemoSeedService.AccountsFile)));
         h.Db.ChangeTracker.Clear();
 
@@ -99,15 +152,14 @@ public class DuLieuMauLopTests : IDisposable
         var ranking = await new RankingService(h.Db, h.Classrooms).ForClassAsync(rooms.Single(c => c.Name.StartsWith("Lập trình Web")).Id, lecturer);
         Assert.True(ranking.Rows.Count >= 25);
         var first = await users.FindByEmailAsync("hv01@" + ClassDemoSeedService.Domain);
-        Assert.True(await users.CheckPasswordAsync(first!, r.Password));
+        Assert.True(await users.CheckPasswordAsync(first!, seeded.Password!));
 
         await Assert.ThrowsAsync<BusinessException>(() => demo.SeedAsync(lecturer));   // không tạo trùng
 
         (await h.Db.Users.SingleAsync(u => u.Id == lecturer)).IsSystemAdmin = true;   // nút xóa ở trang Quản trị: người bấm luôn là quản trị viên
         await h.Db.SaveChangesAsync();
-        var deletion = new AccountDeletionService(h.Db, users, new NoEmail(), SecurityRound1Fixtures.Emails(h, users, new NoEmail(), links), h.Clock);
-        var removed = await demo.RemoveAsync(lecturer, deletion, h.Classrooms, h.Assignments, h.Library);
-        Assert.Equal(38, removed);   // 36 học viên + 2 giảng viên mẫu
+        var removed = await ClickAsync(jobs, gate, lecturer, c => c.RemoveClassDemo(jobs));
+        Assert.Contains("38 tài khoản mẫu", removed.Message);   // 36 học viên + 2 giảng viên mẫu
         Assert.False(await h.Db.Classrooms.AnyAsync(c => c.Id == c4 && c.DeletedAt == null));
         h.Db.ChangeTracker.Clear();
         Assert.False(await demo.ExistsAsync(lecturer));

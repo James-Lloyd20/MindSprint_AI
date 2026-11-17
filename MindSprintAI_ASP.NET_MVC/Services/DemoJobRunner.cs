@@ -9,7 +9,8 @@ public sealed class DemoJobRunner(IServiceScopeFactory scopes, ILogger<DemoJobRu
     private readonly object gate = new();
     public Status? Current { get; private set; }
 
-    public bool TryStart(string label, string userId, Func<IServiceProvider, Task<(string Message, string? Password)>> work)
+    // work nhận userId thay vì tự đọc từ yêu cầu web: việc chạy sau khi yêu cầu đã kết thúc, HttpContext không còn dùng được.
+    public bool TryStart(string label, string userId, Func<IServiceProvider, string, Task<(string Message, string? Password)>> work)
     {
         lock (gate)
         {
@@ -22,7 +23,7 @@ public sealed class DemoJobRunner(IServiceScopeFactory scopes, ILogger<DemoJobRu
             try
             {
                 using var scope = scopes.CreateScope();
-                var (message, password) = await work(scope.ServiceProvider);
+                var (message, password) = await work(scope.ServiceProvider, userId);
                 done = new(label, userId, false, message, password, false, DateTime.UtcNow);
             }
             catch (Exception ex)

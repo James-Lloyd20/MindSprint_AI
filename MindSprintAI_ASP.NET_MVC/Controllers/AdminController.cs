@@ -36,9 +36,10 @@ public class AdminController(AdminService admin, AccountLockService locks, Conte
     [HttpPost]
     public IActionResult SeedClassDemo([FromServices] DemoJobRunner jobs)
     {
-        var started = jobs.TryStart("Tạo dữ liệu mẫu", UserId, async sp =>
+        // Việc chạy nền sau khi yêu cầu này đã xong: chỉ dùng userId được truyền vào, không đọc lại User/HttpContext (lỗi trên server 17/11).
+        var started = jobs.TryStart("Tạo dữ liệu mẫu", UserId, async (sp, userId) =>
         {
-            var r = await sp.GetRequiredService<ClassDemoSeedService>().SeedAsync(UserId);
+            var r = await sp.GetRequiredService<ClassDemoSeedService>().SeedAsync(userId);
             return ($"Đã tạo {r.Students} học viên mẫu, 2 giảng viên mẫu, {r.Classes} lớp, {r.Assignments} bài giao, {r.Attempts} lượt làm. Vào Lớp tôi dạy để xem.", r.Password);
         });
         Success(started ? "Đang tạo dữ liệu mẫu (khoảng 1–2 phút). Tải lại trang này để xem kết quả." : "Đang có một việc dữ liệu mẫu chạy, hãy chờ xong.");
@@ -48,11 +49,11 @@ public class AdminController(AdminService admin, AccountLockService locks, Conte
     [HttpPost]
     public IActionResult RemoveClassDemo([FromServices] DemoJobRunner jobs)
     {
-        var started = jobs.TryStart("Xóa dữ liệu mẫu", UserId, async sp =>
+        var started = jobs.TryStart("Xóa dữ liệu mẫu", UserId, async (sp, userId) =>
         {
-            var n = await sp.GetRequiredService<ClassDemoSeedService>().RemoveAsync(UserId, sp.GetRequiredService<AccountDeletionService>(),
+            var n = await sp.GetRequiredService<ClassDemoSeedService>().RemoveAsync(userId, sp.GetRequiredService<AccountDeletionService>(),
                 sp.GetRequiredService<ClassroomService>(), sp.GetRequiredService<AssignmentService>(), sp.GetRequiredService<StudyLibraryService>());
-            return ($"Đã xóa dữ liệu mẫu: các lớp và bộ học mẫu, {n} tài khoản học viên mẫu.", null);
+            return ($"Đã xóa dữ liệu mẫu: các lớp và bộ học mẫu, {n} tài khoản mẫu.", null);
         });
         Success(started ? "Đang xóa dữ liệu mẫu. Tải lại trang này sau ít phút để xem kết quả." : "Đang có một việc dữ liệu mẫu chạy, hãy chờ xong.");
         return RedirectToAction(nameof(Index));
