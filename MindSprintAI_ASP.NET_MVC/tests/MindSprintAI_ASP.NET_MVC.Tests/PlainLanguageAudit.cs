@@ -71,6 +71,10 @@ internal static class PlainLanguageAudit
                     || node.Ancestors().OfType<InvocationExpressionSyntax>().Any(c => c.Expression.ToString() == "Fail"))) continue;
                 if (node.Ancestors().OfType<InvocationExpressionSyntax>().Any(call =>
                     Regex.IsMatch(call.Expression.ToString(), @"\b(Log\w+|logger|log)\b|\.(Contains|StartsWith|EndsWith|IsMatch)$"))) continue;
+                // Nội dung môn học của bộ học mẫu (thẻ, câu hỏi môn Lập trình Web/SQL) là kiến thức giảng viên soạn, không phải chữ giao diện:
+                // chỉ bỏ qua đúng các mảng nội dung trong ClassDemoSeedService (17/11/2026), thông báo trong service này vẫn bị kiểm.
+                if (Path.GetFileName(path) == "ClassDemoSeedService.cs" && node.Ancestors().OfType<FieldDeclarationSyntax>()
+                    .Any(field => field.Declaration.Variables.Any(v => v.Identifier.ValueText is "WebCards" or "WebQuestions" or "SqlCards" or "SqlQuestions" or "EngCards" or "EngQuestions"))) continue;
                 // Internal structured Gemini instructions are not shown to users.
                 if (Path.GetFileName(path) == "GeminiClient.cs" && node.Ancestors().OfType<AnonymousObjectMemberDeclaratorSyntax>()
                     .Any(member => member.NameEquals?.Name.Identifier.ValueText == "systemInstruction")) continue;

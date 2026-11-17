@@ -28,7 +28,34 @@ public class AdminController(AdminService admin, AccountLockService locks, Conte
     public async Task<IActionResult> Index(string? search, int page = 1)
     {
         ViewData["PendingUnhideCount"] = await unhide.PendingCountAsync(UserId);
+        ViewData["DemoJob"] = HttpContext.RequestServices.GetService<DemoJobRunner>()?.Current;
         return View(await admin.UsersAsync(UserId, search, page));
+    }
+
+    // Dữ liệu mẫu lớp học (17/11): lớp mẫu thuộc chính quản trị viên đang bấm. Chạy nền vì lâu hơn giới hạn chờ của nginx.
+    [HttpPost]
+    public IActionResult SeedClassDemo([FromServices] DemoJobRunner jobs)
+    {
+        var started = jobs.TryStart("Tạo dữ liệu mẫu", UserId, async sp =>
+        {
+            var r = await sp.GetRequiredService<ClassDemoSeedService>().SeedAsync(UserId);
+            return ($"Đã tạo {r.Students} học viên mẫu, {r.Classes} lớp, {r.Assignments} bài giao, {r.Attempts} lượt làm. Vào Lớp tôi dạy để xem.", r.Password);
+        });
+        Success(started ? "Đang tạo dữ liệu mẫu (khoảng 1–2 phút). Tải lại trang này để xem kết quả." : "Đang có một việc dữ liệu mẫu chạy, hãy chờ xong.");
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    public IActionResult RemoveClassDemo([FromServices] DemoJobRunner jobs)
+    {
+        var started = jobs.TryStart("Xóa dữ liệu mẫu", UserId, async sp =>
+        {
+            var n = await sp.GetRequiredService<ClassDemoSeedService>().RemoveAsync(UserId, sp.GetRequiredService<AccountDeletionService>(),
+                sp.GetRequiredService<ClassroomService>(), sp.GetRequiredService<AssignmentService>(), sp.GetRequiredService<StudyLibraryService>());
+            return ($"Đã xóa dữ liệu mẫu: các lớp và bộ học mẫu, {n} tài khoản học viên mẫu.", null);
+        });
+        Success(started ? "Đang xóa dữ liệu mẫu. Tải lại trang này sau ít phút để xem kết quả." : "Đang có một việc dữ liệu mẫu chạy, hãy chờ xong.");
+        return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> UnhideRequests() => View(await unhide.PendingAsync(UserId));

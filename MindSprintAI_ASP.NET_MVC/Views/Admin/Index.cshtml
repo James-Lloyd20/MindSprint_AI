@@ -12,6 +12,25 @@
     <div class="col-6 col-md-3"><div class="card card-body">Bài giao <b>@Model.Stats.Assignments</b></div></div>
     <div class="col-6 col-md-3"><div class="card card-body">Lượt làm <b>@Model.Stats.Attempts</b></div></div>
 </div>
+<section class="flat-section mb-3" aria-labelledby="demo-title">
+    <h2 class="h5" id="demo-title">Dữ liệu mẫu lớp học</h2>
+    <p class="small text-muted">36 học viên mẫu (email @@@ClassDemoSeedService.Domain, đăng nhập bằng một mật khẩu chung), 3 lớp do bạn làm giảng viên chính,
+        3 bộ học và các bài ôn tập, kiểm tra, thẻ ghi nhớ, bài theo đề diễn ra trong 20 ngày qua. Tạo mất khoảng 1–2 phút.</p>
+    @if (ViewData["DemoJob"] is DemoJobRunner.Status job && job.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+    {
+        if (job.Running) { <p class="alert alert-info" role="status">@job.Label đang chạy (bắt đầu @VnTime.Format(job.At)). Tải lại trang sau 1–2 phút.</p> }
+        else
+        {
+            <p class="alert @(job.Failed ? "alert-danger" : "alert-success")" role="status">@job.Label lúc @VnTime.Format(job.At): @job.Message
+                @if (job.Password != null) { <br /><span>Mật khẩu chung của học viên mẫu (đăng nhập bằng hv01…hv36@@@ClassDemoSeedService.Domain): <b class="font-monospace">@job.Password</b>.
+                    Danh sách tài khoản cũng lưu trong tệp App_Data/@ClassDemoSeedService.AccountsFile của ứng dụng.</span> }</p>
+        }
+    }
+    <div class="d-flex flex-wrap gap-2">
+        <form method="post" asp-action="SeedClassDemo" data-confirm="Tạo dữ liệu mẫu lớp học? Bạn sẽ là giảng viên chính của 3 lớp mẫu."><button class="btn btn-primary">Tạo dữ liệu mẫu lớp học</button></form>
+        <form method="post" asp-action="RemoveClassDemo" data-confirm="Xóa toàn bộ dữ liệu mẫu (lớp mẫu, bộ học mẫu, 36 tài khoản học viên mẫu)? Dữ liệu thật không bị đụng tới."><button class="btn btn-outline-danger">Xóa dữ liệu mẫu</button></form>
+    </div>
+</section>
 <form method="get" class="d-flex flex-wrap gap-2 mb-3">
     <label for="search" class="form-label">Tìm tên hoặc email</label>
     <input id="search" name="search" value="@Model.Search" maxlength="200" class="form-control w-auto" placeholder="Tên hoặc email" />

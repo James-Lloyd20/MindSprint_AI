@@ -189,6 +189,8 @@ builder.Services.AddScoped<AttemptService>();
 builder.Services.AddSingleton<PaperFileStore>();
 builder.Services.AddScoped<PaperTestService>();
 builder.Services.AddScoped<RankingService>();
+builder.Services.AddScoped<ClassDemoSeedService>();
+builder.Services.AddSingleton<DemoJobRunner>();
 builder.Services.AddScoped<GradebookService>();
 builder.Services.AddScoped<RetakeService>();
 builder.Services.AddScoped<FlashcardService>();
@@ -283,6 +285,28 @@ app.MapControllerRoute(
     .WithStaticAssets();
 
 
+// Dữ liệu mẫu lớp học từ dòng lệnh (giống 2 nút ở trang Quản trị), chạy xong thì thoát, không mở web:
+//   dotnet MindSprintAI_ASP.NET_MVC.dll --seed-class-demo <email giảng viên>     (tạo)
+//   dotnet MindSprintAI_ASP.NET_MVC.dll --remove-class-demo <email quản trị viên> (xóa đúng phần dữ liệu mẫu)
+// Dùng ở máy dev (trang Quản trị đòi bật 2FA) hoặc khi không vào được trang Quản trị.
+if (args is [("--seed-class-demo" or "--remove-class-demo") and var demoCommand, var demoEmail])
+{
+    using var scope = app.Services.CreateScope();
+    var sp = scope.ServiceProvider;
+    var owner = await sp.GetRequiredService<UserManager<ApplicationUser>>().FindByEmailAsync(demoEmail)
+        ?? throw new InvalidOperationException("Không tìm thấy tài khoản " + demoEmail);
+    var demo = sp.GetRequiredService<ClassDemoSeedService>();
+    if (demoCommand == "--remove-class-demo")
+        Console.WriteLine($"Đã xóa dữ liệu mẫu ({await demo.RemoveAsync(owner.Id, sp.GetRequiredService<AccountDeletionService>(), sp.GetRequiredService<ClassroomService>(),
+            sp.GetRequiredService<AssignmentService>(), sp.GetRequiredService<StudyLibraryService>())} tài khoản học viên mẫu).");
+    else
+    {
+        var r = await demo.SeedAsync(owner.Id);
+        Console.WriteLine($"Đã tạo {r.Students} học viên mẫu, {r.Classes} lớp, {r.Assignments} bài giao, {r.Attempts} lượt làm. "
+            + $"Mật khẩu chung và danh sách tài khoản: App_Data/{ClassDemoSeedService.AccountsFile}");
+    }
+    return;
+}
 app.Run();
 }
 catch (Exception ex)
