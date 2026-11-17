@@ -4,7 +4,7 @@ Mô hình: **Trình duyệt → Cloudflare → Cloudflare Tunnel (cloudflared tr
 
 > **Cổng 80/443 là gì?** Là "cửa" mặc định của web (80 = http, 443 = https). Vì dùng **Cloudflare Tunnel**, server tự kết nối ra Cloudflare nên **không cần mở cửa nào** trên server; Cloudflare lo phần https. App chỉ mở `127.0.0.1:8080` cho chính server.
 
-> **Server của nhóm (đã chạy Rekal / QuizEdu)** dùng cách riêng ở cuối tài liệu: mục "Server đã có Rekal". Phần Docker dưới đây dành cho server mới.
+> **Server của nhóm (đã chạy Rekal / QuizEdu)** dùng cách riêng ở cuối tài liệu: mục "Server đã có Rekal". Phần Docker dưới đây dành cho server mới. Image đã được build thử ngày 17/11/2026 (có sẵn LibreOffice; đã đổi thử Word sang PDF trong container thành công); phần chạy container bằng `docker compose` chưa chạy thử trên server thật.
 
 ## 0. Chuẩn bị (làm trên trình duyệt, một lần)
 

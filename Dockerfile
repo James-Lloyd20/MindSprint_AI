@@ -13,6 +13,11 @@ RUN dotnet publish MindSprintAI_ASP.NET_MVC/MindSprintAI_ASP.NET_MVC.csproj -c R
 RUN dotnet ef migrations bundle --project MindSprintAI_ASP.NET_MVC --configuration Release --output /app/efbundle
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
+# Bài làm theo đề: đổi đề Word sang PDF bằng LibreOffice không giao diện (giống deploy/setup-mindsprint.sh); phông đo chữ
+# giống Times New Roman/Arial/Calibri/Cambria để đề giữ bố cục.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libreoffice-writer-nogui fonts-liberation2 fonts-crosextra-carlito fonts-crosextra-caladea fonts-dejavu-core \
+ && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /app .
 # App_Data giữ khóa mã hóa (key Gemini của người dùng, phiên đăng nhập), nhật ký: nằm trên ổ đĩa riêng (volume) để không mất khi cập nhật.
