@@ -788,3 +788,14 @@ main a.my-class-name { color: inherit; text-decoration: none; }
 .b-member-search .form-control { flex: 1 1 220px; }
 .rank-size { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
 @media (max-width: 991.98px) { .b-class-top { grid-template-columns: minmax(0, 1fr); } }
+
+/* Thanh trên (góp ý 18/11, Safari iPhone): nút chữ không bao giờ bị bóp thành cột chữ dọc.
+   Khách trên điện thoại: ô tìm một hàng, hàng dưới là nút vào bằng mã, sáng/tối, Đăng nhập, Tạo tài khoản. */
+.app-actions > * { flex-shrink: 0; }
+.app-actions .btn { white-space: nowrap; }
+@media (max-width: 575.98px) {
+  .app-topbar.is-guest { flex-wrap: wrap; }
+  .app-topbar.is-guest .app-search { flex: 1 1 100%; max-width: none; }
+  .app-topbar.is-guest .app-actions { flex: 1 1 100%; flex-wrap: wrap; margin-left: 0; }
+  .app-topbar.is-guest .app-actions .btn:not(.app-join) { flex: 1 1 auto; min-height: 44px; padding-inline: 12px; display: inline-flex; align-items: center; justify-content: center; }
+}

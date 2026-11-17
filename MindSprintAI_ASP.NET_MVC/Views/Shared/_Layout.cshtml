@@ -239,7 +239,7 @@
         @if (sidebar)
         {
             @* Header ứng dụng như giao diện nhóm: ô tìm trang bên trái; chuông + tài khoản bên phải. *@
-            <div class="app-topbar">
+            <div class="app-topbar @(signedIn ? null : "is-guest")">
                 <form class="app-search" role="search" data-app-search data-items-url="@(signedIn ? Url.Action("SearchItems", "StudySets") : null)">
                     <icon name="search" />
                     <input type="search" class="form-control" list="app-pages" placeholder="@(signedIn ? "Tìm trang hoặc bộ thẻ…" : "Tìm trang…")" aria-label="@(signedIn ? "Tìm trang hoặc bộ thẻ" : "Tìm trang trong MindSprint AI")" autocomplete="off" />
