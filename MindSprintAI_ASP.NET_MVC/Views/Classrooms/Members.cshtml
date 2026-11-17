@@ -1,6 +1,6 @@
 @model ClassMemberNames
 @{ ViewData["Title"] = "Thành viên lớp"; }
-<a class="btn btn-sm b-back" asp-action="Index"><icon name="chevron-right" class="b-back-icon" />Quay lại danh sách lớp</a>
+<a class="btn btn-sm b-back" asp-action="Room" asp-route-id="@Model.ClassroomId"><icon name="chevron-right" class="b-back-icon" />Quay lại lớp @Model.ClassName</a>
 <h1 class="h3">Thành viên lớp @Model.ClassName</h1>
 <ul class="list-group">
 @foreach (var member in Model.Members)

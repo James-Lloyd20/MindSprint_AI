@@ -1227,6 +1227,9 @@ namespace MindSprintAI_ASP.NET_MVC.Data.Migrations
                     b.Property<int>("JoinPolicy")
                         .HasColumnType("int");
 
+                    b.Property<bool>("LeaderboardEnabled")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)

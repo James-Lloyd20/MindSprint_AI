@@ -30,9 +30,10 @@ public class ClassroomsController(ClassroomService classrooms, AssignmentService
         return RedirectToAction(nameof(Details), new { id = room.Id });
     }
 
-    public async Task<IActionResult> Details(int id, int page = 1)
+    public async Task<IActionResult> Details(int id, int page = 1, [FromServices] RankingService? ranking = null)
     {
         var room = await classrooms.GetForLecturerAsync(id, UserId);
+        if (ranking != null) ViewData["Ranking"] = await ranking.ForClassAsync(id, UserId);
         var size = await presets.MemberPageSizeAsync(UserId);
         var count = room.Members.Count(m => m.Role == ClassRole.Student && m.Status == ClassMemberStatus.Active);
         ViewData["MemberPage"] = Math.Clamp(page, 1, Math.Max(1, (int)Math.Ceiling(count / (double)size)));
@@ -195,12 +196,34 @@ public class ClassroomsController(ClassroomService classrooms, AssignmentService
                 break;
             case JoinOutcome.AlreadyMember:
                 Success("Bạn đã ở trong lớp này.");
+                if (result.ClassroomId is { } existing) return RedirectToAction(nameof(Room), new { id = existing });
                 break;
             default:
                 Success("Đã vào lớp.");
+                // Góp ý 17/11: vào lớp xong thì mở luôn trang lớp (bài được giao, xếp hạng), không về trang Luyện tập chung.
+                if (result.ClassroomId is { } joined) return RedirectToAction(nameof(Room), new { id = joined });
                 break;
         }
         return RedirectToAction("Index", "Learn");
+    }
+
+    // Trang lớp của học viên (góp ý 17/11): bài của lớp với nút vào bài ngay (không cần mã 8 số), xếp hạng, thành viên.
+    public async Task<IActionResult> Room(int id, [FromServices] AttemptService attempts, [FromServices] RankingService ranking)
+    {
+        if (await classrooms.IsLecturerAsync(id, UserId)) return RedirectToAction(nameof(Details), new { id });
+        var room = await classrooms.MemberNamesAsync(id, UserId);   // chỉ thành viên đang học
+        ViewData["Assignments"] = (await assignments.ListForLearnerAsync(UserId)).Where(a => a.ClassroomId == id).ToList();
+        ViewData["Participations"] = await attempts.ListMyParticipationsAsync(UserId);
+        ViewData["Ranking"] = await ranking.ForClassAsync(id, UserId);
+        return View(room);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Leaderboard(int id, bool enabled, [FromServices] RankingService ranking)
+    {
+        await ranking.SetEnabledAsync(id, enabled, UserId);
+        Success(enabled ? "Học viên đã xem được bảng xếp hạng." : "Đã ẩn bảng xếp hạng với học viên.");
+        return Redirect(Url.Action(nameof(Details), new { id }) + "#class-rank-title");
     }
 
     public async Task<IActionResult> Members(int id) => View(await classrooms.MemberNamesAsync(id, UserId));

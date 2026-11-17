@@ -5,6 +5,7 @@
 }
 <a class="btn btn-sm b-back" asp-controller="Classrooms" asp-action="Details" asp-route-id="@Model.Classroom.Id"><icon name="chevron-right" class="b-back-icon" />Quay lại @DisplayText.ClassName(Model.Classroom.Name)</a>
 <h1 class="h3 mb-3">Giao bài</h1>
+<partial name="_AssignKind" model="(Model.Classroom.Id, false)" />
 
 @if (Model.StudySets.Count == 0)
 {

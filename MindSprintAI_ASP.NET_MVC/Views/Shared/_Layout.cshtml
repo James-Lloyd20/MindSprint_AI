@@ -195,6 +195,7 @@
                     }
                     else if (me == null && !sidebar)
                     {
+                        <a class="btn btn-outline-secondary app-join-out" asp-controller="Classrooms" asp-action="Join"><icon name="ticket" />Tham gia bằng mã</a>
                         <a class="btn btn-outline-secondary" asp-controller="Account" asp-action="Login">Đăng nhập</a>
                         <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Tạo tài khoản</a>
                     }
@@ -247,6 +248,8 @@
                 <div class="app-actions">
                     @* Như nhóm: thanh bên không có nút nào trên thẻ người dùng; đổi sáng/tối là nút icon cạnh chuông (nhóm đặt ở đây nút thư). *@
                     @if (signedIn) { <a class="app-icon-btn @Current("Notebooks")" asp-controller="Notebooks" asp-action="Index" aria-label="Sổ tay AI" title="Sổ tay AI"><icon name="mail" /></a> } @* nút thư của nhóm mở Sổ tay AI *@
+                    @* Người dùng góp ý 17/11: nút vào lớp/bài bằng mã khó tìm → luôn ở thanh trên, mọi trang (điện thoại chỉ còn biểu tượng). *@
+                    <a class="btn btn-primary app-join @Current("Classrooms", "Join")" asp-controller="Classrooms" asp-action="Join" title="Tham gia lớp hoặc bài bằng mã 8 số"><icon name="ticket" /><span class="app-join-label">Tham gia bằng mã</span></a>
                     <button class="app-icon-btn" type="button" data-theme-toggle aria-pressed="false" aria-label="Giao diện tối" title="Giao diện tối"><icon name="moon" /></button>
                     @if (signedIn)
                     {

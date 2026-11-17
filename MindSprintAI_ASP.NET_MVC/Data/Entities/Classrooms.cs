@@ -5,6 +5,7 @@ public class Classroom
     public int Id { get; set; }
     public string Name { get; set; } = "";
     public ClassJoinPolicy JoinPolicy { get; set; } = ClassJoinPolicy.Immediate;
+    public bool LeaderboardEnabled { get; set; } = true;   // bảng xếp hạng cho học viên (người dùng chốt 17/11: GV tắt được, mặc định bật)
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? DeletedAt { get; set; }
 

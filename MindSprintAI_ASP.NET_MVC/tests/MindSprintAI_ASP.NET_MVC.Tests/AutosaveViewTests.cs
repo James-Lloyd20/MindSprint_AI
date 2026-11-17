@@ -12,7 +12,7 @@ public class AutosaveViewTests
         var forms = Directory.GetFiles(Path.Combine(Tang8PureTests.Root, "Views"), "*.cshtml", SearchOption.AllDirectories)
             .SelectMany(file => Regex.Matches(File.ReadAllText(file), @"<form\b[^>]*>[\s\S]*?</form>").Select(m => (file, html: m.Value)))
             .Where(f => Regex.IsMatch(f.html.Split('>')[0], @"\bdata-autosave(?:\s|=|$)")).ToList();
-        Assert.Equal(12, forms.Count); // +1: "Hiện ảnh Google" (09/11); +1: công tắc tự ôn sau hạn (10/11); +1: ôn thẻ khi mất mạng (15/11)
+        Assert.Equal(13, forms.Count); // +1: "Hiện ảnh Google" (09/11); +1: công tắc tự ôn sau hạn (10/11); +1: ôn thẻ khi mất mạng (15/11); +1: bật/tắt xếp hạng lớp (17/11)
         foreach (var (file, html) in forms)
         {
             var expanded = html;

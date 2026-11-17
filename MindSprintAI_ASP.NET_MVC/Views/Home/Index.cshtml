@@ -43,6 +43,14 @@
                 <a class="btn btn-secondary" href="@Url.Action("Index", "StudySets")#tao-bo-hoc"><icon name="plus" />Tạo bộ học</a>
             }
         </div>
+        @* Người dùng góp ý 17/11: nhập mã 8 số ngay trên trang chủ, không phải đi tìm trang Tham gia. *@
+        <form method="post" asp-controller="Classrooms" asp-action="Join" class="home-join" aria-label="Tham gia lớp hoặc bài bằng mã">
+            <label class="form-label" for="home-join-code"><icon name="ticket" />Có mã 8 số của lớp hoặc bài?</label>
+            <div class="home-join-row">
+                <input id="home-join-code" name="code" class="form-control font-monospace" inputmode="numeric" autocomplete="off" maxlength="11" placeholder="Ví dụ: 1234 5678" required />
+                <button class="btn btn-primary">Vào ngay</button>
+            </div>
+        </form>
     </section>
 
     @if (Model != null)

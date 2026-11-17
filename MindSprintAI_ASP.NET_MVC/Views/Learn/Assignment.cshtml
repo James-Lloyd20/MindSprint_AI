@@ -174,4 +174,5 @@ else if (a.Form != AssignmentForm.FlashcardOnly)
     </div>
 }
 </div>
+@if (ViewData["Ranking"] is Leaderboard ranking) { <partial name="_Leaderboard" model="@((ranking, "Xếp hạng bài này", false))" /> }
 @section Scripts { <script src="~/js/ai-assistant.js" asp-append-version="true"></script> }

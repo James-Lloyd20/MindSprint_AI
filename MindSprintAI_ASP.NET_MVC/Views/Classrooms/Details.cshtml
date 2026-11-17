@@ -21,8 +21,8 @@
         <p class="learn-summary mb-0">@students.Count học viên · @assignments.Count bài đã giao</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-primary" asp-controller="Assignments" asp-action="Create" asp-route-classroomId="@Model.Id"><icon name="send" />Giao bài</a>
-        <a class="btn btn-secondary" asp-controller="Papers" asp-action="Create" asp-route-classroomId="@Model.Id"><icon name="file-text" />Giao bài theo đề</a>
+        <a class="btn btn-primary" asp-controller="Assignments" asp-action="Create" asp-route-classroomId="@Model.Id"><icon name="send" />Giao bài từ bộ học</a>
+        <a class="btn btn-secondary" asp-controller="Papers" asp-action="Create" asp-route-classroomId="@Model.Id"><icon name="file-text" />Giao bài theo đề (tải tài liệu)</a>
     </div>
 </header>
 
@@ -179,6 +179,21 @@
     }
 </section>
 
+@if (ViewData["Ranking"] is Leaderboard classRanking)
+{
+    <section class="b-page-section" aria-labelledby="class-rank-toggle-title">
+        <partial name="_Leaderboard" model="@((classRanking, "Xếp hạng lớp", true))" />
+        <form method="post" asp-action="Leaderboard" asp-route-id="@Model.Id" class="d-flex flex-wrap align-items-center gap-2" data-autosave>
+            <h3 class="visually-hidden" id="class-rank-toggle-title">Bảng xếp hạng cho học viên</h3>
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="leaderboard-enabled" name="enabled" value="true" checked="@Model.LeaderboardEnabled" />
+                <label class="form-check-label" for="leaderboard-enabled">Cho học viên xem xếp hạng (top 10 và hạng của chính mình)</label>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary">Lưu</button>
+        </form>
+        <p class="small text-muted mt-1">Giảng viên luôn thấy cả bảng. Bài kiểm tra và bài theo đề chỉ được tính sau khi công bố điểm.</p>
+    </section>
+}
 <section class="b-page-section" aria-labelledby="class-settings-title">
     <h2 class="section-head" id="class-settings-title"><span class="section-icon"><icon name="settings-2" /></span>Cài đặt lớp</h2>
     <div class="b-class-settings">

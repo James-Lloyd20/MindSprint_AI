@@ -3,7 +3,8 @@
     ViewData["Title"] = "Giao bài làm theo đề";
 }
 <a class="btn btn-sm b-back" asp-controller="Classrooms" asp-action="Details" asp-route-id="@Model.ClassroomId"><icon name="chevron-right" class="b-back-icon" />Quay lại lớp</a>
-<h1 class="h3 mb-1">Giao bài làm theo đề</h1>
+<h1 class="h3 mb-3">Giao bài</h1>
+<partial name="_AssignKind" model="(Model.ClassroomId, true)" />
 <p class="text-muted mb-3" style="max-width: 720px">Tải đề lên (PDF hoặc Word). Học viên xem đề ngay trên trang làm bài, viết bài và đính kèm tệp trong thời gian làm.
     Giảng viên chấm tay (thang 10) rồi công bố điểm cho cả lớp.</p>
 

@@ -25,9 +25,12 @@ public class LearnController(AssignmentService assignments, AttemptService attem
     }
 
     [AllowGuest]
-    public async Task<IActionResult> Assignment(int id)
+    public async Task<IActionResult> Assignment(int id, [FromServices] RankingService? ranking = null)
     {
         var model = await attempts.GetAssignmentPageAsync(id, UserId);
+        // Xếp hạng bài này (17/11): khách chưa có lượt thì không có bảng, trang vẫn mở bình thường.
+        if (ranking != null && !model.IsWaiting)
+            try { ViewData["Ranking"] = await ranking.ForAssignmentAsync(id, UserId); } catch (ForbiddenException) { }
         return View(model.IsWaiting ? "Waiting" : "Assignment", model);
     }
 

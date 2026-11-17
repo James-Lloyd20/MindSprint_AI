@@ -106,9 +106,10 @@ public class AssignmentsController(
     }
 
     // Chi tiết bài giao kèm bảng điểm.
-    public async Task<IActionResult> Details(int id, [FromServices] AiAssistantService? ai = null)
+    public async Task<IActionResult> Details(int id, [FromServices] AiAssistantService? ai = null, [FromServices] RankingService? ranking = null)
     {
         var (a, rows) = await gradebook.GetReportAsync(id, UserId);
+        if (ranking != null && RankingService.Ranked(a)) ViewData["Ranking"] = await ranking.ForAssignmentAsync(id, UserId);
         if (ai != null) ViewData["AiStats"] = await ai.StatsAsync(id, UserId);
         return View(new AssignmentDetailsModel
         {

@@ -197,6 +197,7 @@ else
     <div class="table-responsive"><table class="table table-sm"><thead><tr><th>Mặt trước</th><th>Số học viên chưa nhớ</th></tr></thead><tbody>@foreach (var card in Model.ForgottenCards) { <tr><td class="b-preserve-lines">@card.Front</td><td>@card.Count</td></tr> }</tbody></table></div>
 }
 
+@if (ViewData["Ranking"] is Leaderboard ranking) { <partial name="_Leaderboard" model="@((ranking, "Xếp hạng bài này", false))" /> }
 </div>
 <div class="tab-pane" id="pane-cau-hoi" role="tabpanel" aria-labelledby="tab-cau-hoi" tabindex="0"><partial name="_QuestionMatrix" model="Model" /></div>
 <div class="tab-pane" id="pane-chong-gian-lan" role="tabpanel" aria-labelledby="tab-chong-gian-lan" tabindex="0"><partial name="_Warnings" model="Model" /></div>

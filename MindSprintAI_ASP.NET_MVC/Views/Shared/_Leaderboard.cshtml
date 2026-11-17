@@ -1,0 +1,31 @@
+@model (Leaderboard Board, string Title, bool ClassBoard)
+@* Bảng xếp hạng dùng chung (bài / lớp). Học viên: top 10 + dòng của mình; giảng viên: cả bảng. *@
+@{
+    var b = Model.Board;
+    string Time(TimeSpan? t) => t is not { } v ? "—" : v.TotalHours >= 1 ? $"{(int)v.TotalHours} giờ {v.Minutes} phút" : v.TotalMinutes >= 1 ? $"{(int)v.TotalMinutes} phút {v.Seconds} giây" : $"{v.Seconds} giây";
+    string Medal(int rank) => rank switch { 1 => "rank-gold", 2 => "rank-silver", 3 => "rank-bronze", _ => "" };
+}
+<section class="leaderboard" aria-labelledby="@(Model.ClassBoard ? "class-rank-title" : "assignment-rank-title")">
+    <h2 class="section-head" id="@(Model.ClassBoard ? "class-rank-title" : "assignment-rank-title")"><span class="section-icon"><icon name="trophy" /></span>@Model.Title</h2>
+    @if (b.Hidden != null) { <p class="text-muted mb-0">@b.Hidden</p> }
+    else if (b.Count == 0) { <p class="text-muted mb-0">@(Model.ClassBoard ? "Chưa có bài nào có điểm để xếp hạng." : "Chưa có ai có điểm.")</p> }
+    else
+    {
+        <p class="small text-muted">
+            @(Model.ClassBoard ? "Trung bình % điểm các bài đã giao (bài chưa làm tính 0)." : "Điểm cao xếp trên; bằng điểm thì ai làm nhanh hơn xếp trên.")
+            @if (b.Rows.Count < b.Count) { <span> Hiện @b.Rows.Count / @b.Count người đứng đầu.</span> }
+        </p>
+        <ol class="rank-list">
+            @foreach (var r in b.Rows.Append(b.Mine).Where(r => r != null).Select(r => r!))
+            {
+                if (b.Mine == r) { <li class="rank-gap" aria-hidden="true">…</li> }
+                <li class="rank-row @(r.Me ? "is-me" : "")">
+                    <span class="rank-no @Medal(r.Rank)" aria-label="Hạng @r.Rank">@r.Rank</span>
+                    <span class="rank-name">@r.Name@if (r.Me) { <span class="badge bg-primary ms-1">Bạn</span> }</span>
+                    <span class="rank-score">@r.Percent.ToString("0.#")%</span>
+                    <span class="rank-extra">@(Model.ClassBoard ? $"{r.Done}/{r.Total} bài" : Time(r.Time))</span>
+                </li>
+            }
+        </ol>
+    }
+</section>
