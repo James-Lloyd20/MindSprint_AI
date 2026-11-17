@@ -769,3 +769,22 @@ main a.my-class-name { color: inherit; text-decoration: none; }
   .set-item-actions { width: 100%; }
   .set-add-row { flex-direction: column; }
 }
+
+/* Trang lớp của GV (18/11): mã vào lớp + cài đặt lớp cùng một khối đầu trang; thành viên thu gọn có ô tìm. */
+.b-class-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 16px; margin: 16px 0 24px; }
+.b-class-panel { padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
+.b-class-panel .b-join-code { margin: 4px 0 12px; }
+.b-code-change { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.b-code-change .btn { margin-top: 0 !important; }
+.b-class-settings-body { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.b-members { margin-top: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.b-members > summary { display: flex; align-items: center; gap: 8px; padding: 14px 16px; cursor: pointer; font-weight: 600; list-style: none; }
+.b-members > summary::-webkit-details-marker { display: none; }
+.b-members[open] > summary { border-bottom: 1px solid var(--line); }
+.b-members[open] > summary .icon { transform: rotate(180deg); }
+.b-members > :not(summary) { margin-left: 16px; margin-right: 16px; }
+.b-members > :last-child { margin-bottom: 16px; }
+.b-member-search { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; margin-bottom: 16px; max-width: 560px; }
+.b-member-search .form-control { flex: 1 1 220px; }
+.rank-size { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+@media (max-width: 991.98px) { .b-class-top { grid-template-columns: minmax(0, 1fr); } }

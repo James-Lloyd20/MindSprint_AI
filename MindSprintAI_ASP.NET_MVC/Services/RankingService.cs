@@ -9,10 +9,11 @@ public record RankRow(int Rank, string Key, string Name, decimal Percent, TimeSp
 // Rows: GV thấy đủ; học viên thấy top 10 (Mine = hạng của chính mình nếu ngoài top 10). Hidden: lý do học viên chưa xem được.
 public record Leaderboard(List<RankRow> Rows, RankRow? Mine, int Count, string? Hidden);
 
-// Xếp hạng (người dùng chốt 17/11/2026, kiểu Quizizz):
-// - Từng bài: điểm (đúng điểm bảng điểm đang tính) cao trước, bằng điểm thì làm nhanh hơn trước. Ôn tập: học viên thấy ngay;
+// Xếp hạng (người dùng chốt 17/11/2026, kiểu Quizizz; 18/11: mỗi người một hạng, không đồng hạng):
+// - Từng bài: điểm (đúng điểm bảng điểm đang tính) cao trước → làm nhanh hơn → nộp sớm hơn. Ôn tập: học viên thấy ngay;
 //   Kiểm tra / bài theo đề: chỉ sau khi GV công bố điểm. Bài chỉ có thẻ ghi nhớ không có điểm nên không xếp.
-// - Cả lớp: trung bình % các bài đã giao cho học viên đó và đã hiện điểm; bài chưa làm tính 0.
+// - Cả lớp: trung bình % các bài đã giao cho học viên đó và đã hiện điểm; bài chưa làm tính 0. Bằng nhau thì xét
+//   làm được nhiều bài hơn → tổng thời gian làm ít hơn → nộp bài cuối sớm hơn; cuối cùng theo tên để thứ tự luôn cố định.
 // - Học viên thấy top 10 + hạng của mình; GV luôn thấy cả bảng và tắt được bảng của học viên theo từng lớp.
 public sealed class RankingService(AppDbContext db, ClassroomService classrooms)
 {
@@ -33,7 +34,7 @@ public sealed class RankingService(AppDbContext db, ClassroomService classrooms)
             throw new ForbiddenException();
         if (!lecturer && Hidden(a) is { } reason) return new([], null, 0, reason);
         var rows = Order(people.Select(p => Score(p, a) is { } s
-            ? (Key: p.UserId ?? "g" + p.Id, Name: p.User?.DisplayName ?? p.GuestDisplayName ?? "Khách", s.Percent, s.Time, Me: p.UserId == userId)
+            ? (Key: p.UserId ?? "g" + p.Id, Name: p.User?.DisplayName ?? p.GuestDisplayName ?? "Khách", s.Percent, s.Time, s.SubmittedAt, Me: p.UserId == userId)
             : default).Where(r => r.Key != null).ToList());
         return Cut(rows, lecturer);
     }
@@ -52,18 +53,20 @@ public sealed class RankingService(AppDbContext db, ClassroomService classrooms)
         var ids = list.Select(a => a.Id).ToList();
         var people = await db.Participants.AsNoTracking().Include(p => p.Attempts)
             .Where(p => ids.Contains(p.AssignmentId) && p.UserId != null).ToListAsync();
-        var rows = new List<(string Key, string Name, decimal Percent, TimeSpan? Time, bool Me, int Done, int Total)>();
+        var rows = new List<(string Key, string Name, decimal Percent, TimeSpan Time, DateTime Last, bool Me, int Done, int Total)>();
         foreach (var m in members)
         {
             var mine = list.Where(a => AssignmentService.IsAssignedTo(a, m)).ToList();
             if (mine.Count == 0) continue;
             var scores = mine.Select(a => people.FirstOrDefault(p => p.AssignmentId == a.Id && p.UserId == m.UserId) is { } p ? Score(p, a) : null).ToList();
-            rows.Add((m.UserId, m.User.DisplayName, Math.Round(scores.Sum(s => s?.Percent ?? 0) / mine.Count, 1), null, m.UserId == userId,
-                scores.Count(s => s != null), mine.Count));
+            var done = scores.Where(s => s != null).Select(s => s!.Value).ToList();
+            rows.Add((m.UserId, m.User.DisplayName, Math.Round(scores.Sum(s => s?.Percent ?? 0) / mine.Count, 1),
+                TimeSpan.FromTicks(done.Sum(s => s.Time?.Ticks ?? 0)), done.Select(s => s.SubmittedAt).DefaultIfEmpty(DateTime.MaxValue).Max(),
+                m.UserId == userId, done.Count, mine.Count));
         }
-        var ordered = rows.OrderByDescending(r => r.Percent).ThenBy(r => r.Name, StringComparer.CurrentCulture).ToList();
-        var ranked = ordered.Select((r, i) => new RankRow(RankOf(ordered.Select(x => (x.Percent, (TimeSpan?)null)).ToList(), i),
-            r.Key, r.Name, r.Percent, null, r.Me, r.Done, r.Total)).ToList();
+        var ranked = rows.OrderByDescending(r => r.Percent).ThenByDescending(r => r.Done).ThenBy(r => r.Time).ThenBy(r => r.Last)
+            .ThenBy(r => r.Name, StringComparer.CurrentCulture).ThenBy(r => r.Key, StringComparer.Ordinal)
+            .Select((r, i) => new RankRow(i + 1, r.Key, r.Name, r.Percent, r.Time, r.Me, r.Done, r.Total)).ToList();
         return Cut(ranked, lecturer);
     }
 
@@ -81,7 +84,7 @@ public sealed class RankingService(AppDbContext db, ClassroomService classrooms)
         : !VisibleToLearners(a) ? "Bảng xếp hạng hiện sau khi giảng viên công bố điểm." : null;
 
     // % điểm theo đúng lựa chọn của bảng điểm; thời gian = trung bình thời gian làm của các lượt được tính.
-    internal static (decimal Percent, TimeSpan? Time)? Score(Participant p, Assignment a)
+    internal static (decimal Percent, TimeSpan? Time, DateTime SubmittedAt)? Score(Participant p, Assignment a)
     {
         var s = GradebookService.SelectForAssignment(p.Attempts, a);
         if (s == null || s.Max <= 0) return null;
@@ -89,22 +92,15 @@ public sealed class RankingService(AppDbContext db, ClassroomService classrooms)
             ? GradebookService.ScoredAttempts(p.Attempts, a.ScoreSelection)
             : p.Attempts.Where(x => x.Status == AttemptStatus.Ended && !x.ExcludeFromGradebook).OrderByDescending(x => x.AttemptNumber).Take(1).ToList();
         var times = counted.Where(x => x.EndedAt != null).Select(x => x.EndedAt!.Value - x.StartedAt).ToList();
-        return (Math.Round(s.Raw * 100 / s.Max, 1), times.Count == 0 ? null : TimeSpan.FromTicks((long)times.Average(t => t.Ticks)));
+        return (Math.Round(s.Raw * 100 / s.Max, 1), times.Count == 0 ? null : TimeSpan.FromTicks((long)times.Average(t => t.Ticks)),
+            counted.Where(x => x.EndedAt != null).Select(x => x.EndedAt!.Value).DefaultIfEmpty(DateTime.MaxValue).Max());
     }
 
-    private static List<RankRow> Order(List<(string Key, string Name, decimal Percent, TimeSpan? Time, bool Me)> rows)
-    {
-        var ordered = rows.OrderByDescending(r => r.Percent).ThenBy(r => r.Time ?? TimeSpan.MaxValue).ThenBy(r => r.Name, StringComparer.CurrentCulture).ToList();
-        var keys = ordered.Select(r => (r.Percent, r.Time)).ToList();
-        return ordered.Select((r, i) => new RankRow(RankOf(keys, i), r.Key, r.Name, r.Percent, r.Time, r.Me)).ToList();
-    }
-
-    // Đồng hạng kiểu 1, 2, 2, 4: cùng điểm và cùng thời gian thì cùng hạng.
-    private static int RankOf(List<(decimal Percent, TimeSpan? Time)> keys, int i)
-    {
-        while (i > 0 && keys[i - 1] == keys[i]) i--;
-        return i + 1;
-    }
+    // Mỗi người một hạng: hạng = vị trí sau khi xếp (1, 2, 3…).
+    private static List<RankRow> Order(List<(string Key, string Name, decimal Percent, TimeSpan? Time, DateTime SubmittedAt, bool Me)> rows) =>
+        rows.OrderByDescending(r => r.Percent).ThenBy(r => r.Time ?? TimeSpan.MaxValue).ThenBy(r => r.SubmittedAt)
+            .ThenBy(r => r.Name, StringComparer.CurrentCulture).ThenBy(r => r.Key, StringComparer.Ordinal)
+            .Select((r, i) => new RankRow(i + 1, r.Key, r.Name, r.Percent, r.Time, r.Me)).ToList();
 
     public static Leaderboard Cut(List<RankRow> rows, bool lecturer)
     {

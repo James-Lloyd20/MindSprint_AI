@@ -54,7 +54,7 @@ public class XepHangDbTests
     private static RankingService Ranking(Harness h) => new(h.Db, h.Classrooms);
 
     [Fact]
-    public async Task XepHangBai_DiemTruocRoiThoiGian_DongHang()
+    public async Task XepHangBai_DiemTruocRoiThoiGianRoiLucNop_MoiNguoiMotHang()
     {
         using var h = new Harness();
         var s = await h.ScenarioAsync(3);
@@ -64,13 +64,13 @@ public class XepHangDbTests
         await StudentAsync(h, s, "Én (chưa làm)");
         await PlayAsync(h, s.Assignment.Id, s.Student, 3, 5);   // 100%, 5 phút
         await PlayAsync(h, s.Assignment.Id, b, 3, 3);           // 100%, 3 phút → hạng 1
-        await PlayAsync(h, s.Assignment.Id, d, 3, 3);           // 100%, 3 phút → đồng hạng 1
+        await PlayAsync(h, s.Assignment.Id, d, 3, 3);           // 100%, 3 phút như Bình nhưng nộp sau → hạng 2 (18/11: không đồng hạng)
         await PlayAsync(h, s.Assignment.Id, c, 2, 1);           // 66,7% dù nhanh nhất → cuối
 
         var board = await Ranking(h).ForAssignmentAsync(s.Assignment.Id, s.Lecturer);
         Assert.Null(board.Hidden);
-        Assert.Equal([1, 1, 3, 4], board.Rows.Select(r => r.Rank));
-        Assert.Equal(["Bình", "Dũng"], board.Rows.Take(2).Select(r => r.Name).Order());
+        Assert.Equal([1, 2, 3, 4], board.Rows.Select(r => r.Rank));
+        Assert.Equal(["Bình", "Dũng"], board.Rows.Take(2).Select(r => r.Name));
         Assert.Equal(("Minh", 100m), (board.Rows[2].Name, board.Rows[2].Percent));
         Assert.Equal(("Chi", 66.7m), (board.Rows[3].Name, board.Rows[3].Percent));
         Assert.Equal(TimeSpan.FromMinutes(5), board.Rows[2].Time);

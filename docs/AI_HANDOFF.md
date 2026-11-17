@@ -228,3 +228,9 @@
 ### 2026-11-18 — sắp lại Thư viện / trang bộ học (góp ý người dùng)
 - Thẻ trong Thư viện bỏ mục xổ "Quiz và tài liệu" (mở ra kéo cao cả hàng thẻ, các thẻ khác thành khoảng trống); thẻ chỉ còn Mở / Ôn thẻ.
 - `Views/StudySets/Details.cshtml` thành trang quản lý bộ học: mỗi quiz là một mục (trạng thái, số câu, điểm; nút Sửa câu hỏi, Nhập từ Excel nếu chưa từng giao, Giao bài nếu Sẵn sàng; câu hỏi thu gọn trong "Xem N câu hỏi"), mục Thẻ ghi nhớ (số thẻ, thẻ cần ôn, Soạn và ôn thẻ, Giao bài), mục Văn bản nguồn (độ dài, Sửa/Thêm), ô "Thêm quiz mới" chuyển vào đây.
+
+### 2026-11-18 — sắp lại trang lớp của giảng viên + xếp hạng không đồng hạng (góp ý người dùng)
+- `Views/Classrooms/Details.cshtml`: khối đầu trang `.b-class-top` 2 cột — trái "Mã vào lớp" (mã, sao chép, QR, Đổi mã/Dùng lại mã cũ, cách vào lớp bằng mã); phải "Cài đặt lớp" (bật/tắt xếp hạng cho học viên, giảng viên, mời GV phụ, Chuyển lớp / Xóa lớp, lời mời đã gửi). Bỏ mục "Cài đặt lớp" cuối trang.
+- Thứ tự: Bài đã giao → Xếp hạng lớp → Thành viên. Người chờ duyệt luôn hiện (`#class-pending`); danh sách học viên trong `<details id="class-members">` thu gọn, có ô tìm `?q=` (không phân biệt dấu, lọc trước rồi mới chia trang); tự mở khi có `q` hoặc `page`.
+- `RankingService`: **mỗi người một hạng** (người dùng chốt 18/11). Bài: % → thời gian làm ít hơn → nộp sớm hơn → tên. Lớp: % trung bình → làm được nhiều bài hơn → tổng thời gian ít hơn → nộp bài cuối sớm hơn → tên. Bỏ `RankOf`.
+- `_Leaderboard.cshtml`: bảng đầy đủ của GV (> 10 người) có "Mỗi trang" 10/20/50/Tất cả (`rankSize`, `rankPage`, giữ các tham số khác qua `PagerModel.WithQuery`); câu giải thích cách xét khi bằng điểm ngay dưới tiêu đề. Học viên vẫn chỉ thấy top 10 + hạng của mình.

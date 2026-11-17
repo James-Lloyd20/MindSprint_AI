@@ -16,4 +16,14 @@ public record PagerModel(int Page, int TotalPages, Func<int, string> Url, string
         }
         return result;
     }
+
+    // Đường dẫn trang hiện tại, giữ mọi tham số khác và thay các tham số được truyền (vd. phân trang bảng xếp hạng không làm mất trang thành viên).
+    public static string WithQuery(Microsoft.AspNetCore.Http.HttpContext http, string fragment, params (string Key, string Value)[] set)
+    {
+        var request = http.Request;
+        var pairs = request.Query.Where(q => !set.Any(s => s.Key == q.Key))
+            .SelectMany(q => q.Value.Select(v => new KeyValuePair<string, string?>(q.Key, v)))
+            .Concat(set.Select(s => new KeyValuePair<string, string?>(s.Key, s.Value)));
+        return Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString(request.Path, pairs) + "#" + fragment;
+    }
 }
