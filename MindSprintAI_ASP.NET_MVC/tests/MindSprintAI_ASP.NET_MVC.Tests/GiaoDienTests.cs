@@ -292,7 +292,8 @@ public class GiaoDienTests
             ("Views/Classrooms/Index.cshtml", new[] { "new-class-name", "new-class-policy" }),
             ("Views/Classrooms/Join.cshtml", new[] { "join-code" }),
             ("Views/Assignments/Details.cshtml", new[] { "assignment-due", "assignment-due-reason" }),
-            ("Views/StudySets/Index.cshtml", new[] { "new-set-title", "set-title-@set.Id", "quiz-title-@set.Id" }),
+            ("Views/StudySets/Index.cshtml", new[] { "new-set-title", "set-title-@set.Id" }),
+            ("Views/StudySets/Details.cshtml", new[] { "new-quiz-title" }),   // 18/11: "Thêm quiz" chuyển vào trang bộ học
             ("Views/StudySets/Quiz.cshtml", new[] { "option-text-@i", "option-correct-@i", "blank-answer-@i" }),
             ("Views/Import/Preview.cshtml", new[] { "include-@i", "import-@i-@col" }) })
         {

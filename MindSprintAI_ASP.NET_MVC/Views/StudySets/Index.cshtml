@@ -125,37 +125,7 @@ else
                 <a class="btn btn-primary" asp-controller="Flashcards" asp-action="Editor" asp-route-id="@set.Id">Ôn thẻ</a>
             </div>
 
-            <details class="c-library-extra"><summary>Quiz và tài liệu</summary>
-            <div class="set-primary-links">
-                <a class="btn btn-sm btn-outline-secondary" asp-controller="SourceTexts" asp-action="Edit" asp-route-id="@set.Id"><icon name="file-text" />Văn bản nguồn</a>
-            </div>
-            <div class="set-quizzes">
-                <p class="set-quizzes-label">Quiz trong bộ (@quizzes.Count)</p>
-                @if (quizzes.Count > 0)
-                {
-                    <ul class="set-quiz-list">
-                    @foreach (var quiz in quizzes)
-                    {
-                        var ready = quiz.Status == QuizStatus.Ready;
-                        <li class="set-quiz-row">
-                            <a class="set-quiz-link" asp-action="Quiz" asp-route-id="@quiz.Id"><icon name="book-open-text" />@quiz.Title</a>
-                            <span class="acc-state @(ready ? "is-on" : "is-off")">
-                                <icon name="@(ready ? "check" : "pencil")" />@(ready ? "Sẵn sàng giao" : "Nháp")
-                            </span>
-                        </li>
-                    }
-                    </ul>
-                }
-                <form method="post" asp-action="CreateQuiz" class="set-add-quiz">
-                    <input type="hidden" name="studySetId" value="@set.Id" />
-                    <div class="set-add-quiz-field">
-                        <label for="quiz-title-@set.Id" class="form-label small mb-1">Tên quiz mới</label>
-                        <input id="quiz-title-@set.Id" name="title" maxlength="200" class="form-control form-control-sm" placeholder="Tên quiz mới" required />
-                    </div>
-                    <button class="btn btn-sm btn-outline-primary text-nowrap"><icon name="plus" />Thêm quiz</button>
-                </form>
-            </div>
-            </details>
+            @* Quiz, thẻ, văn bản nguồn và "Thêm quiz" nằm trong trang bộ học (nút Mở): mục xổ ở đây từng kéo cao cả hàng thẻ (góp ý 18/11). *@
         </article>
     }
     </div>

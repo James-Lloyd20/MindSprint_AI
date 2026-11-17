@@ -61,6 +61,9 @@ public class StudySetsController(StudyLibraryService library, StudySetCloneServi
     {
         var set = await library.GetOwnedContentsAsync(id, UserId);
         ViewData["UnhideRequest"] = await requests.LatestOwnedAsync(id, UserId);
+        ViewData["Counts"] = (await library.GetOwnedCountsAsync(UserId)).GetValueOrDefault(id);
+        ViewData["SrsDue"] = (await library.SrsDueCountsAsync(UserId)).Sets.GetValueOrDefault(id);
+        ViewData["SourceLength"] = await library.SourceLengthAsync(id);
         // Ghi rõ tên view: RequestUnhide gọi lại hàm này để hiện lại form khi bị từ chối.
         return View(nameof(Details), set);
     }

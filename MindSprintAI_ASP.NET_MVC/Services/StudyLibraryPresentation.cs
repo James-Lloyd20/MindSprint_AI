@@ -14,6 +14,10 @@ public partial class StudyLibraryService
             Cards = db.Flashcards.Count(c => c.StudySetId == s.Id && c.DeletedAt == null) })
         .ToDictionaryAsync(s => s.Id, s => new StudySetCounts(s.Questions, s.Cards));
 
+    // Trang bộ học (18/11): độ dài văn bản nguồn để hiện "N ký tự" / "chưa có" ở mục Văn bản nguồn.
+    public Task<int> SourceLengthAsync(int studySetId) =>
+        db.SourceTexts.Where(s => s.StudySetId == studySetId).Select(s => s.Content.Length).FirstOrDefaultAsync();
+
     public async Task<StudySet> GetOwnedContentsAsync(int id, string userId)
     {
         await GetOwnedStudySetAsync(id, userId);

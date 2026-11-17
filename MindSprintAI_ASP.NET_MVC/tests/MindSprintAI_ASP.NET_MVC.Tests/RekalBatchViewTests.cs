@@ -17,8 +17,10 @@ public class RekalBatchViewTests
     public void ThuVienDangHangVaChiTietCoAnHienDapAn()
     {
         var library = Read("Views/StudySets/Index.cshtml");
-        foreach (var value in new[] { "c-library-row", "Giao bài", ">Mở</a>", "ellipsis", "asp-action=\"Rename\"", "asp-action=\"Delete\"", "asp-action=\"CreateQuiz\"", "library-search", "library-sort" }) Assert.Contains(value, library);
+        foreach (var value in new[] { "c-library-row", "Giao bài", ">Mở</a>", "ellipsis", "asp-action=\"Rename\"", "asp-action=\"Delete\"", "library-search", "library-sort" }) Assert.Contains(value, library);
         var details = Read("Views/StudySets/Details.cshtml");
+        Assert.Contains("asp-action=\"CreateQuiz\"", details);   // 18/11: thêm quiz trong trang bộ học, không còn trong thẻ Thư viện
+        Assert.DoesNotContain("Quiz và tài liệu", library);
         Assert.Contains("data-answer-toggle", details);
         Assert.Contains("type=\"checkbox\"", details);
         Assert.Contains("for=\"show-answers\"", details);
