@@ -372,3 +372,10 @@ TestResults/
 
 # Cấu hình chạy thật trên server (mật khẩu, khóa)
 deploy/.env
+
+# Tệp riêng cho AI (quy tắc, bàn giao, bộ nhớ) — chỉ giữ trên máy, không đưa lên GitHub
+AGENTS.md
+CLAUDE.md
+.claude/
+docs/AI_HANDOFF.md
+docs/BAO_CAO_DEM_*.md

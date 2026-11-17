@@ -11,7 +11,7 @@ public record VocabCard([property: JsonPropertyName("c")] string Category, [prop
 public record VocabTopic(string Category, string CategoryName, string Topic, int Count);
 
 // Thư viện từ vựng hệ thống của nhóm (frontend/vocab_data.js: 3000 từ Oxford theo chủ đề + thẻ mặc định), chỉ đọc.
-// Data/Vocab/vocab.json trích bằng tools/extract-vocab (xem AI_HANDOFF). Nạp một lần khi khởi động (≈ 270 KB).
+// Data/Vocab/vocab.json trích bằng tools/vocab/extract-vocab.cjs. Nạp một lần khi khởi động (≈ 270 KB).
 public sealed class VocabCatalog
 {
     private sealed record File(Dictionary<string, string> Categories, List<VocabCard> Cards);

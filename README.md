@@ -55,5 +55,3 @@ Test dùng database riêng `MindSprintAI_Tests` (tự tạo). Máy ít RAM: tắ
 - `docs/KICH_BAN_DEMO.md` — kịch bản trình diễn 10 phút
 - `docs/DOI_CHIEU_CHUC_NANG.md` — đối chiếu tính năng với bản nhóm cũ và QuizEdu
 - `docs/GIAO_DIEN_NHOM.md` + `docs/giao-dien-nhom/` — giao diện chuẩn của nhóm
-- `docs/AI_HANDOFF.md` — nhật ký thay đổi chi tiết
-- `AGENTS.md` — quy ước khi nhờ AI sửa code
