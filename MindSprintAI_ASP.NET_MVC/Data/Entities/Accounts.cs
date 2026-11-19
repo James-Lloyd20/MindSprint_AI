@@ -11,6 +11,8 @@ public class ApplicationUser : IdentityUser
     public AvatarSource AvatarSource { get; set; }
     public bool AvatarHidden { get; set; }
     public DateTime? AvatarUpdatedAt { get; set; }
+    // Lần tự đổi tên hiển thị gần nhất (ProfileService: mỗi lần cách nhau ít nhất 7 ngày).
+    public DateTime? DisplayNameChangedAt { get; set; }
 
     // Chỉ đổi màn hình chính, không đổi quyền (37B, 38A).
     public UserMode CurrentMode { get; set; } = UserMode.Learner;

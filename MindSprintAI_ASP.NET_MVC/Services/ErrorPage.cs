@@ -33,17 +33,29 @@ public static class ErrorPage
         + "<p>Địa chỉ có thể đã gõ sai, hoặc trang đã bị xóa.</p>"
         + "<p><a href=\"/\">Về trang chủ</a></p></main></body></html>";
 
-    // Chỉ cho trình duyệt mở trang (GET, nhận HTML), không cho tệp tĩnh hay lời gọi fetch/JSON: những thứ đó giữ 404 trơn.
-    public static bool WantsNotFoundPage(HttpContext context) =>
-        context.Response.StatusCode == StatusCodes.Status404NotFound
+    // Kiểm thử 19/11: khu quản trị trả 403 rỗng cho người không phải quản trị (Chrome coi là tệp tải về) → cùng cách như 404.
+    public static readonly string ForbiddenHtml =
+        "<!DOCTYPE html><html lang=\"vi\"><head><meta charset=\"utf-8\" />"
+        + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
+        + $"<title>Không có quyền - {WebUtility.HtmlEncode(Brand.Name)}</title>"
+        + "<link rel=\"stylesheet\" href=\"/lib/bootstrap/dist/css/bootstrap.min.css\" /></head>"
+        + "<body><main class=\"container py-4\" style=\"max-width:40rem\">"
+        + $"<p><a href=\"/\" class=\"fw-bold text-decoration-none\">{WebUtility.HtmlEncode(Brand.Name)}</a></p>"
+        + "<h1 class=\"h3\">Bạn không có quyền xem trang này.</h1>"
+        + "<p>Trang này chỉ dành cho người có vai trò phù hợp, ví dụ quản trị viên hoặc giảng viên của lớp.</p>"
+        + "<p><a href=\"/\">Về trang chủ</a></p></main></body></html>";
+
+    // Chỉ cho trình duyệt mở trang (GET, nhận HTML), không cho tệp tĩnh hay lời gọi fetch/JSON: những thứ đó giữ 403/404 trơn.
+    public static bool WantsStatusPage(HttpContext context) =>
+        context.Response.StatusCode is StatusCodes.Status404NotFound or StatusCodes.Status403Forbidden
         && (HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method))
         && context.Request.Headers.Accept.ToString().Contains("text/html", StringComparison.OrdinalIgnoreCase)
         && !new[] { "/css", "/js", "/lib", "/img", "/hubs" }.Any(p => context.Request.Path.StartsWithSegments(p));
 
-    public static async Task WriteNotFoundAsync(HttpContext context)
+    public static async Task WriteStatusPageAsync(HttpContext context)
     {
         context.Response.ContentType = "text/html; charset=utf-8";
-        await context.Response.WriteAsync(NotFoundHtml);
+        await context.Response.WriteAsync(context.Response.StatusCode == StatusCodes.Status403Forbidden ? ForbiddenHtml : NotFoundHtml);
     }
 
     public static async Task WriteAsync(HttpContext context)

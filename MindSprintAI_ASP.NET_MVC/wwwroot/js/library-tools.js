@@ -6,10 +6,14 @@
     if (list && search && sort) {
         document.querySelector('.c-library-tools').hidden = false;
         const category = document.getElementById('library-category');
-        const filter = () => [...list.children].forEach(row => {
-            row.hidden = !normalize(row.dataset.libraryName).includes(normalize(search.value))
-                || (category?.value ? row.dataset.libraryCategory !== category.value : false);
-        });
+        const empty = document.querySelector('.c-library-empty');
+        const filter = () => {
+            [...list.children].forEach(row => {
+                row.hidden = !normalize(row.dataset.libraryName).includes(normalize(search.value))
+                    || (category?.value ? row.dataset.libraryCategory !== category.value : false);
+            });
+            if (empty) empty.hidden = [...list.children].some(row => !row.hidden);
+        };
         search.addEventListener('input', filter);
         category?.addEventListener('change', filter);
         sort.addEventListener('change', () => {

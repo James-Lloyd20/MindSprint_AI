@@ -47,7 +47,8 @@ public static class AuditDisplay
         "Quản trị viên đề nghị chuyển lớp", "Xem nhật ký hoạt động", "Thao tác không hoàn tất", "Hủy xin chuyển thiết bị", "Xóa báo cáo bài giao", "Nâng giảng viên chính", "Xem báo cáo nội dung",
         "Xem danh sách tài khoản", "Xem tài khoản", "Xem lịch sử quyền quản trị viên", "Xem danh sách báo cáo", "Xem danh sách chuyển lớp",
         "Xử lý báo cáo nội dung", "Bật mã xác thực qua email", "Tắt mã xác thực qua email", "Dừng lượt làm bài", "Hoàn thành lượt làm bài",
-        "Xin bỏ ẩn bộ học", "Bỏ ẩn bộ học", "Từ chối bỏ ẩn", "Đổi cách vào lớp", "Xóa tài khoản"
+        "Xin bỏ ẩn bộ học", "Bỏ ẩn bộ học", "Từ chối bỏ ẩn", "Đổi cách vào lớp", "Xóa tài khoản",
+        "Chấm bài theo đề", "Đổi tên hiển thị"
     ];
     public static string Text(this AuditAction action) => (int)action > 0 && (int)action < Actions.Length ? Actions[(int)action] : "Thao tác khác";
     public static string Text(this AuditResult result) => result switch

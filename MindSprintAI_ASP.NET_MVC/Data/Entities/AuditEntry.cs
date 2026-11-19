@@ -38,7 +38,8 @@ public enum AuditAction
     AttemptStopped = 107, AttemptCompleted = 108,
     UnhideRequested = 109, ContentUnhidden = 110, UnhideRejected = 111,
     ClassroomJoinPolicyChanged = 112, AccountDeleted = 113,
-    PaperGraded = 114 // GV chấm tay bài làm theo đề
+    PaperGraded = 114, // GV chấm tay bài làm theo đề
+    DisplayNameChanged = 115 // tự đổi tên hiển thị (ProfileService)
 }
 
 // (NK3) Không FK vào dữ liệu sống: vẫn tra được sau khi đối tượng bị xóa; không lưu địa chỉ mạng.

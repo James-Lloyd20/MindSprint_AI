@@ -20,13 +20,13 @@
                 <label asp-for="Email" class="visually-hidden">Email</label>
                 <div class="auth-field">
                     <icon name="mail" class="auth-field-icon" />
-                    <input asp-for="Email" class="form-control auth-input" autocomplete="email" placeholder="Địa chỉ email" />
+                    <input asp-for="Email" class="form-control auth-input" autocomplete="email" placeholder="Địa chỉ email" required maxlength="256" />
                 </div>
                 <span asp-validation-for="Email" class="text-danger small d-block mb-2"></span>
                 <label asp-for="DisplayName" class="visually-hidden"></label>
                 <div class="auth-field">
                     <icon name="user" class="auth-field-icon" />
-                    <input asp-for="DisplayName" class="form-control auth-input" autocomplete="name" placeholder="Tên hiển thị của bạn" />
+                    <input asp-for="DisplayName" class="form-control auth-input" autocomplete="name" placeholder="Tên hiển thị của bạn" required maxlength="100" />
                 </div>
                 <span asp-validation-for="DisplayName" class="text-danger small d-block mb-2"></span>
                 <div class="consent-check">

@@ -270,7 +270,7 @@ public partial class AccountController(
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> Index([FromServices] UserApiKeyService keys, [FromServices] TwoFactorService twoFactor, [FromServices] PasskeyService passkeys,
         [FromServices] ExternalLoginService external, [FromServices] DeviceSessionService devices,
-        [FromServices] AccountDeletionService deletion)
+        [FromServices] AccountDeletionService deletion, [FromServices] ProfileService profile)
     {
         ViewData["DeleteBlock"] = await deletion.BlockReasonAsync(UserId);
         ViewData["GeminiLastFour"] = await keys.LastFourAsync(UserId);
@@ -280,6 +280,8 @@ public partial class AccountController(
         ViewData["Passkeys"] = await passkeys.ListAsync(user);
         ViewData["ExternalLogins"] = await external.PageAsync(user);
         ViewData["Devices"] = await devices.ListAsync(UserId, User); // (T6)
+        ViewData["NextRenameAt"] = profile.NextRenameAt(user);
+        ViewData["HasPassword"] = await users.HasPasswordAsync(user);
         return View(user);
     }
 

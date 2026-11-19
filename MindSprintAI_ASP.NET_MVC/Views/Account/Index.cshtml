@@ -40,6 +40,14 @@
         <nav class="acc-toc" aria-label="Mục lục cài đặt">
             <p class="acc-toc-title"><icon name="list-ordered" />Mục lục nhanh</p>
             <ul class="acc-toc-list">
+                @if (!Model.IsGuest)
+                {
+                    <li><a class="acc-toc-link" href="#sec-profile"><icon name="user-check" />Thông tin cá nhân</a></li>
+                    @if (ViewData["HasPassword"] is true)
+                    {
+                        <li><a class="acc-toc-link" href="#sec-password"><icon name="key-round" />Đổi mật khẩu</a></li>
+                    }
+                }
                 <li><a class="acc-toc-link" href="#sec-avatar"><icon name="user" />Ảnh đại diện</a></li>
                 <li><a class="acc-toc-link" href="#sec-appearance"><icon name="sun" />Giao diện</a></li>
                 @if (ViewData["Devices"] is DevicePage)
@@ -76,6 +84,49 @@
     </div>
 
     <div class="acc-main">
+        @if (!Model.IsGuest)
+        {
+            @* Tự cập nhật hồ sơ (19/11): quy tắc ở ProfileService — tên như lúc đăng ký, mỗi lần đổi cách nhau 7 ngày. *@
+            <section class="acc-card" id="sec-profile" aria-labelledby="profile-title">
+                <h2 class="section-head" id="profile-title"><span class="section-icon" style="--tint:var(--acid)"><icon name="user-check" /></span>Thông tin cá nhân</h2>
+                <dl class="acc-facts">
+                    <dt>Email đăng nhập</dt><dd>@Model.Email</dd>
+                    <dt>Ngày tạo tài khoản</dt><dd>@VnTime.Format(Model.CreatedAt)</dd>
+                </dl>
+                @if (ViewData["NextRenameAt"] is DateTime nextRename)
+                {
+                    <p class="acc-desc">Tên hiển thị: <b>@Model.DisplayName</b>. Bạn vừa đổi tên; đổi lại được từ @VnTime.Format(nextRename).</p>
+                }
+                else
+                {
+                    <form method="post" asp-action="ChangeName" class="acc-inline-form">
+                        <label class="form-label" for="profile-name">Tên hiển thị</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <input class="form-control" id="profile-name" name="displayName" value="@Model.DisplayName" maxlength="@ProfileService.MaxName" required autocomplete="name" />
+                            <button class="btn btn-primary"><icon name="check" />Lưu tên</button>
+                        </div>
+                        <p class="small text-muted mt-1 mb-0">Tên hiện trong lớp học, bảng điểm và bảng xếp hạng. Mỗi lần đổi cách nhau ít nhất 7 ngày.</p>
+                    </form>
+                }
+            </section>
+            @if (ViewData["HasPassword"] is true)
+            {
+                <section class="acc-card" id="sec-password" aria-labelledby="password-title">
+                    <h2 class="section-head" id="password-title"><span class="section-icon" style="--tint:var(--warn)"><icon name="key-round" /></span>Đổi mật khẩu</h2>
+                    <p class="acc-desc">Đổi xong, máy này vẫn đăng nhập; các thiết bị khác bị đăng xuất và bạn nhận email báo.</p>
+                    <form method="post" asp-action="ChangePassword" class="acc-password-form">
+                        <label class="form-label" for="current-password">Mật khẩu hiện tại</label>
+                        <input class="form-control mb-2" id="current-password" name="currentPassword" type="password" autocomplete="current-password" required />
+                        <label class="form-label" for="new-password">Mật khẩu mới</label>
+                        <input class="form-control mb-1" id="new-password" name="newPassword" type="password" autocomplete="new-password" minlength="8" required aria-describedby="new-password-policy" />
+                        <p class="small text-muted mb-2" id="new-password-policy">Ít nhất 8 ký tự, gồm chữ hoa, chữ thường, chữ số và ký tự đặc biệt.</p>
+                        <label class="form-label" for="confirm-password">Nhập lại mật khẩu mới</label>
+                        <input class="form-control mb-3" id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required />
+                        <button class="btn btn-primary"><icon name="key-round" />Đổi mật khẩu</button>
+                    </form>
+                </section>
+            }
+        }
         <section class="acc-card" id="sec-avatar" aria-labelledby="avatar-title">
             <h2 class="section-head" id="avatar-title"><span class="section-icon" style="--tint:var(--blue)"><icon name="user" /></span>Ảnh đại diện</h2>
             <partial name="_Avatar" model="Model" />

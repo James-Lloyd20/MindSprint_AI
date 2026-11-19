@@ -135,6 +135,7 @@ builder.Services.AddScoped<LoginService>();
 builder.Services.AddScoped<TwoFactorService>();
 builder.Services.AddScoped<PasskeyService>();
 builder.Services.AddScoped<ExternalLoginService>();
+builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<AvatarService>();
 builder.Services.AddScoped<JoinCodeGuardService>();
 builder.Services.AddScoped<AccountLockService>();
@@ -248,9 +249,9 @@ app.UseMiddleware<AuditScopeMiddleware>();
 // (NK1) Viết trang lỗi trực tiếp, không cần cơ sở dữ liệu (xem Services/ErrorPage.cs).
 app.UseExceptionHandler(new ExceptionHandlerOptions { ExceptionHandler = ErrorPage.WriteAsync, SuppressDiagnosticsCallback = _ => true });
 app.UseMiddleware<RequestExceptionCaptureMiddleware>();
-// 404 khi mở trang -> trang "Không tìm thấy trang" (ErrorPage.WantsNotFoundPage); tệp tĩnh, fetch/JSON giữ 404 trơn.
-app.UseStatusCodePages(status => ErrorPage.WantsNotFoundPage(status.HttpContext)
-    ? ErrorPage.WriteNotFoundAsync(status.HttpContext) : Task.CompletedTask);
+// 404/403 rỗng khi mở trang -> trang "Không tìm thấy trang" / "Không có quyền" (ErrorPage.WantsStatusPage); tệp tĩnh, fetch/JSON giữ mã trơn.
+app.UseStatusCodePages(status => ErrorPage.WantsStatusPage(status.HttpContext)
+    ? ErrorPage.WriteStatusPageAsync(status.HttpContext) : Task.CompletedTask);
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
